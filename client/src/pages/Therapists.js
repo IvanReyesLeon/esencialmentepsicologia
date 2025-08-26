@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { therapistAPI } from '../services/api';
 import './Therapists.css';
 
@@ -77,49 +78,13 @@ const Therapists = () => {
                     <h3>{therapist.fullName}</h3>
                     <p className="therapist-title">{therapist.specialization.join(' • ')}</p>
                     <p className="therapist-description">{therapist.bio}</p>
-                    <button className="btn btn-secondary therapist-btn">CONOCER MÁS</button>
-                    <p className="bio">{therapist.bio}</p>
-
-                    <div className="details">
-                      <div className="detail-item">
-                        <strong>Experiencia:</strong> {therapist.experience} años
-                      </div>
-                      
-                      {therapist.languages && therapist.languages.length > 0 && (
-                        <div className="detail-item">
-                          <strong>Idiomas:</strong> {therapist.languages.join(', ')}
-                        </div>
-                      )}
-
-                      {therapist.sessionTypes && therapist.sessionTypes.length > 0 && (
-                        <div className="detail-item">
-                          <strong>Tipos de sesión:</strong>
-                          <div className="session-types">
-                            {therapist.sessionTypes.map((type, index) => (
-                              <span key={index} className="session-type">
-                                {type === 'individual' && 'Individual'}
-                                {type === 'couple' && 'Pareja'}
-                                {type === 'family' && 'Familiar'}
-                                {type === 'group' && 'Grupal'}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {therapist.education && therapist.education.length > 0 && (
-                        <div className="detail-item">
-                          <strong>Formación:</strong>
-                          <ul className="education-list">
-                            {therapist.education.map((edu, index) => (
-                              <li key={index}>
-                                {edu.degree} - {edu.university} ({edu.year})
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
+                    <Link
+                      to={`/terapeutas/${therapist._id}`}
+                      state={{ therapist }}
+                      className="btn btn-secondary therapist-btn"
+                    >
+                      CONOCER MÁS
+                    </Link>
                   </div>
                 </div>
               ))}

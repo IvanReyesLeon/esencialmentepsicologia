@@ -6,6 +6,7 @@ import CookieConsent from './components/CookieConsent';
 import Home from './pages/Home';
 import Services from './pages/Services';
 import Therapists from './pages/Therapists';
+import TherapistDetail from './pages/TherapistDetail';
 import Contact from './pages/Contact';
 import Location from './pages/Location';
 import Admin from './pages/Admin';
@@ -20,6 +21,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/terapeutas" element={<Therapists />} />
+            <Route path="/terapeutas/:id" element={<TherapistDetail />} />
             <Route path="/servicios" element={<Services />} />
             <Route path="/donde-estamos" element={<Location />} />
             <Route path="/contacto" element={<Contact />} />
