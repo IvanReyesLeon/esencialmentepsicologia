@@ -1,4 +1,5 @@
 import React from 'react';
+import ConsentGoogleMaps from '../components/ConsentGoogleMaps';
 import './Location.css';
 
 const Location = () => {
@@ -49,16 +50,13 @@ const Location = () => {
             
             <div className="map-section">
               <div className="map-container">
-                <iframe
+                <ConsentGoogleMaps
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2985.123456789!2d2.1406!3d41.4912!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12a4968c5f5f5f5f%3A0x5f5f5f5f5f5f5f5f!2sCarrer%20del%20Pintor%20Togores%2C%201%2C%2008290%20Cerdanyola%20del%20Vall%C3%A8s%2C%20Barcelona!5e0!3m2!1ses!2ses!4v1234567890123!5m2!1ses!2ses"
                   width="100%"
                   height="400"
                   style={{ border: 0 }}
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
                   title="Esencialmente Psicología - Anna Becerra"
-                ></iframe>
+                />
               </div>
             </div>
           </div>

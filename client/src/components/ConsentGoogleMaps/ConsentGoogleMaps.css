@@ -1,0 +1,88 @@
+.map-consent-placeholder {
+  background-color: #f5f5f5;
+  border: 2px dashed #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.consent-content {
+  text-align: center;
+  padding: 40px 20px;
+  max-width: 500px;
+}
+
+.map-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.consent-content h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.consent-content p {
+  margin: 0 0 20px 0;
+  color: #666;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.btn-accept-maps {
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-bottom: 15px;
+}
+
+.btn-accept-maps:hover {
+  background-color: #357ae8;
+}
+
+.consent-info {
+  color: #666;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.privacy-link {
+  font-size: 12px;
+  color: #4285f4;
+  text-decoration: none;
+}
+
+.privacy-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .consent-content {
+    padding: 30px 15px;
+  }
+  
+  .map-icon {
+    font-size: 36px;
+  }
+  
+  .consent-content h3 {
+    font-size: 1rem;
+  }
+  
+  .consent-content p {
+    font-size: 13px;
+  }
+  
+  .btn-accept-maps {
+    font-size: 14px;
+    padding: 10px 20px;
+  }
+}
