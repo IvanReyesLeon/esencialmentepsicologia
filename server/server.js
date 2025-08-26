@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
 
-// Import routes
 const authRoutes = require('./routes/auth');
 const therapistRoutes = require('./routes/therapists');
 const pricingRoutes = require('./routes/pricing');
@@ -12,37 +11,58 @@ const contactRoutes = require('./routes/contact');
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// --- CORS: permite tu front en Vercel (y local) ---
+const allowed = (process.env.CLIENT_ORIGINS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin(origin, cb) {
+    // Permite peticiones sin origin (curl/healthchecks) o si está en la lista
+    if (!origin || allowed.length === 0 || allowed.includes(origin)) return cb(null, true);
+    cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
+
+// Preflight
+app.options('*', cors());
+
 app.use(express.json());
-app.use(morgan('dev'));
+if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+// --- Conexión a MongoDB Atlas ---
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    // Estos flags ya son default en Mongoose >= 6, los dejo por claridad
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    // keepAlive ayuda en PaaS
+    serverSelectionTimeoutMS: 15000
+  })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => {
+    console.error('MongoDB connection error:', err.message);
+    process.exit(1);
+  });
 
-// Routes
+// --- Rutas ---
 app.use('/api/auth', authRoutes);
 app.use('/api/therapists', therapistRoutes);
 app.use('/api/pricing', pricingRoutes);
 app.use('/api/contact', contactRoutes);
 
-// Basic route for testing
-app.get('/', (req, res) => {
-  res.send('Psychology Clinic API is running');
-});
+// Health & raíz
+app.get('/health', (req, res) => res.json({ ok: true }));
+app.get('/', (req, res) => res.send('Psychology Clinic API is running'));
 
-// Error handling middleware
+// Errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send('Something broke!');
+  res.status(500).json({ error: 'Something broke!' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// --- Arranque ---
+const PORT = process.env.PORT || 5000; // Render asigna PORT
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
