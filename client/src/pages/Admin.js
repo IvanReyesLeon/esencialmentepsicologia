@@ -117,11 +117,31 @@ const Admin = () => {
       // Create FormData for file upload
       const submitData = new FormData();
       submitData.append('fullName', formData.fullName);
-      submitData.append('specialization', formData.specialization);
       submitData.append('bio', formData.bio);
       submitData.append('experience', parseInt(formData.experience));
-      submitData.append('languages', formData.languages || '');
-      submitData.append('sessionTypes', JSON.stringify(formData.sessionTypes));
+
+      // specialization: split CSV and append as repeated fields
+      const specs = (formData.specialization || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      if (specs.length > 0) {
+        specs.forEach(s => submitData.append('specialization', s));
+      }
+
+      // languages: split CSV and append as repeated fields
+      const langs = (formData.languages || '')
+        .split(',')
+        .map(l => l.trim())
+        .filter(Boolean);
+      if (langs.length > 0) {
+        langs.forEach(l => submitData.append('languages', l));
+      }
+
+      // sessionTypes: append each selected value directly (no JSON.stringify)
+      if (Array.isArray(formData.sessionTypes) && formData.sessionTypes.length > 0) {
+        formData.sessionTypes.forEach(t => submitData.append('sessionTypes', t));
+      }
       
       // Append photo file if selected
       if (formData.photo) {
@@ -151,8 +171,10 @@ const Admin = () => {
       
     } catch (error) {
       console.error('Error completo:', error);
-      const errorMessage = error.message || 'Error desconocido';
-      setMessage('❌ Error al añadir terapeuta: ' + errorMessage);
+      const backendMsg = error.response?.data?.message;
+      const status = error.response?.status;
+      const errorMessage = backendMsg || error.message || 'Error desconocido';
+      setMessage(`❌ Error al añadir terapeuta${status ? ` (HTTP ${status})` : ''}: ${errorMessage}`);
     } finally {
       setLoading(false);
     }

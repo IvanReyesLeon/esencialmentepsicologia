@@ -1,6 +1,34 @@
 const Therapist = require('../models/Therapist');
 const User = require('../models/User');
 
+// Helpers to normalize inputs coming from multipart/form-data
+const normalizeToArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    const s = value.trim();
+    if (!s) return [];
+    // Try JSON first if it looks like an array string
+    if ((s.startsWith('[') && s.endsWith(']')) || (s.startsWith('"') && s.endsWith('"'))) {
+      try {
+        const parsed = JSON.parse(s);
+        return Array.isArray(parsed) ? parsed : [String(parsed)];
+      } catch (e) {
+        // fall through to CSV split
+      }
+    }
+    return s.split(',').map((x) => x.trim()).filter(Boolean);
+  }
+  if (value == null) return [];
+  return [String(value)];
+};
+
+const normalizeSessionTypes = (value) => {
+  const allowed = new Set(['individual', 'couple', 'family', 'group']);
+  return normalizeToArray(value)
+    .map((v) => String(v).toLowerCase().trim())
+    .filter((v) => allowed.has(v));
+};
+
 // @desc    Get all therapists
 // @route   GET /api/therapists
 // @access  Public
@@ -71,16 +99,24 @@ exports.getTherapist = async (req, res) => {
 // @access  Private/Admin
 exports.createTherapist = async (req, res) => {
   try {
-    const therapistData = {
-      ...req.body,
-      // If file was uploaded, use the filename
-      photo: req.file ? req.file.filename : req.body.photo || ''
-    };
+    // Normalize incoming body (multipart/form-data makes everything strings)
+    const therapistData = { ...req.body };
+
+    therapistData.fullName = (therapistData.fullName || '').trim();
+    therapistData.bio = (therapistData.bio || '').trim();
+    therapistData.experience = Number(therapistData.experience ?? 0);
+    therapistData.specialization = normalizeToArray(therapistData.specialization);
+    therapistData.languages = normalizeToArray(therapistData.languages);
+    therapistData.sessionTypes = normalizeSessionTypes(therapistData.sessionTypes);
+
+    // If file was uploaded, use the filename; otherwise keep provided name or empty
+    therapistData.photo = req.file ? req.file.filename : (therapistData.photo || '');
     
     const therapist = new Therapist(therapistData);
     await therapist.save();
     res.status(201).json(therapist);
   } catch (error) {
+    console.error('Create therapist validation error:', error);
     res.status(400).json({ message: error.message });
   }
 };
