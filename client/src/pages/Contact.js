@@ -75,52 +75,10 @@ const Contact = () => {
             </div>
           </div>
 
-          <div className="contact-grid">
-            {/* Contact Information */}
-            <div className="contact-info">
-              <h2>Información Completa</h2>
-              
-              <div className="info-item">
-                <div className="info-icon">📍</div>
-                <div>
-                  <h3>Dirección</h3>
-                  <p>Carrer del Pintor Togores, 1<br />08290 Cerdanyola del Vallès, Barcelona</p>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <div className="info-icon">📞</div>
-                <div>
-                  <h3>Teléfono</h3>
-                  <p>649 49 01 40</p>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <div className="info-icon">✉️</div>
-                <div>
-                  <h3>Email</h3>
-                  <p>info@esencialmentepsicologia.com</p>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <div className="info-icon">🕒</div>
-                <div>
-                  <h3>Horarios</h3>
-                  <p>
-                    Lunes - Viernes: 9:00 - 20:00<br />
-                    Sábados: 9:00 - 14:00<br />
-                    Domingos: Cerrado
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Form */}
-            <div className="contact-form-section">
-              <h2>Envíanos un Mensaje</h2>
-              <form onSubmit={handleSubmit} className="contact-form">
+          {/* Contact Form - Centered */}
+          <div className="contact-form-centered">
+            <h2>Envíanos un Mensaje</h2>
+            <form onSubmit={handleSubmit} className="contact-form">
                 <div className="form-group">
                   <label htmlFor="name">Nombre *</label>
                   <input
@@ -193,7 +151,6 @@ const Contact = () => {
                   </div>
                 )}
               </form>
-            </div>
           </div>
         </div>
       </div>
