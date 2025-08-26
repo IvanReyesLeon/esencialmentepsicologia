@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { therapistAPI } from '../services/api';
+import { therapistAPI, API_ROOT } from '../services/api';
 import './Admin.css';
 
 const Admin = () => {
@@ -332,8 +332,9 @@ const Admin = () => {
                 <div className="therapist-photo">
                   {therapist.photo ? (
                     <img 
-                      src={`/assets/terapeutas/${therapist.photo}`} 
+                      src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
                       alt={therapist.fullName}
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `/assets/terapeutas/${therapist.photo}`; }}
                     />
                   ) : (
                     <div className="no-photo">Sin foto</div>

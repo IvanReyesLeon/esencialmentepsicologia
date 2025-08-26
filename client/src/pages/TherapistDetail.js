@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { therapistAPI } from '../services/api';
+import { therapistAPI, API_ROOT } from '../services/api';
 import './TherapistDetail.css';
 
 const labelForSessionType = (type) => {
@@ -68,9 +68,10 @@ const TherapistDetail = () => {
             <div className="photo-wrapper">
               {therapist.photo ? (
                 <img
-                  src={`/assets/terapeutas/${therapist.photo}`}
+                  src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
                   alt={therapist.fullName}
                   className="photo"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `/assets/terapeutas/${therapist.photo}`; }}
                 />
               ) : (
                 <div className="placeholder-avatar">👤</div>

@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
+const path = require('path');
 
 const authRoutes = require('./routes/auth');
 const therapistRoutes = require('./routes/therapists');
@@ -31,6 +32,10 @@ app.options('*', cors());
 
 app.use(express.json());
 if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
+
+// Static files for uploaded therapist photos (served at /uploads/terapeutas)
+const photosDir = path.join(__dirname, '../client/public/assets/terapeutas');
+app.use('/uploads/terapeutas', express.static(photosDir));
 
 // --- Conexión a MongoDB Atlas ---
 mongoose

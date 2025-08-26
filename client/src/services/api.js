@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // La env apunta a la raíz del backend (p.ej. https://esencialmentepsicologia.onrender.com) SIN /api
-const API_ROOT = (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.replace(/\/$/, '')) || 'https://esencialmentepsicologia.onrender.com';
+export const API_ROOT = (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.replace(/\/$/, '')) || 'https://esencialmentepsicologia.onrender.com';
 
 const api = axios.create({
   baseURL: `${API_ROOT}/api`,

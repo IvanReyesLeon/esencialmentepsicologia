@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { therapistAPI } from '../services/api';
+import { therapistAPI, API_ROOT } from '../services/api';
 import './Therapists.css';
 
 const Therapists = () => {
@@ -64,9 +64,10 @@ const Therapists = () => {
                   <div className="therapist-image">
                     {therapist.photo ? (
                       <img 
-                        src={`/assets/terapeutas/${therapist.photo}`} 
+                        src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
                         alt={therapist.fullName}
                         className="therapist-photo"
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `/assets/terapeutas/${therapist.photo}`; }}
                       />
                     ) : (
                       <div className="placeholder-avatar">

@@ -58,18 +58,15 @@ exports.getTherapists = async (req, res) => {
       }
     ];
 
-    // Try to get from database first
+    // Try to get from database first; return results even if empty
     try {
-      const therapists = await Therapist.find({}).timeout(2000);
-      if (therapists && therapists.length > 0) {
-        return res.json(therapists);
-      }
+      const therapists = await Therapist.find({ isActive: true }).lean();
+      return res.json(therapists);
     } catch (dbError) {
-      console.log('Database not available, using mock data');
+      console.log('Database not available, using mock data:', dbError.message);
+      // Return mock data only if DB query throws
+      return res.json(mockTherapists);
     }
-    
-    // Return mock data if database fails
-    res.json(mockTherapists);
   } catch (error) {
     console.error('Get therapists error:', error);
     res.status(500).json({ message: 'Server error' });
