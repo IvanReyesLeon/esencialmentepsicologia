@@ -106,7 +106,7 @@
 .bar {
   width: 25px;
   height: 3px;
-  background-color: white;
+  background-color: rgb(189, 8, 245);
   margin: 3px 0;
   transition: 0.3s;
 }
