@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// La env apunta a la raíz (Render o localhost) SIN /api
-const API_ROOT = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+// La env apunta a la raíz del backend (p.ej. https://esencialmentepsicologia.onrender.com) SIN /api
+const API_ROOT = (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.replace(/\/$/, '')) || 'https://esencialmentepsicologia.onrender.com';
 
 const api = axios.create({
   baseURL: `${API_ROOT}/api`,
@@ -11,6 +11,10 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  // Si el cuerpo es FormData, dejar que el navegador establezca el boundary
+  if (config.data instanceof FormData && config.headers && config.headers['Content-Type']) {
+    delete config.headers['Content-Type'];
+  }
   return config;
 });
 
@@ -23,6 +27,7 @@ export const therapistAPI = {
   getAll: () => api.get('/therapists'),
   getById: (id) => api.get(`/therapists/${id}`),
   create: (data) => api.post('/therapists', data),
+  updatePhoto: (id, data) => api.put(`/therapists/${id}/photo`, data),
   update: (id, data) => api.put(`/therapists/${id}`, data),
   delete: (id) => api.delete(`/therapists/${id}`),
 };

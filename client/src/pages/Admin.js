@@ -130,16 +130,8 @@ const Admin = () => {
 
       console.log('Enviando datos con archivo...');
       
-      const response = await fetch('/api/therapists', {
-        method: 'POST',
-        body: submitData
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const response = await therapistAPI.create(submitData);
+      const result = response.data;
       console.log('Respuesta del servidor:', result);
       
       setMessage('✅ Terapeuta añadido exitosamente con imagen');
@@ -180,18 +172,9 @@ const Admin = () => {
 
   const updateTherapistPhoto = async (therapistId, photoName) => {
     try {
-      const response = await fetch(`/api/therapists/${therapistId}/photo`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ photo: photoName })
-      });
-      
-      if (response.ok) {
-        console.log(`Foto actualizada para terapeuta ${therapistId}: ${photoName}`);
-        fetchTherapists(); // Recargar lista
-      }
+      await therapistAPI.updatePhoto(therapistId, { photo: photoName });
+      console.log(`Foto actualizada para terapeuta ${therapistId}: ${photoName}`);
+      fetchTherapists(); // Recargar lista
     } catch (error) {
       console.error('Error actualizando foto:', error);
     }
