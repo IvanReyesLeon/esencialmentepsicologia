@@ -36,6 +36,7 @@
   font-size: 1.1rem;
   line-height: 1.6;
   margin-bottom: 2.5rem;
+  text-align: left;
   opacity: 0.9;
 }
 
@@ -112,6 +113,14 @@
   transition: transform 0.3s ease;
 }
 
+.service-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.service-card { cursor: pointer; }
+
 .service-card:hover {
   transform: translateY(-5px);
 }
@@ -165,6 +174,7 @@
 }
 
 .about-text p {
+  text-align: left;
   font-size: 1.1rem;
   line-height: 1.6;
   margin-bottom: 1.5rem;

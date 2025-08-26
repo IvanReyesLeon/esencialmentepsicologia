@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { pricingAPI } from '../services/api';
 import './Services.css';
 
@@ -6,10 +7,17 @@ const Services = () => {
   const [pricing, setPricing] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     fetchPricing();
   }, []);
+
+  useEffect(() => {
+    // si hay ancla #pricing, hacemos scroll suave
+    const el = document.getElementById('pricing');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [searchParams]);
 
   const fetchPricing = async () => {
     try {
@@ -23,25 +31,34 @@ const Services = () => {
     }
   };
 
-  const getServiceIcon = (sessionType) => {
-    switch (sessionType) {
-      case 'individual': return '👤';
-      case 'couple': return '💑';
-      case 'family': return '👨‍👩‍👧‍👦';
-      case 'group': return '👥';
-      default: return '🧠';
-    }
-  };
-
   const getServiceTitle = (sessionType) => {
     switch (sessionType) {
       case 'individual': return 'Terapia Individual';
-      case 'couple': return 'Terapia de Pareja';
-      case 'family': return 'Terapia Familiar';
-      case 'group': return 'Terapia Grupal';
-      default: return sessionType;
+      case 'couple':     return 'Terapia de Pareja';
+      case 'family':     return 'Terapia Familiar';
+      case 'group':      return 'Terapia Grupal';
+      default:           return sessionType;
     }
   };
+
+  const getServiceImage = (sessionType) => {
+    switch (sessionType) {
+      case 'individual': return '/assets/home_sup/t_individual.jpg';
+      case 'couple':     return '/assets/home_sup/t_pareja.jpg';
+      case 'family':     return '/assets/home_sup/t_familiar.jpg';
+      case 'group':      return '/assets/home_sup/t_grupo.jpg';
+      default:           return '/assets/home_sup/t_individual.jpg';
+    }
+  };
+
+  const selectedType = searchParams.get('tipo'); // 'individual' | 'couple' | 'family' | 'group' | null
+  const displayPricing = selectedType
+    ? pricing.filter(p => p.sessionType === selectedType)
+    : pricing;
+
+  const sectionTitle = selectedType
+    ? `Tarifa: ${getServiceTitle(selectedType)}`
+    : 'Nuestras Tarifas';
 
   return (
     <div className="services">
@@ -54,64 +71,44 @@ const Services = () => {
 
       <div className="services-content">
         <div className="container">
-          {/* Services Overview */}
-          <section className="services-overview">
-            <h2>¿Qué ofrecemos?</h2>
-            <div className="overview-grid">
-              <div className="overview-item">
-                <div className="overview-icon">🎯</div>
-                <h3>Enfoque Personalizado</h3>
-                <p>Cada persona es única. Adaptamos nuestro enfoque terapéutico a tus necesidades específicas.</p>
-              </div>
-              <div className="overview-item">
-                <div className="overview-icon">🤝</div>
-                <h3>Ambiente Seguro</h3>
-                <p>Creamos un espacio de confianza donde puedes expresarte libremente sin juicios.</p>
-              </div>
-              <div className="overview-item">
-                <div className="overview-icon">📈</div>
-                <h3>Resultados Efectivos</h3>
-                <p>Utilizamos técnicas basadas en evidencia científica para lograr cambios duraderos.</p>
-              </div>
-              <div className="overview-item">
-                <div className="overview-icon">⏰</div>
-                <h3>Flexibilidad Horaria</h3>
-                <p>Horarios adaptados a tu disponibilidad, incluyendo fines de semana.</p>
-              </div>
-            </div>
-            <div className="scroll-indicator">
-              <p>👇 Consulta nuestras tarifas más abajo</p>
-            </div>
-          </section>
-
           {/* Pricing Section */}
-          <section className="pricing-section">
-            <h2>Servicios y Tarifas</h2>
-            
-            {loading && (
-              <div className="loading">Cargando servicios...</div>
+          <section className="pricing-section" id="pricing">
+            <h2>{sectionTitle}</h2>
+
+            {selectedType && (
+              <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                <Link to="/servicios" className="btn btn-secondary" style={{ width: 'auto' }}>
+                  Ver todas las tarifas
+                </Link>
+              </div>
             )}
 
-            {error && (
-              <div className="error-message">{error}</div>
-            )}
+            {loading && <div className="loading">Cargando servicios...</div>}
+            {error && <div className="error-message">{error}</div>}
 
-            {pricing.length === 0 && !loading && !error ? (
+            {displayPricing.length === 0 && !loading && !error ? (
               <div className="no-pricing">
-                <p>Próximamente publicaremos nuestras tarifas. Contacta con nosotros para más información.</p>
+                <p>No hay tarifas para este servicio por el momento.</p>
               </div>
             ) : (
               <div className="pricing-grid">
-                {pricing.map((service) => (
+                {displayPricing.map((service) => (
                   <div key={service._id} className="pricing-card">
                     <div className="service-header">
-                      <div className="service-icon">{getServiceIcon(service.sessionType)}</div>
+                      <div className="service-cover">
+                        <img
+                          src={getServiceImage(service.sessionType)}
+                          alt={getServiceTitle(service.sessionType)}
+                          loading="lazy"
+                          onError={(e) => { e.currentTarget.src = '/assets/home_sup/t_individual.jpg'; }}
+                        />
+                      </div>
                       <h3>{getServiceTitle(service.sessionType)}</h3>
                     </div>
-                    
+
                     <div className="service-details">
                       <p className="service-description">{service.description}</p>
-                      
+
                       <div className="service-info">
                         <div className="info-item">
                           <span className="label">Duración:</span>
@@ -119,11 +116,13 @@ const Services = () => {
                         </div>
                         <div className="info-item">
                           <span className="label">Precio:</span>
-                          <span className="value price">{service.price}€</span>
+                          <span className="value price">
+                            {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(service.price)}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="service-footer">
                       <a href="/contacto" className="btn btn-primary">Solicitar Cita</a>
                     </div>
@@ -133,38 +132,7 @@ const Services = () => {
             )}
           </section>
 
-          {/* Additional Services */}
-          <section className="additional-services">
-            <h2>Servicios Adicionales</h2>
-            <div className="additional-grid">
-              <div className="additional-item">
-                <h4>Evaluaciones Psicológicas</h4>
-                <p>Realizamos evaluaciones completas para diagnóstico y orientación terapéutica.</p>
-              </div>
-              <div className="additional-item">
-                <h4>Talleres y Grupos</h4>
-                <p>Organizamos talleres temáticos y grupos de apoyo para diferentes problemáticas.</p>
-              </div>
-              <div className="additional-item">
-                <h4>Orientación Familiar</h4>
-                <p>Asesoramiento y apoyo para mejorar la dinámica familiar y la comunicación.</p>
-              </div>
-              <div className="additional-item">
-                <h4>Terapia Online</h4>
-                <p>Sesiones virtuales para mayor comodidad y accesibilidad.</p>
-              </div>
-            </div>
-          </section>
-
-          {/* CTA Section */}
-          <section className="cta-section">
-            <h2>¿Listo para comenzar?</h2>
-            <p>Da el primer paso hacia tu bienestar emocional. Estamos aquí para acompañarte.</p>
-            <div className="cta-buttons">
-              <a href="/contacto" className="btn btn-primary">Contactar Ahora</a>
-              <a href="/terapeutas" className="btn btn-secondary">Conocer al Equipo</a>
-            </div>
-          </section>
+          {/* (…resto de secciones como ya tienes…) */}
         </div>
       </div>
     </div>

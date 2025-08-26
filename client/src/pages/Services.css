@@ -83,15 +83,9 @@
 }
 
 @keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
-  }
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
 }
 
 .pricing-section {
@@ -139,7 +133,7 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  overflow: hidden;
+  overflow: hidden;                /* asegura bordes redondeados también en la imagen */
   transition: transform 0.3s ease;
 }
 
@@ -147,22 +141,44 @@
   transform: translateY(-5px);
 }
 
+/* === CABECERA: imagen de portada + título === */
 .service-header {
+  padding: 0;                      /* la imagen ocupa todo el ancho sin padding */
+  text-align: center;
   background: var(--primary-color);
   color: white;
-  padding: 2rem;
-  text-align: center;
 }
 
-.service-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+/* Portada (igual que en Home: object-fit cover) */
+.service-cover {
+  width: 100%;
+  height: 200px;                   /* ajusta altura a tu gusto */
+  overflow: hidden;
+  background: #e9ecef;
 }
 
+.service-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;               /* recorte correcto sin deformación */
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.pricing-card:hover .service-cover img {
+  transform: scale(1.05);
+}
+
+/* Título en banda inferior lila */
 .service-header h3 {
   margin: 0;
+  padding: 1rem 1.25rem;
   font-size: 1.5rem;
+  line-height: 1.2;
 }
+
+/* Ya no usamos iconos */
+.service-icon { display: none; }
 
 .service-details {
   padding: 2rem;
@@ -190,9 +206,7 @@
   font-weight: 600;
 }
 
-.value {
-  color: #666;
-}
+.value { color: #666; }
 
 .price {
   color: #2c5f41;
@@ -317,29 +331,35 @@
   color: #1a3d2e;
 }
 
+/* Responsive */
 @media screen and (max-width: 768px) {
   .services-hero h1 {
     font-size: 2rem;
   }
-  
+
   .services-overview h2,
   .pricing-section h2,
   .additional-services h2,
   .cta-section h2 {
     font-size: 2rem;
   }
-  
+
   .overview-grid,
   .pricing-grid,
   .additional-grid {
     grid-template-columns: 1fr;
   }
-  
+
+  /* portada más baja en móvil */
+  .service-cover {
+    height: 160px;
+  }
+
   .cta-buttons {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .cta-buttons .btn {
     width: 100%;
     max-width: 300px;

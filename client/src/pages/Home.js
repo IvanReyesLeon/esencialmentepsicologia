@@ -47,34 +47,45 @@ const Home = () => {
         <div className="container">
           <h2>Nuestros Servicios</h2>
           <div className="services-grid">
-            <div className="service-card">
-              <div className="service-image">
-                <img src="/assets/home_sup/t_individual.jpg" alt="Terapia Individual" />
+            <Link to="/servicios?tipo=individual" className="service-card-link">
+              <div className="service-card">
+                <div className="service-image">
+                  <img src="/assets/home_sup/t_individual.jpg" alt="Terapia Individual" />
+                </div>
+                <h3>Terapia Individual</h3>
+                <p>Sesiones personalizadas para abordar tus necesidades específicas y promover tu bienestar emocional.</p>
               </div>
-              <h3>Terapia Individual</h3>
-              <p>Sesiones personalizadas para abordar tus necesidades específicas y promover tu bienestar emocional.</p>
-            </div>
-            <div className="service-card">
-              <div className="service-image">
-                <img src="/assets/home_sup/t_pareja.jpg" alt="Terapia de Pareja" />
+            </Link>
+
+            <Link to="/servicios?tipo=couple" className="service-card-link">
+              <div className="service-card">
+                <div className="service-image">
+                  <img src="/assets/home_sup/t_pareja.jpg" alt="Terapia de Pareja" />
+                </div>
+                <h3>Terapia de Pareja</h3>
+                <p>Fortalece tu relación y mejora la comunicación con tu pareja en un ambiente profesional.</p>
               </div>
-              <h3>Terapia de Pareja</h3>
-              <p>Fortalece tu relación y mejora la comunicación con tu pareja en un ambiente profesional.</p>
-            </div>
-            <div className="service-card">
-              <div className="service-image">
-                <img src="/assets/home_sup/t_familiar.jpg" alt="Terapia Familiar" />
+            </Link>
+
+            <Link to="/servicios?tipo=family" className="service-card-link">
+              <div className="service-card">
+                <div className="service-image">
+                  <img src="/assets/home_sup/t_familiar.jpg" alt="Terapia Familiar" />
+                </div>
+                <h3>Terapia Familiar</h3>
+                <p>Resuelve conflictos familiares y mejora la dinámica familiar con nuestro apoyo especializado.</p>
               </div>
-              <h3>Terapia Familiar</h3>
-              <p>Resuelve conflictos familiares y mejora la dinámica familiar con nuestro apoyo especializado.</p>
-            </div>
-            <div className="service-card">
-              <div className="service-image">
-                <img src="/assets/home_sup/t_grupo.jpg" alt="Terapia Grupal" />
+            </Link>
+
+            <Link to="/servicios?tipo=group" className="service-card-link">
+              <div className="service-card">
+                <div className="service-image">
+                  <img src="/assets/home_sup/t_grupo.jpg" alt="Terapia Grupal" />
+                </div>
+                <h3>Terapia Grupal</h3>
+                <p>Comparte experiencias y aprende de otros en un entorno grupal seguro y terapéutico.</p>
               </div>
-              <h3>Terapia Grupal</h3>
-              <p>Comparte experiencias y aprende de otros en un entorno grupal seguro y terapéutico.</p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
