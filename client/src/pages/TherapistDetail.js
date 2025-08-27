@@ -22,7 +22,6 @@ const TherapistDetail = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Si ya viene en el state, no hace falta pedirlo. Si no, intentamos cargarlo.
     if (!therapist || (therapist && therapist._id !== id)) {
       const fetchData = async () => {
         try {
@@ -71,7 +70,15 @@ const TherapistDetail = () => {
                   src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
                   alt={therapist.fullName}
                   className="photo"
-                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `/assets/terapeutas/${therapist.photo}`; }}
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    if (!img) return;
+                    img.onerror = null;                // evita bucles
+                    // Opción A: ocultar imagen rota
+                    // img.style.display = 'none';
+                    // Opción B (recomendada): placeholder
+                    img.src = '/icons/avatar-placeholder.png';
+                  }}
                 />
               ) : (
                 <div className="placeholder-avatar">👤</div>
