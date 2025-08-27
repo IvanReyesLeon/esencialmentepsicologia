@@ -67,7 +67,11 @@ const Therapists = () => {
                         src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
                         alt={therapist.fullName}
                         className="therapist-photo"
-                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `/assets/terapeutas/${therapist.photo}`; }}
+                        onError={(e) => { 
+                          e.currentTarget.onerror = null; 
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement.querySelector('.placeholder-avatar').style.display = 'flex';
+                        }}
                       />
                     ) : (
                       <div className="placeholder-avatar">
