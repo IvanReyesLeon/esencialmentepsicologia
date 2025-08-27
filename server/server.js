@@ -13,10 +13,12 @@ const contactRoutes = require('./routes/contact');
 const app = express();
 
 // --- CORS: permite tu front en Vercel (y local) ---
+const defaultOrigins = ['https://esencialmentepsicologia-gpdf-j5u1bdgzv.vercel.app', 'http://localhost:3000', 'http://localhost:3001'];
 const allowed = (process.env.CLIENT_ORIGINS || '')
   .split(',')
   .map(s => s.trim())
-  .filter(Boolean);
+  .filter(Boolean)
+  .concat(defaultOrigins);
 
 app.use(cors({
   origin(origin, cb) {
