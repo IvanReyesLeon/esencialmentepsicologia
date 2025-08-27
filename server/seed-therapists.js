@@ -11,7 +11,7 @@ const therapists = [
     bio: "Anna es la directora del centro y cuenta con amplia experiencia en psicología clínica y terapia integradora. Su enfoque se centra en el bienestar integral de sus pacientes.",
     experience: 15,
     languages: ["Español", "Inglés"],
-    photo: "/assets/terapeutas/anna_becerra.jpg",
+    photo: "anna_becerra.jpg",
     isActive: true,
     sessionTypes: ["individual", "couple", "family"]
   },
@@ -21,7 +21,7 @@ const therapists = [
     bio: "Lucía es especialista en terapia EMDR (Eye Movement Desensitization and Reprocessing) y terapia integradora. Trabaja principalmente con trauma y trastornos de ansiedad.",
     experience: 8,
     languages: ["Español", "Catalán"],
-    photo: "/assets/terapeutas/lucia_gomez.jpeg",
+    photo: "lucia_gomez.jpeg",
     isActive: true,
     sessionTypes: ["individual", "couple"]
   }
