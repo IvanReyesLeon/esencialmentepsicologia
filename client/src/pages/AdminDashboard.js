@@ -130,7 +130,7 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
   const [toast, setToast] = useState(null);
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Seguro que quieres eliminar este terapeuta?')) {
+    if (window.confirm('¿Seguro que quieres elim inar este terapeuta?')) {
       try {
         await therapistAPI.delete(id);
         onRefresh();
@@ -192,6 +192,12 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
 const PricingTab = ({ pricing, onRefresh }) => {
   const [editing, setEditing] = useState({});
   const [toast, setToast] = useState(null);
+  const [localPricing, setLocalPricing] = useState([]);
+
+  // Sincronizar estado local con props
+  useEffect(() => {
+    setLocalPricing(pricing);
+  }, [pricing]);
 
   const sessionTypes = [
     { name: 'Individual', key: 'individual' },
@@ -222,7 +228,7 @@ const PricingTab = ({ pricing, onRefresh }) => {
     try {
       const updates = editing[priceItem.id];
       await pricingAPI.update(priceItem.id, updates);
-      onRefresh();
+      await onRefresh();
       handleCancel(priceItem.id);
       setToast({
         message: '✓ Precio actualizado correctamente',
@@ -238,13 +244,27 @@ const PricingTab = ({ pricing, onRefresh }) => {
 
   const toggleVisibility = async (priceItem) => {
     try {
-      await pricingAPI.update(priceItem.id, { is_active: !priceItem.is_active });
-      onRefresh();
+      const newActiveState = !priceItem.is_active;
+
+      // Actualizar estado local inmediatamente para feedback visual
+      setLocalPricing(prev => prev.map(p =>
+        p.id === priceItem.id ? { ...p, is_active: newActiveState } : p
+      ));
+
+      // Actualizar en el servidor
+      await pricingAPI.update(priceItem.id, { is_active: newActiveState });
+
+      // Refrescar datos del servidor
+      await onRefresh();
+
       setToast({
-        message: `✓ Precio ${!priceItem.is_active ? 'activado' : 'desactivado'}`,
+        message: `✓ Precio ${newActiveState ? 'activado' : 'desactivado'}`,
         type: 'success'
       });
     } catch (error) {
+      console.error('Error toggling visibility:', error);
+      // Revertir cambio local en caso de error
+      setLocalPricing(pricing);
       setToast({
         message: 'Error al cambiar visibilidad',
         type: 'error'
@@ -272,7 +292,7 @@ const PricingTab = ({ pricing, onRefresh }) => {
 
       <div className="pricing-list">
         {sessionTypes.map(type => {
-          const priceItem = pricing.find(p => p.session_type_name === type.key);
+          const priceItem = localPricing.find(p => p.session_type_name === type.key);
           const isEditing = priceItem && editing[priceItem.id];
           const editData = isEditing ? editing[priceItem.id] : {};
 
