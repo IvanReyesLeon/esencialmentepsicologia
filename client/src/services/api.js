@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // La env apunta a la raíz del backend (p.ej. https://esencialmentepsicologia.onrender.com) SIN /api
-export const API_ROOT = (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.replace(/\/$/, '')) || 'https://esencialmentepsicologia.onrender.com';
+export const API_ROOT = (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.replace(/\/$/, '')) || 'http://localhost:3001';
 
 const api = axios.create({
   baseURL: `${API_ROOT}/api`,
@@ -20,6 +20,7 @@ api.interceptors.request.use((config) => {
 
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
+  register: (data) => api.post('/auth/register', data),
   getMe: () => api.get('/auth/me'),
 };
 
@@ -35,8 +36,27 @@ export const therapistAPI = {
 export const pricingAPI = {
   getAll: () => api.get('/pricing'),
   getById: (id) => api.get(`/pricing/${id}`),
-  update: (data) => api.post('/pricing', data),
+  create: (data) => api.post('/pricing', data),
+  update: (id, data) => api.put(`/pricing/${id}`, data),
   delete: (id) => api.delete(`/pricing/${id}`),
+};
+
+export const workshopAPI = {
+  getAll: () => api.get('/workshops'),
+  getById: (id) => api.get(`/workshops/${id}`),
+  create: (data) => api.post('/workshops', data),
+  update: (id, data) => api.put(`/workshops/${id}`, data),
+  delete: (id) => api.delete(`/workshops/${id}`),
+  addImage: (id, data) => api.post(`/workshops/${id}/images`, data),
+  deleteImage: (imageId) => api.delete(`/workshops/images/${imageId}`),
+};
+
+export const contactMessagesAPI = {
+  getAll: (params) => api.get('/admin/contact-messages', { params }),
+  getUnread: () => api.get('/admin/contact-messages/unread'),
+  markAsRead: (id) => api.put(`/admin/contact-messages/${id}/read`),
+  markAsUnread: (id) => api.put(`/admin/contact-messages/${id}/unread`),
+  delete: (id) => api.delete(`/admin/contact-messages/${id}`),
 };
 
 export const contactAPI = {

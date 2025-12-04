@@ -1,18 +1,18 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { findUserById } = require('../models/userQueries');
 
 const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       return res.status(401).json({ message: 'No token, authorization denied' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findOne({ _id: decoded.userId, isActive: true });
+    const user = await findUserById(decoded.userId);
 
-    if (!user) {
+    if (!user || !user.is_active) {
       return res.status(401).json({ message: 'User not found or inactive' });
     }
 
@@ -33,4 +33,6 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { auth, admin };
+module.exports = auth;
+module.exports.auth = auth;
+module.exports.admin = admin;

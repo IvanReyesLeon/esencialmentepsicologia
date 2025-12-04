@@ -14,7 +14,6 @@ const Services = () => {
   }, []);
 
   useEffect(() => {
-    // si hay ancla #pricing, hacemos scroll suave
     const el = document.getElementById('pricing');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [searchParams]);
@@ -34,27 +33,28 @@ const Services = () => {
   const getServiceTitle = (sessionType) => {
     switch (sessionType) {
       case 'individual': return 'Terapia Individual';
-      case 'couple':     return 'Terapia de Pareja';
-      case 'family':     return 'Terapia Familiar';
-      case 'group':      return 'Terapia Grupal';
-      default:           return sessionType;
+      case 'couple': return 'Terapia de Pareja';
+      case 'family': return 'Terapia Familiar';
+      case 'group': return 'Terapia Grupal';
+      default: return sessionType;
     }
   };
 
   const getServiceImage = (sessionType) => {
     switch (sessionType) {
       case 'individual': return '/assets/home_sup/t_individual.jpg';
-      case 'couple':     return '/assets/home_sup/t_pareja.jpg';
-      case 'family':     return '/assets/home_sup/t_familiar.jpg';
-      case 'group':      return '/assets/home_sup/t_grupo.jpg';
-      default:           return '/assets/home_sup/t_individual.jpg';
+      case 'couple': return '/assets/home_sup/t_pareja.jpg';
+      case 'family': return '/assets/home_sup/t_familiar.jpg';
+      case 'group': return '/assets/home_sup/t_grupo.jpg';
+      default: return '/assets/home_sup/t_individual.jpg';
     }
   };
 
-  const selectedType = searchParams.get('tipo'); // 'individual' | 'couple' | 'family' | 'group' | null
+  const selectedType = searchParams.get('tipo');
+  const activePricing = pricing.filter(p => p.is_active === true);
   const displayPricing = selectedType
-    ? pricing.filter(p => p.sessionType === selectedType)
-    : pricing;
+    ? activePricing.filter(p => p.session_type_name === selectedType)
+    : activePricing;
 
   const sectionTitle = selectedType
     ? `Tarifa: ${getServiceTitle(selectedType)}`
@@ -71,7 +71,6 @@ const Services = () => {
 
       <div className="services-content">
         <div className="container">
-          {/* Pricing Section */}
           <section className="pricing-section" id="pricing">
             <h2>{sectionTitle}</h2>
 
@@ -88,26 +87,28 @@ const Services = () => {
 
             {displayPricing.length === 0 && !loading && !error ? (
               <div className="no-pricing">
-                <p>No hay tarifas para este servicio por el momento.</p>
+                <p>No hay tarifas publicadas por el momento.</p>
               </div>
             ) : (
               <div className="pricing-grid">
                 {displayPricing.map((service) => (
-                  <div key={service._id} className="pricing-card">
+                  <div key={service.id} className="pricing-card">
                     <div className="service-header">
                       <div className="service-cover">
                         <img
-                          src={getServiceImage(service.sessionType)}
-                          alt={getServiceTitle(service.sessionType)}
+                          src={getServiceImage(service.session_type_name)}
+                          alt={getServiceTitle(service.session_type_name)}
                           loading="lazy"
                           onError={(e) => { e.currentTarget.src = '/assets/home_sup/t_individual.jpg'; }}
                         />
                       </div>
-                      <h3>{getServiceTitle(service.sessionType)}</h3>
+                      <h3>{service.session_type_display_name || getServiceTitle(service.session_type_name)}</h3>
                     </div>
 
                     <div className="service-details">
-                      <p className="service-description">{service.description}</p>
+                      {service.description && (
+                        <p className="service-description">{service.description}</p>
+                      )}
 
                       <div className="service-info">
                         <div className="info-item">
@@ -131,8 +132,6 @@ const Services = () => {
               </div>
             )}
           </section>
-
-          {/* (…resto de secciones como ya tienes…) */}
         </div>
       </div>
     </div>

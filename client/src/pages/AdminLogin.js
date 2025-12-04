@@ -4,99 +4,71 @@ import { authAPI } from '../services/api';
 import './AdminLogin.css';
 
 const AdminLogin = () => {
-  const [credentials, setCredentials] = useState({
-    email: '',
-    password: ''
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    setCredentials({
-      ...credentials,
-      [e.target.name]: e.target.value
-    });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
+    setLoading(true);
 
     try {
       const response = await authAPI.login(credentials);
       const { token, user } = response.data;
-      
-      if (user.role !== 'admin') {
-        setError('Acceso denegado. Solo administradores pueden acceder.');
-        return;
-      }
 
+      // Guardar token y usuario en localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
+
+      // Redirigir al dashboard
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Error al iniciar sesión');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
     <div className="admin-login">
       <div className="login-container">
-        <div className="login-card">
-          <div className="login-header">
-            <h1>Acceso Administrativo</h1>
-            <p>Esencialmente Psicología</p>
-          </div>
+        <div className="login-form">
+          <h2>Panel de Administración</h2>
+          <p>Esencialmente Psicología</p>
 
-          <form onSubmit={handleSubmit} className="login-form">
-            {error && (
-              <div className="error-message">
-                {error}
-              </div>
-            )}
-
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="email">Email</label>
+              <label>Email</label>
               <input
                 type="email"
-                id="email"
-                name="email"
                 value={credentials.email}
-                onChange={handleChange}
+                onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+                placeholder="admin@esencialmentepsicologia.com"
                 required
-                disabled={isLoading}
+                autoComplete="username"
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Contraseña</label>
+              <label>Contraseña</label>
               <input
                 type="password"
-                id="password"
-                name="password"
                 value={credentials.password}
-                onChange={handleChange}
+                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                placeholder="Ingresa tu contraseña"
                 required
-                disabled={isLoading}
+                autoComplete="current-password"
               />
             </div>
 
-            <button 
-              type="submit" 
-              className="btn btn-primary"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            {error && <div className="message error">{error}</div>}
+
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Accediendo...' : 'Acceder'}
             </button>
           </form>
-
-          <div className="login-footer">
-            <p>Solo para personal autorizado</p>
-          </div>
         </div>
       </div>
     </div>

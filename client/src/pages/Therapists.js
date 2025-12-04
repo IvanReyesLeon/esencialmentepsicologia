@@ -60,15 +60,15 @@ const Therapists = () => {
           ) : (
             <div className="therapists-grid">
               {therapists.map((therapist) => (
-                <div key={therapist._id} className="therapist-card">
+                <div key={therapist.id} className="therapist-card">
                   <div className="therapist-image">
                     {therapist.photo ? (
-                      <img 
+                      <img
                         src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
-                        alt={therapist.fullName}
+                        alt={therapist.full_name}
                         className="therapist-photo"
-                        onError={(e) => { 
-                          e.currentTarget.onerror = null; 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
                           e.currentTarget.style.display = 'none';
                           e.currentTarget.parentElement.querySelector('.placeholder-avatar').style.display = 'flex';
                         }}
@@ -80,15 +80,18 @@ const Therapists = () => {
                     )}
                   </div>
                   <div className="therapist-info">
-                    <h3>{therapist.fullName}</h3>
-                    <p className="therapist-title">{therapist.specialization.join(' • ')}</p>
-                    <p className="therapist-description">{therapist.bio}</p>
+                    <h3>{therapist.full_name}</h3>
+                    <p className="therapist-title">
+                      {therapist.specializations && Array.isArray(therapist.specializations)
+                        ? therapist.specializations.join(' • ')
+                        : (therapist.specializations || 'Psicólogo')}
+                    </p>
                     <Link
-                      to={`/terapeutas/${therapist._id}`}
+                      to={`/terapeutas/${therapist.slug || therapist.id}`}
                       state={{ therapist }}
                       className="btn btn-secondary therapist-btn"
                     >
-                      CONOCER MÁS
+                      VER PERFIL
                     </Link>
                   </div>
                 </div>

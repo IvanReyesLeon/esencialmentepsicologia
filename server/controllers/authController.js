@@ -1,5 +1,10 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const {
+  findUserByEmail,
+  findUserById,
+  createUser,
+  verifyPassword
+} = require('../models/userQueries');
 
 // @desc    Register a new admin user (only for initial setup)
 // @route   POST /api/auth/register
@@ -9,24 +14,17 @@ exports.register = async (req, res) => {
     const { username, email, password } = req.body;
 
     // Check if user already exists
-    let user = await User.findOne({ $or: [{ email }, { username }] });
-    if (user) {
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
     // Create new user
-    user = new User({
-      username,
-      email,
-      password,
-      role: 'admin' // First user is admin
-    });
-
-    await user.save();
+    const user = await createUser(username, email, password, 'admin');
 
     // Create token
     const payload = {
-      userId: user._id,
+      userId: user.id,
       role: user.role
     };
 
@@ -35,7 +33,7 @@ exports.register = async (req, res) => {
     res.status(201).json({
       token,
       user: {
-        id: user._id,
+        id: user.id,
         username: user.username,
         email: user.email,
         role: user.role
@@ -54,21 +52,21 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
-    const user = await User.findOne({ email, isActive: true });
-    if (!user) {
+    // Check if user exists and is active
+    const user = await findUserByEmail(email);
+    if (!user || !user.is_active) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     // Check password
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await verifyPassword(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     // Create token
     const payload = {
-      userId: user._id,
+      userId: user.id,
       role: user.role
     };
 
@@ -77,7 +75,7 @@ exports.login = async (req, res) => {
     res.json({
       token,
       user: {
-        id: user._id,
+        id: user.id,
         username: user.username,
         email: user.email,
         role: user.role
@@ -94,11 +92,15 @@ exports.login = async (req, res) => {
 // @access  Private
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
+    const user = await findUserById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(user);
+
+    // Remove password from response
+    const { password, ...userWithoutPassword } = user;
+
+    res.json(userWithoutPassword);
   } catch (error) {
     console.error('Get me error:', error);
     res.status(500).json({ message: 'Server error' });

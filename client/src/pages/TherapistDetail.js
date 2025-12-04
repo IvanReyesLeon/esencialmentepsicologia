@@ -3,16 +3,6 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import { therapistAPI, API_ROOT } from '../services/api';
 import './TherapistDetail.css';
 
-const labelForSessionType = (type) => {
-  switch (type) {
-    case 'individual': return 'Individual';
-    case 'couple': return 'Pareja';
-    case 'family': return 'Familiar';
-    case 'group': return 'Grupal';
-    default: return type;
-  }
-};
-
 const TherapistDetail = () => {
   const { id } = useParams();
   const location = useLocation();
@@ -22,7 +12,7 @@ const TherapistDetail = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!therapist || (therapist && therapist._id !== id)) {
+    if (!therapist || (therapist && therapist.id !== id)) {
       const fetchData = async () => {
         try {
           const res = await therapistAPI.getById(id);
@@ -68,7 +58,7 @@ const TherapistDetail = () => {
               {therapist.photo ? (
                 <img
                   src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
-                  alt={therapist.fullName}
+                  alt={therapist.full_name}
                   className="photo"
                   onError={(e) => {
                     const img = e.currentTarget;
@@ -85,9 +75,9 @@ const TherapistDetail = () => {
               )}
             </div>
             <div className="title">
-              <h1>{therapist.fullName}</h1>
-              {therapist.specialization?.length > 0 && (
-                <p className="specializations">{therapist.specialization.join(' • ')}</p>
+              <h1>{therapist.full_name}</h1>
+              {therapist.specializations && Array.isArray(therapist.specializations) && therapist.specializations.length > 0 && (
+                <p className="specializations">{therapist.specializations.join(' • ')}</p>
               )}
             </div>
           </div>
@@ -98,30 +88,26 @@ const TherapistDetail = () => {
         <div className="container">
           {therapist.bio && (
             <div className="block">
-              <h2>Sobre {therapist.fullName.split(' ')[0]}</h2>
+              <h2>Sobre {therapist.full_name.split(' ')[0]}</h2>
               <p className="bio">{therapist.bio}</p>
             </div>
           )}
 
           <div className="info-grid">
-            <div className="info-card">
-              <h3>Experiencia</h3>
-              <p>{therapist.experience} años</p>
-            </div>
 
-            {therapist.languages?.length > 0 && (
+            {therapist.languages && Array.isArray(therapist.languages) && therapist.languages.length > 0 && (
               <div className="info-card">
                 <h3>Idiomas</h3>
                 <p>{therapist.languages.join(', ')}</p>
               </div>
             )}
 
-            {therapist.sessionTypes?.length > 0 && (
+            {therapist.session_types && Array.isArray(therapist.session_types) && therapist.session_types.length > 0 && (
               <div className="info-card">
                 <h3>Tipos de sesión</h3>
                 <div className="chips">
-                  {therapist.sessionTypes.map((t, i) => (
-                    <span key={i} className="chip">{labelForSessionType(t)}</span>
+                  {therapist.session_types.map((t, i) => (
+                    <span key={i} className="chip">{t}</span>
                   ))}
                 </div>
               </div>

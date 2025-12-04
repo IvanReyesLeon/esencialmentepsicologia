@@ -9,7 +9,8 @@ import Therapists from './pages/Therapists';
 import TherapistDetail from './pages/TherapistDetail';
 import Contact from './pages/Contact';
 import Location from './pages/Location';
-import Admin from './pages/Admin';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
 
 function App() {
@@ -25,7 +26,10 @@ function App() {
             <Route path="/servicios" element={<Services />} />
             <Route path="/donde-estamos" element={<Location />} />
             <Route path="/contacto" element={<Contact />} />
-            <Route path="/admin" element={<Admin />} />
+
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Routes>
         </main>
         <Footer />

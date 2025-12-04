@@ -1,19 +1,26 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
+const { pool } = require('./config/db');
 
 const authRoutes = require('./routes/auth');
 const therapistRoutes = require('./routes/therapists');
 const pricingRoutes = require('./routes/pricing');
 const contactRoutes = require('./routes/contact');
+const workshopRoutes = require('./routes/workshops');
+const contactMessagesRoutes = require('./routes/contactMessages');
+const seoRoutes = require('./routes/seo');
 
 const app = express();
 
 // --- CORS: permite tu front en Vercel (y local) ---
-const defaultOrigins = ['https://esencialmentepsicologia-gpdf-j5u1bdgzv.vercel.app', 'http://localhost:3000', 'http://localhost:3001'];
+const defaultOrigins = [
+  'https://esencialmentepsicologia-gpdf-j5u1bdgzv.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001'
+];
 const allowed = (process.env.CLIENT_ORIGINS || '')
   .split(',')
   .map(s => s.trim())
@@ -35,34 +42,37 @@ app.options('*', cors());
 app.use(express.json());
 if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 
-// Static files for uploaded therapist photos (served at /uploads/terapeutas)
+// Static files for uploaded therapist photos
 const photosDir = path.join(__dirname, '../client/public/assets/terapeutas');
 app.use('/uploads/terapeutas', express.static(photosDir));
 
-// --- Conexión a MongoDB Atlas ---
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    // Estos flags ya son default en Mongoose >= 6, los dejo por claridad
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    // keepAlive ayuda en PaaS
-    serverSelectionTimeoutMS: 15000
-  })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => {
-    console.error('MongoDB connection error:', err.message);
-    process.exit(1);
-  });
+// Static files for workshop images
+const workshopsDir = path.join(__dirname, '../client/public/assets/talleres');
+app.use('/uploads/talleres', express.static(workshopsDir));
+
+// --- Verificar conexión a PostgreSQL ---
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('PostgreSQL connection error:', err.message);
+    console.error('Make sure DATABASE_URL is set correctly in .env');
+  } else {
+    console.log('✅ Connected to PostgreSQL (Neon)');
+    console.log('Server time:', res.rows[0].now);
+  }
+});
 
 // --- Rutas ---
 app.use('/api/auth', authRoutes);
 app.use('/api/therapists', therapistRoutes);
 app.use('/api/pricing', pricingRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/workshops', workshopRoutes);
+app.use('/api/admin/contact-messages', contactMessagesRoutes);
+app.use('/api', seoRoutes);
 
 // Health & raíz
-app.get('/health', (req, res) => res.json({ ok: true }));
-app.get('/', (req, res) => res.send('Psychology Clinic API is running'));
+app.get('/health', (req, res) => res.json({ ok: true, database: 'postgresql' }));
+app.get('/', (req, res) => res.send('Psychology Clinic API is running with PostgreSQL (Neon)'));
 
 // Errores
 app.use((err, req, res, next) => {
@@ -71,5 +81,17 @@ app.use((err, req, res, next) => {
 });
 
 // --- Arranque ---
-const PORT = process.env.PORT || 5000; // Render asigna PORT
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📊 Database: PostgreSQL (Neon)`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  pool.end(() => {
+    console.log('PostgreSQL pool has ended');
+  });
+});

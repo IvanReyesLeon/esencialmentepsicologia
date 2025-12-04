@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
+const { createContactMessage } = require('../models/contactQueries');
 
-// @desc    Send contact form email
+// @desc    Send contact form email and save to database
 // @route   POST /api/contact
 // @access  Public
 exports.sendContactEmail = async (req, res) => {
@@ -12,19 +13,21 @@ exports.sendContactEmail = async (req, res) => {
       return res.status(400).json({ message: 'Nombre, email y mensaje son requeridos' });
     }
 
-    // Create transporter
+    // 1. Guardar mensaje en la base de datos
+    await createContactMessage(name, email, phone, subject, message);
+
+    // 2. Enviar email via Nodemailer
     const transporter = nodemailer.createTransporter({
-      service: 'gmail', // You can change this to your email service
+      service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       }
     });
 
-    // Email content
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: process.env.CLINIC_EMAIL,
+      to: process.env.CLINIC_EMAIL || 'info@esencialmentepsicologia.com',
       subject: `Nuevo mensaje de contacto: ${subject || 'Sin asunto'}`,
       html: `
         <h3>Nuevo mensaje de contacto - Esencialmente Psicología</h3>
@@ -35,16 +38,19 @@ exports.sendContactEmail = async (req, res) => {
         <p><strong>Mensaje:</strong></p>
         <p>${message.replace(/\n/g, '<br>')}</p>
         <hr>
-        <p><small>Este mensaje fue enviado desde el formulario de contacto de la web.</small></p>
+        <p><small>Este mensaje fue enviado desde el formulario de contacto de la web y guardado en la base de datos.</small></p>
       `
     };
 
-    // Send email
     await transporter.sendMail(mailOptions);
 
-    res.json({ message: 'Mensaje enviado correctamente. Nos pondremos en contacto contigo pronto.' });
+    res.json({
+      message: 'Mensaje enviado correctamente. Nos pondremos en contacto contigo pronto.'
+    });
   } catch (error) {
     console.error('Contact email error:', error);
-    res.status(500).json({ message: 'Error al enviar el mensaje. Por favor, inténtalo de nuevo.' });
+    res.status(500).json({
+      message: 'Error al enviar el mensaje. Por favor, inténtalo de nuevo.'
+    });
   }
 };

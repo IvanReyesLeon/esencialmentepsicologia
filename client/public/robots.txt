@@ -1,3 +1,19 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap
+Sitemap: https://esencialmentepsicologia.com/api/sitemap.xml
+
+# Bloquear panel de administración
+Disallow: /admin
+
+# Bloquear assets innecesarios
+Disallow: /static/
+
+# Permitir rastreo de páginas importantes
+Allow: /terapeutas
+Allow: /servicios
+Allow: /contacto
+Allow: /talleres
+Allow: /donde-estamos
