@@ -94,8 +94,8 @@ const createTherapist = async (therapistData) => {
 
         // Insertar terapeuta
         const therapistResult = await client.query(`
-      INSERT INTO therapists (full_name, bio, experience, photo, slug, meta_title, meta_description)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO therapists (full_name, bio, experience, photo, slug, meta_title, meta_description, methodology, license_number)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `, [
             therapistData.full_name,
@@ -104,7 +104,9 @@ const createTherapist = async (therapistData) => {
             therapistData.photo || '',
             slug,
             therapistData.meta_title || therapistData.full_name,
-            therapistData.meta_description || therapistData.bio.substring(0, 280)
+            therapistData.meta_description || therapistData.bio.substring(0, 280),
+            therapistData.methodology || '',
+            therapistData.license_number || ''
         ]);
 
         const therapist = therapistResult.rows[0];
@@ -193,7 +195,7 @@ const updateTherapist = async (id, updates) => {
         const values = [];
         let paramCount = 1;
 
-        const allowedFields = ['full_name', 'bio', 'experience', 'photo', 'slug', 'meta_title', 'meta_description', 'is_active'];
+        const allowedFields = ['full_name', 'bio', 'experience', 'photo', 'slug', 'meta_title', 'meta_description', 'is_active', 'methodology', 'license_number'];
 
         allowedFields.forEach(field => {
             if (updates[field] !== undefined) {

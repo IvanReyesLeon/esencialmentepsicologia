@@ -14,6 +14,13 @@ import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
 
 function App() {
+  React.useEffect(() => {
+    // Ping al servidor para despertar el servicio en Render
+    fetch('https://esencialmentepsicologia.onrender.com')
+      .then(() => console.log('Server pinged'))
+      .catch(err => console.log('Ping error:', err));
+  }, []);
+
   return (
     <Router>
       <div className="App">

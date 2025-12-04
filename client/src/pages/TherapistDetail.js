@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { therapistAPI, API_ROOT } from '../services/api';
 import './TherapistDetail.css';
+import SEOHead from '../components/SEOHead';
 
 const TherapistDetail = () => {
   const { id } = useParams();
@@ -12,9 +13,11 @@ const TherapistDetail = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!therapist || (therapist && therapist.id !== id)) {
+    // Si no hay terapeuta, o si el slug del terapeuta actual no coincide con el de la URL
+    if (!therapist || therapist.slug !== id) {
       const fetchData = async () => {
         try {
+          setLoading(true);
           const res = await therapistAPI.getById(id);
           setTherapist(res.data);
         } catch (e) {
@@ -25,7 +28,7 @@ const TherapistDetail = () => {
       };
       fetchData();
     }
-  }, [id, therapist]);
+  }, [id]); // Eliminamos 'therapist' de las dependencias para evitar bucles
 
   if (loading) {
     return (
@@ -48,34 +51,72 @@ const TherapistDetail = () => {
     );
   }
 
+  // Prepare structured data for Schema.org
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Physician",
+    "name": therapist.full_name,
+    "medicalSpecialty": therapist.specializations?.map(s => ({
+      "@type": "MedicalSpecialty",
+      "name": s
+    })),
+    "description": therapist.bio,
+    "image": therapist.photo ? `${API_ROOT}/uploads/terapeutas/${therapist.photo}` : undefined,
+    "url": window.location.href,
+    "telephone": "+34600000000", // Placeholder or actual clinic phone
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Carrer del Bruc, 123", // Example address
+      "addressLocality": "Barcelona",
+      "postalCode": "08009",
+      "addressCountry": "ES"
+    }
+  };
+
   return (
     <div className="therapist-detail">
+      <SEOHead
+        title={`${therapist.full_name} | Psicólogo en Barcelona`}
+        description={therapist.bio ? therapist.bio.substring(0, 160) + '...' : `Conoce a ${therapist.full_name}, especialista en ${therapist.specializations?.join(', ')}.`}
+        image={therapist.photo ? `/uploads/terapeutas/${therapist.photo}` : undefined}
+        type="profile"
+        structuredData={structuredData}
+      />
       <section className="detail-hero">
         <div className="container">
           <Link to="/terapeutas" className="back-link">← Volver a Terapeutas</Link>
           <div className="header">
-            <div className="photo-wrapper">
-              {therapist.photo ? (
-                <img
-                  src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
-                  alt={therapist.full_name}
-                  className="photo"
-                  onError={(e) => {
-                    const img = e.currentTarget;
-                    if (!img) return;
-                    img.onerror = null;                // evita bucles
-                    // Opción A: ocultar imagen rota
-                    // img.style.display = 'none';
-                    // Opción B (recomendada): placeholder
-                    img.src = '/icons/avatar-placeholder.png';
-                  }}
-                />
-              ) : (
-                <div className="placeholder-avatar">👤</div>
-              )}
+            <div className="photo-column" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div className="photo-wrapper">
+                {therapist.photo ? (
+                  <img
+                    src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
+                    alt={therapist.full_name}
+                    className="photo"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (!img) return;
+                      img.onerror = null;
+                      img.src = '/icons/avatar-placeholder.png';
+                    }}
+                  />
+                ) : (
+                  <div className="placeholder-avatar">👤</div>
+                )}
+              </div>
             </div>
             <div className="title">
               <h1>{therapist.full_name}</h1>
+              {therapist.license_number && (
+                <div className="license-number" style={{
+                  fontSize: '0.9rem',
+                  color: '#666',
+                  marginBottom: '0.5rem',
+                  fontWeight: '500'
+                }}>
+                  Nº Col. {therapist.license_number}
+                </div>
+              )}
               {therapist.specializations && Array.isArray(therapist.specializations) && therapist.specializations.length > 0 && (
                 <p className="specializations">{therapist.specializations.join(' • ')}</p>
               )}
@@ -88,8 +129,15 @@ const TherapistDetail = () => {
         <div className="container">
           {therapist.bio && (
             <div className="block">
-              <h2>Sobre {therapist.full_name.split(' ')[0]}</h2>
+              <h2>Sobre mí</h2>
               <p className="bio">{therapist.bio}</p>
+            </div>
+          )}
+
+          {therapist.methodology && (
+            <div className="block">
+              <h2>Metodología</h2>
+              <p className="bio">{therapist.methodology}</p>
             </div>
           )}
 

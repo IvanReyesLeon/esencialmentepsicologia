@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { therapistAPI, API_ROOT } from '../services/api';
 import './Therapists.css';
 
+import SEOHead from '../components/SEOHead';
+
 const Therapists = () => {
   const [therapists, setTherapists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,10 @@ const Therapists = () => {
 
   return (
     <div className="therapists">
+      <SEOHead
+        title="Nuestros Psicólogos | Esencialmente Psicología"
+        description="Conoce a nuestro equipo de psicólogos en Barcelona. Especialistas en terapia individual, de pareja y familiar."
+      />
       {/* Hero Section */}
       <section className="therapists-hero">
         <div className="container">
@@ -86,6 +92,7 @@ const Therapists = () => {
                         ? therapist.specializations.join(' • ')
                         : (therapist.specializations || 'Psicólogo')}
                     </p>
+
                     <Link
                       to={`/terapeutas/${therapist.slug || therapist.id}`}
                       state={{ therapist }}
