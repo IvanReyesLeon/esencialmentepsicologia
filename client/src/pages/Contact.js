@@ -70,8 +70,8 @@ const Contact = () => {
             <div className="quick-contact-card">
               <div className="quick-icon">📍</div>
               <h3>Visítanos</h3>
-              <p>Carrer del Pintor Togores, 1<br/>08290 Cerdanyola del Vallès, Barcelona</p>
-              <a href="https://maps.google.com/?q=Carrer+del+Pintor+Togores,+1,+08290+Cerdanyola+del+Vallès,+Barcelona" target="_blank" rel="noopener noreferrer" className="quick-btn">Ver Ubicación</a>
+              <p>Carrer del Pintor Togores, 1<br />08290 Cerdanyola del Vallès, Barcelona</p>
+              <a href="https://www.google.com/maps/place/Esencialmente+Psicolog%C3%ADa+-+Anna+Becerra/@41.4919599,2.1333487,17z/data=!3m1!4b1!4m6!3m5!1s0x12a4bd24ec964a23:0x71c4879348aff5bd!8m2!3d41.491956!4d2.138225!16s%2Fg%2F11jq0hgky3" target="_blank" rel="noopener noreferrer" className="quick-btn">Ver Ubicación</a>
             </div>
           </div>
 
@@ -79,78 +79,78 @@ const Contact = () => {
           <div className="contact-form-centered">
             <h2>Envíanos un Mensaje</h2>
             <form onSubmit={handleSubmit} className="contact-form">
-                <div className="form-group">
-                  <label htmlFor="name">Nombre *</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                  />
+              <div className="form-group">
+                <label htmlFor="name">Nombre *</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="email">Email *</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="phone">Teléfono</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="subject">Asunto</label>
+                <input
+                  type="text"
+                  id="subject"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="message">Mensaje *</label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows="5"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                ></textarea>
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}
+              </button>
+
+              {submitMessage && (
+                <div className={`submit-message ${submitMessage.includes('Error') ? 'error' : 'success'}`}>
+                  {submitMessage}
                 </div>
-
-                <div className="form-group">
-                  <label htmlFor="email">Email *</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="phone">Teléfono</label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="subject">Asunto</label>
-                  <input
-                    type="text"
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="message">Mensaje *</label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    rows="5"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                  ></textarea>
-                </div>
-
-                <button 
-                  type="submit" 
-                  className="btn btn-primary"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}
-                </button>
-
-                {submitMessage && (
-                  <div className={`submit-message ${submitMessage.includes('Error') ? 'error' : 'success'}`}>
-                    {submitMessage}
-                  </div>
-                )}
-              </form>
+              )}
+            </form>
           </div>
         </div>
       </div>

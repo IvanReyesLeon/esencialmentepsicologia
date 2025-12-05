@@ -29,14 +29,14 @@
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .hero-description {
   font-size: 1.1rem;
   line-height: 1.6;
   margin-bottom: 2.5rem;
-  text-align: left;
+  text-align: justify;
   opacity: 0.9;
 }
 
@@ -66,7 +66,7 @@
 .btn-primary:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .btn-secondary {
@@ -109,7 +109,7 @@
   padding: 2rem;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
@@ -119,7 +119,9 @@
   color: inherit;
 }
 
-.service-card { cursor: pointer; }
+.service-card {
+  cursor: pointer;
+}
 
 .service-card:hover {
   transform: translateY(-5px);
@@ -276,46 +278,46 @@
   .hero h1 {
     font-size: 2.5rem;
   }
-  
+
   .services-overview h2,
   .about-text h2,
   .cta-section h2 {
     font-size: 2rem;
   }
-  
+
   .about-content {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
-  
+
   .image-carousel {
     height: 300px;
   }
-  
+
   .carousel-indicators {
     bottom: 15px;
   }
-  
+
   .indicator {
     width: 10px;
     height: 10px;
   }
-  
+
   .hero-buttons {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .btn {
     width: 100%;
     max-width: 300px;
   }
-  
+
   .about-content {
     grid-template-columns: 1fr;
     text-align: center;
   }
-  
+
   .services-overview h2,
   .about-text h2,
   .cta-section h2 {
