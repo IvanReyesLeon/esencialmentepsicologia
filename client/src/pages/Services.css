@@ -52,6 +52,12 @@
   padding: var(--space-12) var(--space-4);
 }
 
+.services-content>.container,
+.services-hero>.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
 /* ========================================
    SERVICES OVERVIEW
 ======================================== */
@@ -78,8 +84,8 @@
 
 .overview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
   margin-bottom: var(--space-8);
 }
 
@@ -219,8 +225,8 @@
 ======================================== */
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
 }
 
 .pricing-card {
@@ -370,8 +376,8 @@
 
 .additional-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
 }
 
 .additional-item {

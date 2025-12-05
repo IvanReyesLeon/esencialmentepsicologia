@@ -52,6 +52,12 @@
   padding: var(--space-12) var(--space-4);
 }
 
+.therapists-content>.container,
+.therapists-hero>.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
 .loading {
   text-align: center;
   font-size: 1.1rem;
@@ -89,8 +95,8 @@
 ======================================== */
 .therapists-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: var(--space-8);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
   margin-bottom: var(--space-16);
 }
 

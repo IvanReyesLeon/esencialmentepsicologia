@@ -59,7 +59,7 @@
 
 .workshops-content>.container,
 .workshops-hero>.container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 0 var(--space-6);
     position: relative;
@@ -118,8 +118,8 @@
 ======================================== */
 .workshops-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: var(--space-8);
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-4);
 }
 
 /* ========================================
