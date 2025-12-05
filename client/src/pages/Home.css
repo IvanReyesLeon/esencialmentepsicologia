@@ -235,7 +235,7 @@
 }
 
 .about-text p {
-  text-align: left;
+  text-align: justify;
   font-size: 1.05rem;
   line-height: 1.8;
   margin-bottom: var(--space-5);
@@ -404,7 +404,7 @@
 
   .hero-description {
     font-size: 1rem;
-    text-align: left;
+    text-align: justify;
   }
 
   .hero-buttons {
@@ -440,7 +440,7 @@
   }
 
   .about-text p {
-    text-align: center;
+    text-align: justify;
   }
 
   .about-text ul {

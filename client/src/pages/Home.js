@@ -5,7 +5,7 @@ import './Home.css';
 
 const Home = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  
+
   const centerImages = [
     '/assets/centro/centro1.webp',
     '/assets/centro/centro2.webp',
@@ -16,7 +16,7 @@ const Home = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => 
+      setCurrentImageIndex((prevIndex) =>
         (prevIndex + 1) % centerImages.length
       );
     }, 4000); // Cambiar imagen cada 4 segundos
@@ -32,8 +32,8 @@ const Home = () => {
           <h1>Esencialmente Psicología</h1>
           <p className="hero-subtitle">Tu bienestar emocional es nuestra prioridad</p>
           <p className="hero-description">
-          <strong>Esencialmente Psicología</strong> es un espacio donde encontraras salud mental, divulgación sobre temas de psicología, gran variedad de talleres y conferencias, herramientas e información para la gestión mental-emocional y una comunidad de personas como tu.
-              ¿Personas como tú? Sí, personas como tú y como yo. Personas que le damos importancia a lo que tenemos dentro: a nuestra <strong>esencia</strong>. Personas valientes que entendemos la necesidad de cuidar nuestro cuerpo y nuestra <strong>mente</strong>.
+            <strong>Esencialmente Psicología</strong> es un espacio donde encontraras salud mental, divulgación sobre temas de psicología, gran variedad de talleres y conferencias, herramientas e información para la gestión mental-emocional y una comunidad de personas como tu.
+            ¿Personas como tú? Sí, personas como tú y como yo. Personas que le damos importancia a lo que tenemos dentro: a nuestra <strong>esencia</strong>. Personas valientes que entendemos la necesidad de cuidar nuestro cuerpo y nuestra <strong>mente</strong>.
           </p>
           <div className="hero-buttons">
             <Link to="/contacto" className="btn btn-primary">Solicitar Cita</Link>
@@ -97,22 +97,22 @@ const Home = () => {
             <div className="about-text">
               <h2>¿Por qué elegir Esencialmente Psicología?</h2>
               <p>
-                En nuestro centro, creemos que cada persona es única y merece un enfoque 
-                personalizado para su bienestar mental. Nuestro equipo de profesionales 
-                altamente cualificados está comprometido con tu crecimiento personal y 
+                En nuestro centro, creemos que cada persona es única y merece un enfoque
+                personalizado para su bienestar mental. Nuestro equipo de profesionales
+                altamente cualificados está comprometido con tu crecimiento personal y
                 emocional.
               </p>
               <ul>
-                <li>✓ Profesionales colegiados y especializados</li>
-                <li>✓ Enfoque personalizado y humanizado</li>
-                <li>✓ Ambiente cálido y confidencial</li>
-                <li>✓ Técnicas terapéuticas actualizadas</li>
+                <li> Profesionales colegiados y especializados</li>
+                <li> Enfoque personalizado y humanizado</li>
+                <li> Ambiente cálido y confidencial</li>
+                <li> Técnicas terapéuticas actualizadas</li>
               </ul>
             </div>
             <div className="about-image">
               <div className="image-carousel">
-                <img 
-                  src={centerImages[currentImageIndex]} 
+                <img
+                  src={centerImages[currentImageIndex]}
                   alt={`Centro de psicología - imagen ${currentImageIndex + 1}`}
                   className="carousel-image"
                 />
