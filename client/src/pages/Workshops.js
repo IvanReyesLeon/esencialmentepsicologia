@@ -43,6 +43,12 @@ const Workshops = () => {
         return null;
     };
 
+    const getTotalAttendees = (workshop) => {
+        const online = parseInt(workshop.registration_count) || 0;
+        const manual = parseInt(workshop.manual_attendees) || 0;
+        return online + manual;
+    };
+
     if (loading) {
         return (
             <div className="workshops-page">
@@ -86,65 +92,98 @@ const Workshops = () => {
                         </div>
                     ) : (
                         <div className="workshops-grid">
-                            {workshops.map((workshop) => (
-                                <article key={workshop.id} className="workshop-card">
-                                    <div className="workshop-image">
-                                        {getImageUrl(workshop) ? (
-                                            <img
-                                                src={getImageUrl(workshop)}
-                                                alt={workshop.title}
-                                                onError={(e) => {
-                                                    e.currentTarget.style.display = 'none';
-                                                    e.currentTarget.nextSibling.style.display = 'flex';
-                                                }}
-                                            />
-                                        ) : null}
-                                        <div className="placeholder-image" style={{ display: getImageUrl(workshop) ? 'none' : 'flex' }}>
-                                            <span>🎓</span>
-                                        </div>
-                                        <div className="workshop-date-badge">
-                                            <span className="day">{new Date(workshop.start_date).getDate()}</span>
-                                            <span className="month">{new Date(workshop.start_date).toLocaleDateString('es-ES', { month: 'short' })}</span>
-                                        </div>
-                                    </div>
+                            {workshops.map((workshop) => {
+                                const isClickable = workshop.is_clickable !== false;
+                                const CardWrapper = isClickable ? Link : 'div';
+                                const cardProps = isClickable
+                                    ? { to: `/talleres/${workshop.slug || workshop.id}` }
+                                    : {};
 
-                                    <div className="workshop-body">
-                                        <h2 className="workshop-title">{workshop.title}</h2>
-
-                                        <p className="workshop-description">
-                                            {workshop.description.length > 120
-                                                ? workshop.description.substring(0, 120) + '...'
-                                                : workshop.description}
-                                        </p>
-
-                                        <div className="workshop-meta">
-                                            <div className="meta-item">
-                                                <span className="meta-icon">💰</span>
-                                                <span className="meta-value">{workshop.price}€</span>
+                                return (
+                                    <article
+                                        key={workshop.id}
+                                        className={`workshop-card ${!isClickable ? 'not-clickable' : ''}`}
+                                    >
+                                        <div className="workshop-image">
+                                            {getImageUrl(workshop) ? (
+                                                <img
+                                                    src={getImageUrl(workshop)}
+                                                    alt={workshop.title}
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none';
+                                                        e.currentTarget.nextSibling.style.display = 'flex';
+                                                    }}
+                                                />
+                                            ) : null}
+                                            <div className="placeholder-image" style={{ display: getImageUrl(workshop) ? 'none' : 'flex' }}>
+                                                <span>🎓</span>
                                             </div>
-                                            {workshop.location && (
-                                                <div className="meta-item">
-                                                    <span className="meta-icon">📍</span>
-                                                    <span className="meta-value">{workshop.location}</span>
-                                                </div>
-                                            )}
-                                            {workshop.max_participants && (
-                                                <div className="meta-item">
-                                                    <span className="meta-icon">👥</span>
-                                                    <span className="meta-value">Máx. {workshop.max_participants} personas</span>
-                                                </div>
-                                            )}
+                                            <div className="workshop-date-badge">
+                                                <span className="day">{new Date(workshop.start_date).getDate()}</span>
+                                                <span className="month">{new Date(workshop.start_date).toLocaleDateString('es-ES', { month: 'short' })}</span>
+                                            </div>
                                         </div>
 
-                                        <Link
-                                            to={`/talleres/${workshop.slug || workshop.id}`}
-                                            className="btn btn-primary workshop-btn"
-                                        >
-                                            Ver Detalles
-                                        </Link>
-                                    </div>
-                                </article>
-                            ))}
+                                        <div className="workshop-body">
+                                            <h2 className="workshop-title">{workshop.title}</h2>
+
+                                            <p className="workshop-description">
+                                                {workshop.description.length > 120
+                                                    ? workshop.description.substring(0, 120) + '...'
+                                                    : workshop.description}
+                                            </p>
+
+                                            <div className="workshop-meta">
+                                                <div className="meta-item">
+                                                    <span className="meta-icon">💰</span>
+                                                    <span className="meta-value">{workshop.price}€</span>
+                                                </div>
+                                                {workshop.location && (
+                                                    <div className="meta-item">
+                                                        <span className="meta-icon">📍</span>
+                                                        <span className="meta-value">{workshop.location}</span>
+                                                    </div>
+                                                )}
+                                                {workshop.show_attendees_count && workshop.max_participants && (
+                                                    <div className="meta-item">
+                                                        <span className="meta-icon">👥</span>
+                                                        <span className="meta-value">
+                                                            {getTotalAttendees(workshop)}/{workshop.max_participants} plazas
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {workshop.show_attendees_count && !workshop.max_participants && (
+                                                    <div className="meta-item">
+                                                        <span className="meta-icon">👥</span>
+                                                        <span className="meta-value">
+                                                            {getTotalAttendees(workshop)} inscritos
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {!workshop.show_attendees_count && workshop.max_participants && (
+                                                    <div className="meta-item">
+                                                        <span className="meta-icon">👥</span>
+                                                        <span className="meta-value">Máx. {workshop.max_participants} personas</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {isClickable ? (
+                                                <Link
+                                                    to={`/talleres/${workshop.slug || workshop.id}`}
+                                                    className="btn btn-primary workshop-btn"
+                                                >
+                                                    Ver Detalles
+                                                </Link>
+                                            ) : (
+                                                <span className="btn btn-disabled workshop-btn">
+                                                    Próximamente
+                                                </span>
+                                            )}
+                                        </div>
+                                    </article>
+                                );
+                            })}
                         </div>
                     )}
 

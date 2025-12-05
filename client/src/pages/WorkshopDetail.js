@@ -11,6 +11,16 @@ const WorkshopDetail = () => {
     const [error, setError] = useState('');
     const [selectedImage, setSelectedImage] = useState(0);
 
+    // Registration form state
+    const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+    const [registrationData, setRegistrationData] = useState({
+        name: '',
+        email: '',
+        phone: ''
+    });
+    const [registrationStatus, setRegistrationStatus] = useState({ type: '', message: '' });
+    const [submitting, setSubmitting] = useState(false);
+
     useEffect(() => {
         const fetchWorkshop = async () => {
             try {
@@ -51,6 +61,44 @@ const WorkshopDetail = () => {
         return `${API_ROOT}/uploads/talleres/${imageUrl}`;
     };
 
+    const getTotalAttendees = () => {
+        if (!workshop) return 0;
+        const online = parseInt(workshop.registration_count) || 0;
+        const manual = parseInt(workshop.manual_attendees) || 0;
+        return online + manual;
+    };
+
+    const getAvailableSpots = () => {
+        if (!workshop || !workshop.max_participants) return null;
+        return workshop.max_participants - getTotalAttendees();
+    };
+
+    const handleRegistrationSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        setRegistrationStatus({ type: '', message: '' });
+
+        try {
+            await workshopAPI.register(workshop.id, registrationData);
+            setRegistrationStatus({
+                type: 'success',
+                message: '¡Inscripción realizada con éxito! Te contactaremos pronto con más detalles.'
+            });
+            setRegistrationData({ name: '', email: '', phone: '' });
+            setShowRegistrationForm(false);
+            // Refresh workshop data to update attendee count
+            const response = await workshopAPI.getById(id);
+            setWorkshop(response.data);
+        } catch (err) {
+            setRegistrationStatus({
+                type: 'error',
+                message: err.response?.data?.message || 'Error al inscribirse. Por favor, inténtalo de nuevo.'
+            });
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="workshop-detail">
@@ -76,6 +124,10 @@ const WorkshopDetail = () => {
 
     const hasImages = workshop.images && workshop.images.length > 0;
     const primaryImage = hasImages ? getImageUrl(workshop.images[0].image_url) : null;
+    const allowRegistration = workshop.allow_registration !== false;
+    const showAttendeesCount = workshop.show_attendees_count === true;
+    const availableSpots = getAvailableSpots();
+    const isFull = availableSpots !== null && availableSpots <= 0;
 
     // Schema.org structured data for Event
     const structuredData = {
@@ -99,7 +151,7 @@ const WorkshopDetail = () => {
             "@type": "Offer",
             "price": workshop.price,
             "priceCurrency": "EUR",
-            "availability": "https://schema.org/InStock",
+            "availability": isFull ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
             "url": window.location.href
         },
         "organizer": {
@@ -242,10 +294,106 @@ const WorkshopDetail = () => {
                                     <span className="price-label">por persona</span>
                                 </div>
 
-                                {/* CTA Button */}
-                                <Link to="/contacto" className="wd-btn wd-btn-primary wd-btn-large">
-                                    Reservar mi plaza
-                                </Link>
+                                {/* Attendees Count */}
+                                {showAttendeesCount && (
+                                    <div className="wd-attendees-count">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                            <circle cx="9" cy="7" r="4" />
+                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                        </svg>
+                                        {workshop.max_participants ? (
+                                            <span>{getTotalAttendees()}/{workshop.max_participants} plazas ocupadas</span>
+                                        ) : (
+                                            <span>{getTotalAttendees()} inscritos</span>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Registration Status Message */}
+                                {registrationStatus.message && (
+                                    <div className={`wd-status-message ${registrationStatus.type}`}>
+                                        {registrationStatus.message}
+                                    </div>
+                                )}
+
+                                {/* CTA Button / Registration Form */}
+                                {allowRegistration && !isFull ? (
+                                    <>
+                                        {!showRegistrationForm ? (
+                                            <button
+                                                onClick={() => setShowRegistrationForm(true)}
+                                                className="wd-btn wd-btn-primary wd-btn-large"
+                                            >
+                                                Inscribirme ahora
+                                            </button>
+                                        ) : (
+                                            <form onSubmit={handleRegistrationSubmit} className="wd-registration-form">
+                                                <h3>Datos de inscripción</h3>
+                                                <div className="form-group">
+                                                    <label htmlFor="reg-name">Nombre completo *</label>
+                                                    <input
+                                                        type="text"
+                                                        id="reg-name"
+                                                        value={registrationData.name}
+                                                        onChange={(e) => setRegistrationData({ ...registrationData, name: e.target.value })}
+                                                        required
+                                                        placeholder="Tu nombre"
+                                                    />
+                                                </div>
+                                                <div className="form-group">
+                                                    <label htmlFor="reg-email">Email *</label>
+                                                    <input
+                                                        type="email"
+                                                        id="reg-email"
+                                                        value={registrationData.email}
+                                                        onChange={(e) => setRegistrationData({ ...registrationData, email: e.target.value })}
+                                                        required
+                                                        placeholder="tu@email.com"
+                                                    />
+                                                </div>
+                                                <div className="form-group">
+                                                    <label htmlFor="reg-phone">Teléfono (opcional)</label>
+                                                    <input
+                                                        type="tel"
+                                                        id="reg-phone"
+                                                        value={registrationData.phone}
+                                                        onChange={(e) => setRegistrationData({ ...registrationData, phone: e.target.value })}
+                                                        placeholder="600 123 456"
+                                                    />
+                                                </div>
+                                                <div className="form-actions">
+                                                    <button
+                                                        type="submit"
+                                                        className="wd-btn wd-btn-primary"
+                                                        disabled={submitting}
+                                                    >
+                                                        {submitting ? 'Enviando...' : 'Confirmar inscripción'}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="wd-btn wd-btn-secondary"
+                                                        onClick={() => setShowRegistrationForm(false)}
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        )}
+                                    </>
+                                ) : isFull ? (
+                                    <div className="wd-full-message">
+                                        <span>⚠️ Plazas agotadas</span>
+                                        <Link to="/contacto" className="wd-btn wd-btn-secondary">
+                                            Contactar para lista de espera
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <Link to="/contacto" className="wd-btn wd-btn-primary wd-btn-large">
+                                        Contactar para más info
+                                    </Link>
+                                )}
 
                                 {/* Details List */}
                                 <div className="wd-details">

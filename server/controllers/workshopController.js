@@ -5,8 +5,15 @@ const {
     createWorkshop,
     updateWorkshop,
     deleteWorkshop,
+    deleteWorkshopPermanently,
     addWorkshopImage,
-    deleteWorkshopImage
+    deleteWorkshopImage,
+    getWorkshopRegistrations,
+    registerToWorkshop,
+    addManualRegistration,
+    updateRegistrationStatus,
+    deleteRegistration,
+    getWorkshopStats
 } = require('../models/workshopQueries');
 
 // @desc    Get all workshops
@@ -14,7 +21,8 @@ const {
 // @access  Public
 exports.getAllWorkshops = async (req, res) => {
     try {
-        const workshops = await getAllWorkshops();
+        const includeInactive = req.query.all === 'true';
+        const workshops = await getAllWorkshops(includeInactive);
         res.json(workshops);
     } catch (error) {
         console.error('Get workshops error:', error);
@@ -70,6 +78,20 @@ exports.createWorkshop = async (req, res) => {
             workshopData.images = req.files.map(file => file.filename);
         }
 
+        // Parsear booleanos
+        if (workshopData.allow_registration !== undefined) {
+            workshopData.allow_registration = workshopData.allow_registration === 'true' || workshopData.allow_registration === true;
+        }
+        if (workshopData.show_attendees_count !== undefined) {
+            workshopData.show_attendees_count = workshopData.show_attendees_count === 'true' || workshopData.show_attendees_count === true;
+        }
+        if (workshopData.is_clickable !== undefined) {
+            workshopData.is_clickable = workshopData.is_clickable === 'true' || workshopData.is_clickable === true;
+        }
+        if (workshopData.manual_attendees !== undefined) {
+            workshopData.manual_attendees = parseInt(workshopData.manual_attendees) || 0;
+        }
+
         const workshop = await createWorkshop(workshopData);
         res.status(201).json(workshop);
     } catch (error) {
@@ -100,6 +122,23 @@ exports.updateWorkshop = async (req, res) => {
             updateData.images = req.files.map(file => file.filename);
         }
 
+        // Parsear booleanos
+        if (updateData.allow_registration !== undefined) {
+            updateData.allow_registration = updateData.allow_registration === 'true' || updateData.allow_registration === true;
+        }
+        if (updateData.show_attendees_count !== undefined) {
+            updateData.show_attendees_count = updateData.show_attendees_count === 'true' || updateData.show_attendees_count === true;
+        }
+        if (updateData.is_clickable !== undefined) {
+            updateData.is_clickable = updateData.is_clickable === 'true' || updateData.is_clickable === true;
+        }
+        if (updateData.is_active !== undefined) {
+            updateData.is_active = updateData.is_active === 'true' || updateData.is_active === true;
+        }
+        if (updateData.manual_attendees !== undefined) {
+            updateData.manual_attendees = parseInt(updateData.manual_attendees) || 0;
+        }
+
         const workshop = await updateWorkshop(id, updateData);
 
         if (!workshop) {
@@ -113,7 +152,7 @@ exports.updateWorkshop = async (req, res) => {
     }
 };
 
-// @desc    Delete workshop
+// @desc    Delete workshop (soft delete)
 // @route   DELETE /api/workshops/:id
 // @access  Private/Admin
 exports.deleteWorkshop = async (req, res) => {
@@ -126,9 +165,29 @@ exports.deleteWorkshop = async (req, res) => {
             return res.status(404).json({ message: 'Workshop not found' });
         }
 
-        res.json({ message: 'Workshop removed' });
+        res.json({ message: 'Workshop deactivated' });
     } catch (error) {
         console.error('Delete workshop error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// @desc    Delete workshop permanently
+// @route   DELETE /api/workshops/:id/permanent
+// @access  Private/Admin
+exports.deleteWorkshopPermanently = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const workshop = await deleteWorkshopPermanently(id);
+
+        if (!workshop) {
+            return res.status(404).json({ message: 'Workshop not found' });
+        }
+
+        res.json({ message: 'Workshop permanently deleted' });
+    } catch (error) {
+        console.error('Delete workshop permanently error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -176,6 +235,130 @@ exports.deleteWorkshopImage = async (req, res) => {
         res.json({ message: 'Image removed' });
     } catch (error) {
         console.error('Delete workshop image error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// ==================== INSCRIPCIONES ====================
+
+// @desc    Get workshop registrations
+// @route   GET /api/workshops/:id/registrations
+// @access  Private/Admin
+exports.getRegistrations = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const registrations = await getWorkshopRegistrations(id);
+        res.json(registrations);
+    } catch (error) {
+        console.error('Get registrations error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// @desc    Register to workshop (public)
+// @route   POST /api/workshops/:id/register
+// @access  Public
+exports.registerToWorkshop = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, phone, notes } = req.body;
+
+        if (!name || !email) {
+            return res.status(400).json({ message: 'Nombre y email son obligatorios' });
+        }
+
+        // Validar email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Email no válido' });
+        }
+
+        const registration = await registerToWorkshop(id, { name, email, phone, notes });
+        res.status(201).json({
+            message: '¡Inscripción realizada con éxito!',
+            registration
+        });
+    } catch (error) {
+        console.error('Register to workshop error:', error);
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// @desc    Add manual registration (admin)
+// @route   POST /api/workshops/:id/registrations/manual
+// @access  Private/Admin
+exports.addManualRegistration = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, phone, notes } = req.body;
+
+        if (!name) {
+            return res.status(400).json({ message: 'El nombre es obligatorio' });
+        }
+
+        const registration = await addManualRegistration(id, { name, email, phone, notes });
+        res.status(201).json(registration);
+    } catch (error) {
+        console.error('Add manual registration error:', error);
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// @desc    Update registration status
+// @route   PUT /api/workshops/registrations/:registrationId
+// @access  Private/Admin
+exports.updateRegistrationStatus = async (req, res) => {
+    try {
+        const { registrationId } = req.params;
+        const { status } = req.body;
+
+        if (!['pending', 'confirmed', 'cancelled'].includes(status)) {
+            return res.status(400).json({ message: 'Estado no válido' });
+        }
+
+        const registration = await updateRegistrationStatus(registrationId, status);
+
+        if (!registration) {
+            return res.status(404).json({ message: 'Inscripción no encontrada' });
+        }
+
+        res.json(registration);
+    } catch (error) {
+        console.error('Update registration status error:', error);
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// @desc    Delete registration
+// @route   DELETE /api/workshops/registrations/:registrationId
+// @access  Private/Admin
+exports.deleteRegistration = async (req, res) => {
+    try {
+        const { registrationId } = req.params;
+
+        const registration = await deleteRegistration(registrationId);
+
+        if (!registration) {
+            return res.status(404).json({ message: 'Inscripción no encontrada' });
+        }
+
+        res.json({ message: 'Inscripción eliminada' });
+    } catch (error) {
+        console.error('Delete registration error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// @desc    Get workshop stats
+// @route   GET /api/workshops/:id/stats
+// @access  Private/Admin
+exports.getWorkshopStats = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const stats = await getWorkshopStats(id);
+        res.json(stats);
+    } catch (error) {
+        console.error('Get workshop stats error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };

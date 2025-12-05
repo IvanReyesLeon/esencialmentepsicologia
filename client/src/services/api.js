@@ -42,13 +42,21 @@ export const pricingAPI = {
 };
 
 export const workshopAPI = {
-  getAll: () => api.get('/workshops'),
+  getAll: (includeAll = false) => api.get(`/workshops${includeAll ? '?all=true' : ''}`),
   getById: (id) => api.get(`/workshops/${id}`),
   create: (data) => api.post('/workshops', data),
   update: (id, data) => api.put(`/workshops/${id}`, data),
   delete: (id) => api.delete(`/workshops/${id}`),
+  deletePermanently: (id) => api.delete(`/workshops/${id}/permanent`),
   addImage: (id, data) => api.post(`/workshops/${id}/images`, data),
   deleteImage: (imageId) => api.delete(`/workshops/images/${imageId}`),
+  // Inscripciones
+  register: (id, data) => api.post(`/workshops/${id}/register`, data),
+  getRegistrations: (id) => api.get(`/workshops/${id}/registrations`),
+  addManualRegistration: (id, data) => api.post(`/workshops/${id}/registrations/manual`, data),
+  updateRegistration: (registrationId, data) => api.put(`/workshops/registrations/${registrationId}`, data),
+  deleteRegistration: (registrationId) => api.delete(`/workshops/registrations/${registrationId}`),
+  getStats: (id) => api.get(`/workshops/${id}/stats`),
 };
 
 export const contactMessagesAPI = {

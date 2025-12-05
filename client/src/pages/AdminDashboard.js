@@ -37,7 +37,7 @@ const AdminDashboard = () => {
       const [therapistsRes, pricingRes, workshopsRes] = await Promise.all([
         therapistAPI.getAll(),
         pricingAPI.getAll(),
-        workshopAPI.getAll()
+        workshopAPI.getAll(true)  // incluir inactivos en admin
       ]);
       setTherapists(therapistsRes.data);
       setPricing(pricingRes.data);
