@@ -1,11 +1,16 @@
+/* ========================================
+   NAVBAR - Modern Design
+======================================== */
 .navbar {
-  background: white;
+  background: var(--surface-overlay);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   padding: 0;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .nav-container {
@@ -17,115 +22,152 @@
   align-items: center;
 }
 
-.nav-logo {
-  color: white;
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.nav-logo:hover {
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.nav-menu {
-  display: flex;
-  gap: 2rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
+/* ========================================
+   BRAND SECTION
+======================================== */
 .nav-brand {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem 0;
-  background: white;
+  padding: var(--space-4) 0;
+  background: transparent;
   width: 100%;
+  position: relative;
 }
 
 .nav-brand a {
-  color: white;
   text-decoration: none;
-  font-size: 1.5rem;
-  font-weight: bold;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-3);
+  transition: transform var(--transition-normal);
+}
+
+.nav-brand a:hover {
+  transform: scale(1.02);
 }
 
 .logo {
-  height: 80px;
+  height: 70px;
   width: auto;
   object-fit: contain;
+  transition: all var(--transition-normal);
 }
 
+/* ========================================
+   NAVIGATION MENU
+======================================== */
 .nav-menu {
-  background: var(--primary-color);
+  background: var(--primary-gradient);
   width: 100%;
   display: flex;
   justify-content: center;
   padding: 0;
+  list-style: none;
+  margin: 0;
+  gap: 0;
 }
 
 .nav-menu a {
   color: white;
   text-decoration: none;
   font-weight: 500;
-  padding: 1rem 2rem;
+  padding: var(--space-4) var(--space-6);
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  border-right: 1px solid rgba(255,255,255,0.2);
+  transition: all var(--transition-normal);
+  position: relative;
+  display: inline-block;
+}
+
+.nav-menu a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 3px;
+  background: white;
+  transition: width var(--transition-normal);
+  border-radius: var(--radius-full);
+}
+
+.nav-menu a:hover::after,
+.nav-menu a.active::after {
+  width: 30px;
 }
 
 .nav-menu a:hover {
-  background: rgba(255,255,255,0.1);
-  color: white;
-}
-
-.nav-menu a:last-child {
-  border-right: none;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .nav-menu a.active {
-  background: rgba(255,255,255,0.2);
-  color: white;
+  background: rgba(255, 255, 255, 0.15);
 }
 
+/* ========================================
+   MOBILE TOGGLE
+======================================== */
 .nav-toggle {
   display: none;
   flex-direction: column;
   cursor: pointer;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.nav-toggle:hover {
+  background: var(--background-soft);
 }
 
 .bar {
-  width: 25px;
-  height: 3px;
-  background-color: rgb(189, 8, 245);
+  width: 24px;
+  height: 2.5px;
+  background: var(--primary-color);
   margin: 3px 0;
-  transition: 0.3s;
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-full);
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media screen and (max-width: 1024px) {
+  .nav-menu a {
+    padding: var(--space-4) var(--space-4);
+    font-size: 0.85rem;
+  }
 }
 
 @media screen and (max-width: 768px) {
   .nav-container {
     flex-direction: column;
   }
-  
+
+  .nav-brand {
+    padding: var(--space-3) var(--space-4);
+    justify-content: space-between;
+  }
+
+  .logo {
+    height: 55px;
+  }
+
   .nav-menu {
     position: fixed;
     left: -100%;
-    top: 120px;
+    top: 85px;
     flex-direction: column;
-    background: var(--primary-color);
+    background: var(--primary-gradient);
     width: 100%;
     text-align: center;
-    transition: 0.3s;
-    box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-2) 0;
+    gap: 0;
   }
 
   .nav-menu.active {
@@ -133,16 +175,24 @@
   }
 
   .nav-menu a {
-    padding: 1rem;
+    padding: var(--space-4);
     display: block;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    border-right: none;
+    font-size: 0.95rem;
+  }
+
+  .nav-menu a:last-child {
+    border-bottom: none;
+  }
+
+  .nav-menu a::after {
+    display: none;
   }
 
   .nav-toggle {
     display: flex;
     position: absolute;
-    right: 1rem;
+    right: var(--space-4);
     top: 50%;
     transform: translateY(-50%);
   }

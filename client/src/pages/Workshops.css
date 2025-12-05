@@ -1,14 +1,19 @@
-/* Workshops Page Styles - Scoped to avoid conflicts */
+/* ========================================
+   WORKSHOPS PAGE - Modern Design
+======================================== */
 
 .workshops-page {
     min-height: 100vh;
+    background: var(--background-light);
 }
 
-/* Hero Section */
+/* ========================================
+   HERO SECTION
+======================================== */
 .workshops-hero {
-    background: linear-gradient(135deg, #B19CD9 0%, #9B7BB8 50%, #E91E63 100%);
-    color: white;
-    padding: 3rem 0 2rem;
+    background: linear-gradient(135deg, var(--background-warm) 0%, var(--background-light) 50%, var(--primary-light) 100%);
+    color: var(--text-primary);
+    padding: var(--space-16) 0 var(--space-10);
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -17,127 +22,141 @@
 .workshops-hero::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    opacity: 0.5;
+    top: -50%;
+    right: -20%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(233, 30, 99, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 .workshops-hero h1 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    margin-bottom: var(--space-3);
     font-weight: 700;
     position: relative;
     z-index: 1;
 }
 
 .workshops-hero>p {
-    font-size: 1rem;
-    opacity: 0.9;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
     max-width: 600px;
     margin: 0 auto;
     position: relative;
     z-index: 1;
 }
 
-/* Content Section */
+/* ========================================
+   CONTENT SECTION
+======================================== */
 .workshops-content {
-    padding: 2.5rem 0;
-    background: #f8f9fa;
+    padding: var(--space-12) 0;
+    background: var(--background-light);
 }
 
 .workshops-content>.container,
 .workshops-hero>.container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 var(--space-6);
     position: relative;
     z-index: 1;
 }
 
-/* Loading & Error States */
+/* ========================================
+   LOADING & ERROR STATES
+======================================== */
 .workshops-page .loading,
 .workshops-page .error-message {
     text-align: center;
-    padding: 3rem;
+    padding: var(--space-12);
     font-size: 1.1rem;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .workshops-page .error-message {
     color: #dc3545;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background: var(--surface-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
 }
 
-/* No Workshops State */
+/* ========================================
+   NO WORKSHOPS STATE
+======================================== */
 .no-workshops {
     text-align: center;
-    padding: 4rem 2rem;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: var(--space-16) var(--space-8);
+    background: var(--surface-white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
     max-width: 600px;
     margin: 0 auto;
+    border: 1px solid var(--border-light);
 }
 
 .no-workshops-icon {
     font-size: 4rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--space-5);
 }
 
 .no-workshops h2 {
-    color: #6B5B95;
-    margin-bottom: 1rem;
+    color: var(--secondary-color);
+    margin-bottom: var(--space-4);
 }
 
 .no-workshops p {
-    color: #666;
-    margin-bottom: 2rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-6);
 }
 
-/* Workshops Grid */
+/* ========================================
+   WORKSHOPS GRID
+======================================== */
 .workshops-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 2rem;
+    gap: var(--space-8);
 }
 
-/* Workshop Card */
+/* ========================================
+   WORKSHOP CARD
+======================================== */
 .workshops-page .workshop-card {
-    background: white;
-    border-radius: 20px;
+    background: var(--surface-white);
+    border-radius: var(--radius-xl);
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-normal);
     display: flex;
     flex-direction: column;
+    border: 1px solid var(--border-light);
 }
 
 .workshops-page .workshop-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(177, 156, 217, 0.25);
+    box-shadow: var(--shadow-xl);
 }
 
 .workshops-page .workshop-image {
     position: relative;
     height: 200px;
     overflow: hidden;
-    background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 100%);
+    background: var(--gradient-soft);
 }
 
 .workshops-page .workshop-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform var(--transition-slow);
 }
 
 .workshops-page .workshop-card:hover .workshop-image img {
-    transform: scale(1.05);
+    transform: scale(1.08);
 }
 
 .workshops-page .placeholder-image {
@@ -147,19 +166,21 @@
     align-items: center;
     justify-content: center;
     font-size: 4rem;
-    background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 100%);
+    background: var(--gradient-soft);
 }
 
-/* Date Badge */
+/* ========================================
+   DATE BADGE
+======================================== */
 .workshop-date-badge {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: white;
-    border-radius: 12px;
-    padding: 0.75rem;
+    top: var(--space-4);
+    right: var(--space-4);
+    background: var(--surface-white);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3);
     text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-lg);
     min-width: 70px;
 }
 
@@ -167,7 +188,7 @@
     display: block;
     font-size: 1.75rem;
     font-weight: 700;
-    color: #E91E63;
+    color: var(--primary-color);
     line-height: 1;
 }
 
@@ -175,13 +196,15 @@
     display: block;
     font-size: 0.8rem;
     text-transform: uppercase;
-    color: #B19CD9;
+    color: var(--secondary-color);
     font-weight: 600;
 }
 
-/* Workshop Body */
+/* ========================================
+   WORKSHOP BODY
+======================================== */
 .workshop-body {
-    padding: 1.5rem;
+    padding: var(--space-6);
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -189,36 +212,38 @@
 
 .workshops-page .workshop-title {
     font-size: 1.35rem;
-    color: #6B5B95;
-    margin-bottom: 0.75rem;
+    color: var(--secondary-dark);
+    margin-bottom: var(--space-3);
     font-weight: 600;
     line-height: 1.3;
 }
 
 .workshops-page .workshop-description {
-    color: #555;
+    color: var(--text-secondary);
     font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 1.25rem;
+    line-height: 1.7;
+    margin-bottom: var(--space-5);
     flex-grow: 1;
 }
 
-/* Workshop Meta */
+/* ========================================
+   WORKSHOP META
+======================================== */
 .workshops-page .workshop-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-light);
 }
 
 .meta-item {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: var(--space-2);
     font-size: 0.9rem;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .meta-icon {
@@ -229,102 +254,154 @@
     font-weight: 500;
 }
 
-/* Workshop Button */
+/* ========================================
+   WORKSHOP BUTTON
+======================================== */
 .workshop-btn {
     width: 100%;
     text-align: center;
-    padding: 0.875rem 1.5rem;
+    padding: var(--space-4) var(--space-6);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-size: 0.9rem;
+    border-radius: var(--radius-full);
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: var(--shadow-primary);
 }
 
-/* CTA Section */
+.workshop-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+/* ========================================
+   CTA SECTION
+======================================== */
 .workshops-page .cta-section {
     text-align: center;
-    padding: 4rem 2rem;
-    margin-top: 4rem;
-    background: linear-gradient(135deg, #B19CD9 0%, #E91E63 100%);
-    border-radius: 20px;
+    padding: var(--space-16) var(--space-8);
+    margin-top: var(--space-16);
+    background: var(--primary-gradient);
+    border-radius: var(--radius-xl);
     color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.workshops-page .cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
 }
 
 .workshops-page .cta-section h2 {
-    font-size: 2rem;
-    margin-bottom: 1rem;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.75rem, 3vw, 2rem);
+    margin-bottom: var(--space-4);
     color: white;
+    position: relative;
+    z-index: 1;
 }
 
 .workshops-page .cta-section p {
-    opacity: 0.9;
-    margin-bottom: 1.5rem;
+    opacity: 0.95;
+    margin-bottom: var(--space-6);
     font-size: 1.1rem;
+    color: white;
+    position: relative;
+    z-index: 1;
 }
 
 .workshops-page .cta-section .btn {
     background: white;
-    color: #6B5B95;
+    color: var(--secondary-dark);
     font-weight: 600;
+    position: relative;
+    z-index: 1;
+    box-shadow: var(--shadow-lg);
 }
 
 .workshops-page .cta-section .btn:hover {
-    background: #fce7f3;
-    color: #E91E63;
+    background: var(--background-lavender);
+    color: var(--primary-color);
+    transform: translateY(-2px);
 }
 
-/* Buttons */
+/* ========================================
+   BUTTONS
+======================================== */
 .workshops-page .btn {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    border-radius: 50px;
-    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-full);
+    font-weight: 600;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all var(--transition-normal);
     cursor: pointer;
     border: none;
 }
 
 .workshops-page .btn-primary {
-    background: linear-gradient(135deg, #B19CD9 0%, #E91E63 100%);
+    background: var(--primary-gradient);
     color: white;
+    box-shadow: var(--shadow-primary);
 }
 
 .workshops-page .btn-primary:hover {
-    background: linear-gradient(135deg, #9B7BB8 0%, #C2185B 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+    box-shadow: var(--shadow-hover);
 }
 
-/* Responsive */
+/* ========================================
+   RESPONSIVE
+======================================== */
 @media (max-width: 768px) {
     .workshops-hero {
-        padding: 5rem 0 3rem;
+        padding: var(--space-12) 0 var(--space-8);
     }
 
     .workshops-hero h1 {
-        font-size: 2.25rem;
+        font-size: 1.75rem;
+    }
+
+    .workshops-content {
+        padding: var(--space-8) 0;
     }
 
     .workshops-grid {
         grid-template-columns: 1fr;
+        gap: var(--space-6);
     }
 
     .workshops-page .cta-section {
-        padding: 3rem 1.5rem;
-        margin-top: 3rem;
+        padding: var(--space-12) var(--space-5);
+        margin-top: var(--space-12);
         border-radius: 0;
-        margin-left: -1.5rem;
-        margin-right: -1.5rem;
+        margin-left: calc(var(--space-6) * -1);
+        margin-right: calc(var(--space-6) * -1);
     }
 }
 
 @media (max-width: 480px) {
     .workshops-hero h1 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
     }
 
     .workshop-body {
-        padding: 1.25rem;
+        padding: var(--space-5);
     }
 }

@@ -1,121 +1,189 @@
+/* ========================================
+   LOCATION PAGE - Modern Design
+======================================== */
 .location {
   min-height: 100vh;
+  background: var(--background-light);
 }
 
-/* Hero Section */
+/* ========================================
+   HERO SECTION
+======================================== */
 .location-hero {
-  background: linear-gradient(135deg, var(--primary-light) 0%, var(--background-light) 100%);
+  background: linear-gradient(135deg, var(--background-warm) 0%, var(--background-light) 50%, var(--primary-light) 100%);
   color: var(--text-primary);
-  padding: 2.5rem 1rem 1.5rem;
+  padding: var(--space-16) var(--space-4) var(--space-10);
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.location-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(233, 30, 99, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 .location-hero h1 {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  margin-bottom: var(--space-3);
   font-weight: 700;
+  position: relative;
+  z-index: 1;
 }
 
 .location-hero p {
-  font-size: 1rem;
-  opacity: 0.9;
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
-/* Location Info */
+/* ========================================
+   LOCATION INFO
+======================================== */
 .location-info {
-  padding: 4rem 1rem;
-  background-color: #fdf7fa;
+  padding: var(--space-16) var(--space-4);
+  background: var(--background-soft);
 }
 
 .location-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 3rem;
+  gap: var(--space-12);
   align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .location-info h2 {
-  color: #E91E63;
-  margin-bottom: 2rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-8);
   text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
 }
 
 .address-info {
   display: grid;
-  gap: 2rem;
+  gap: var(--space-6);
 }
 
 .address-item {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(233, 30, 99, 0.1);
-  border-left: 4px solid #E91E63;
+  background: var(--surface-white);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border-left: 4px solid var(--primary-color);
+  transition: all var(--transition-normal);
+}
+
+.address-item:hover {
+  transform: translateX(5px);
+  box-shadow: var(--shadow-lg);
 }
 
 .address-item h3 {
-  color: #E91E63;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  color: var(--primary-color);
+  margin-bottom: var(--space-3);
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
 .address-item p {
-  color: #666;
-  margin: 0.5rem 0;
+  color: var(--text-secondary);
+  margin: var(--space-2) 0;
   line-height: 1.6;
+  font-size: 1rem;
 }
 
-/* Map Section */
+/* ========================================
+   MAP SECTION
+======================================== */
 .map-container {
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(233, 30, 99, 0.15);
-  height: 400px;
+  box-shadow: var(--shadow-xl);
+  height: 450px;
+  border: 4px solid white;
 }
 
-/* CTA Section */
+/* ========================================
+   CTA SECTION
+======================================== */
 .location-cta {
-  background: linear-gradient(135deg, #B19CD9 0%, #E91E63 100%);
+  background: var(--primary-gradient);
   color: white;
-  padding: 3rem 1rem;
+  padding: var(--space-16) var(--space-8);
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.location-cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
 }
 
 .location-cta h2 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  margin-bottom: var(--space-4);
+  position: relative;
+  z-index: 1;
 }
 
 .location-cta p {
   font-size: 1.1rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
+  margin-bottom: var(--space-8);
+  opacity: 0.95;
+  position: relative;
+  z-index: 1;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .location-hero h1 {
-    font-size: 1.5rem;
-  }
-
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 900px) {
   .location-content {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: var(--space-8);
   }
 
+  .map-container {
+    height: 350px;
+  }
+}
+
+@media (max-width: 768px) {
   .location-hero {
-    padding: 3rem 1rem 1.5rem;
+    padding: var(--space-12) var(--space-4) var(--space-8);
+  }
+
+  .location-hero h1 {
+    font-size: 1.75rem;
   }
 
   .location-info {
-    padding: 2rem 1rem;
+    padding: var(--space-8) var(--space-4);
   }
 
   .location-cta {
-    padding: 2rem 1rem;
-  }
-
-  .location-cta h2 {
-    font-size: 2rem;
+    padding: var(--space-12) var(--space-5);
   }
 }
