@@ -2,16 +2,26 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../../client/public/assets/terapeutas');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Create upload directories
+const terapeutasDir = path.join(__dirname, '../../client/public/assets/terapeutas');
+const talleresDir = path.join(__dirname, '../../client/public/assets/talleres');
+
+// Ensure directories exist
+[terapeutasDir, talleresDir].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadDir);
+    // Use talleres directory for workshop images
+    if (req.originalUrl.includes('/workshops')) {
+      cb(null, talleresDir);
+    } else {
+      cb(null, terapeutasDir);
+    }
   },
   filename: function (req, file, cb) {
     // Generate unique filename with timestamp

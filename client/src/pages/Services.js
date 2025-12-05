@@ -14,8 +14,16 @@ const Services = () => {
   }, []);
 
   useEffect(() => {
-    const el = document.getElementById('pricing');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Solo hacer scroll a pricing si viene con un tipo específico en la URL
+    const tipo = searchParams.get('tipo');
+    if (tipo) {
+      const el = document.getElementById('pricing');
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    }
   }, [searchParams]);
 
   const fetchPricing = async () => {

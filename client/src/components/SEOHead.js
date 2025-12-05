@@ -14,7 +14,9 @@ const SEOHead = ({
 }) => {
     const siteUrl = process.env.REACT_APP_SITE_URL || 'https://esencialmentepsicologia.com';
     const fullUrl = canonicalUrl || `${siteUrl}${window.location.pathname}`;
-    const fullImageUrl = image.startsWith('http') ? image : `${siteUrl}${image}`;
+    const defaultImage = '/assets/logo.png';
+    const imageToUse = image || defaultImage;
+    const fullImageUrl = imageToUse.startsWith('http') ? imageToUse : `${siteUrl}${imageToUse}`;
 
     return (
         <Helmet>

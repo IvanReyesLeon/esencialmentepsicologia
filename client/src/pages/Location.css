@@ -6,18 +6,18 @@
 .location-hero {
   background: linear-gradient(135deg, var(--primary-light) 0%, var(--background-light) 100%);
   color: var(--text-primary);
-  padding: 4rem 1rem 2rem;
+  padding: 2.5rem 1rem 1.5rem;
   text-align: center;
 }
 
 .location-hero h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
   font-weight: 700;
 }
 
 .location-hero p {
-  font-size: 1.2rem;
+  font-size: 1rem;
   opacity: 0.9;
 }
 
@@ -95,26 +95,26 @@
 /* Responsive */
 @media (max-width: 768px) {
   .location-hero h1 {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
   }
-  
+
   .location-content {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
-  
+
   .location-hero {
     padding: 3rem 1rem 1.5rem;
   }
-  
+
   .location-info {
     padding: 2rem 1rem;
   }
-  
+
   .location-cta {
     padding: 2rem 1rem;
   }
-  
+
   .location-cta h2 {
     font-size: 2rem;
   }

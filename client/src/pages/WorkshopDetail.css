@@ -1,436 +1,642 @@
-/* Workshop Detail Page Styles - All scoped to .workshop-detail */
+/* Workshop Detail - Modern Design */
 
 .workshop-detail {
     min-height: 100vh;
     background: #f8f9fa;
 }
 
-/* Hero Section */
-.workshop-detail .workshop-hero {
-    background: linear-gradient(135deg, #B19CD9 0%, #9B7BB8 50%, #E91E63 100%);
-    color: white;
-    padding: 5rem 0 3rem;
-    position: relative;
-}
-
-.workshop-detail .workshop-hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    opacity: 0.5;
-}
-
-.workshop-detail .back-link {
-    display: inline-flex;
-    align-items: center;
-    color: white;
-    opacity: 0.9;
-    text-decoration: none;
-    font-size: 0.95rem;
-    margin-bottom: 2rem;
-    transition: opacity 0.3s ease;
-    position: relative;
-    z-index: 1;
-}
-
-.workshop-detail .back-link:hover {
-    opacity: 1;
-}
-
-.workshop-detail .detail-hero-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 2rem;
-    position: relative;
-    z-index: 1;
-}
-
-.workshop-detail .detail-hero-info {
-    flex: 1;
-}
-
-.workshop-detail .date-badge {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.workshop-detail .date-badge .day {
-    font-size: 2.5rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.workshop-detail .date-badge .month {
-    font-size: 1rem;
-    text-transform: capitalize;
-    margin-top: 0.25rem;
-}
-
-.workshop-detail .date-badge .year {
-    font-size: 0.85rem;
-    opacity: 0.8;
-}
-
-.workshop-detail .workshop-hero h1 {
-    font-size: 2.75rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    line-height: 1.2;
-}
-
-.workshop-detail .workshop-hero .location {
-    font-size: 1.2rem;
-    opacity: 0.9;
-}
-
-.workshop-detail .detail-hero-price {
-    background: white;
-    color: #6B5B95;
-    padding: 2rem;
-    border-radius: 20px;
-    text-align: center;
-    min-width: 200px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-}
-
-.workshop-detail .price-label {
-    display: block;
-    font-size: 0.9rem;
-    color: #666;
-    margin-bottom: 0.5rem;
-}
-
-.workshop-detail .price-amount {
-    display: block;
-    font-size: 3rem;
-    font-weight: 700;
-    color: #E91E63;
-    margin-bottom: 1rem;
-}
-
-.workshop-detail .btn-large {
-    padding: 1rem 2rem;
-    font-size: 1rem;
-}
-
-/* Content Section */
-.workshop-detail .workshop-content {
-    padding: 4rem 0;
-}
-
-.workshop-detail .workshop-content .container {
+/* Container */
+.wd-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1.5rem;
 }
 
-.workshop-detail .content-grid {
+/* Loading State */
+.wd-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 1rem;
+}
+
+.wd-loading .spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #f3e8ff;
+    border-top-color: #B19CD9;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.wd-loading p {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* Error State */
+.wd-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 1rem;
+    text-align: center;
+    padding: 2rem;
+}
+
+.wd-error .error-icon {
+    font-size: 4rem;
+}
+
+.wd-error h2 {
+    color: #333;
+    margin: 0;
+}
+
+/* Breadcrumb */
+.wd-breadcrumb {
+    background: white;
+    border-bottom: 1px solid #eee;
+    padding: 1rem 0;
+}
+
+.wd-breadcrumb .wd-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    flex-wrap: wrap;
+}
+
+.wd-breadcrumb a {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.wd-breadcrumb a:hover {
+    color: #B19CD9;
+}
+
+.wd-breadcrumb span {
+    color: #999;
+}
+
+.wd-breadcrumb .current {
+    color: #333;
+    font-weight: 500;
+}
+
+/* Main Layout */
+.wd-main {
+    padding: 2rem 0;
+}
+
+.wd-layout {
     display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 3rem;
+    grid-template-columns: 1fr 380px;
+    gap: 2.5rem;
     align-items: start;
 }
 
-/* Description */
-.workshop-detail .workshop-description {
-    background: white;
-    padding: 2.5rem;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.workshop-detail .workshop-description h2 {
-    color: #6B5B95;
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f3e8ff;
-}
-
-.workshop-detail .description-text {
-    color: #555;
-    line-height: 1.8;
-    font-size: 1.05rem;
-}
-
-.workshop-detail .description-text p {
-    margin-bottom: 1rem;
-}
-
-.workshop-detail .description-text p:last-child {
-    margin-bottom: 0;
-}
-
-/* Sidebar */
-.workshop-detail .workshop-sidebar {
-    position: sticky;
-    top: 2rem;
-}
-
-.workshop-detail .info-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.workshop-detail .info-card h3 {
-    color: #6B5B95;
-    font-size: 1.25rem;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f3e8ff;
-}
-
-.workshop-detail .details-list {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 1.5rem;
-}
-
-.workshop-detail .details-list li {
+/* Content Column */
+.wd-content {
     display: flex;
-    gap: 1rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid #f0f0f0;
+    flex-direction: column;
+    gap: 2rem;
 }
 
-.workshop-detail .details-list li:last-child {
-    border-bottom: none;
-}
-
-.workshop-detail .details-list .icon {
-    font-size: 1.25rem;
-}
-
-.workshop-detail .details-list strong {
-    display: block;
-    font-size: 0.85rem;
-    color: #888;
-    margin-bottom: 0.25rem;
-}
-
-.workshop-detail .details-list span:not(.icon) {
-    color: #333;
-}
-
-.workshop-detail .price-highlight {
-    font-size: 1.5rem !important;
-    font-weight: 700;
-    color: #E91E63 !important;
-}
-
-.workshop-detail .btn-block {
-    display: block;
-    width: 100%;
-    text-align: center;
-}
-
-/* Gallery */
-.workshop-detail .workshop-gallery {
-    margin-top: 3rem;
-}
-
-.workshop-detail .workshop-gallery h2 {
-    color: #6B5B95;
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.workshop-detail .gallery-main {
-    border-radius: 20px;
+/* Hero Image */
+.wd-hero-image {
+    position: relative;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 100%);
+    aspect-ratio: 16/9;
 }
 
-.workshop-detail .gallery-main img {
-    width: 100%;
-    max-height: 500px;
-    object-fit: cover;
-}
-
-.workshop-detail .gallery-thumbnails {
-    display: flex;
-    gap: 0.75rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-}
-
-.workshop-detail .thumbnail {
-    flex-shrink: 0;
-    width: 80px;
-    height: 60px;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    border: 3px solid transparent;
-    transition: all 0.3s ease;
-    padding: 0;
-    background: none;
-}
-
-.workshop-detail .thumbnail img {
+.wd-hero-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.workshop-detail .thumbnail:hover {
-    border-color: #B19CD9;
+.wd-date-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: white;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 60px;
 }
 
-.workshop-detail .thumbnail.active {
+.wd-date-badge .day {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #E91E63;
+    line-height: 1;
+}
+
+.wd-date-badge .month {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6B5B95;
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+}
+
+.wd-gallery-nav {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+}
+
+.nav-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 0;
+}
+
+.nav-dot.active,
+.nav-dot:hover {
+    background: white;
+    transform: scale(1.2);
+}
+
+/* Mobile Header (hidden on desktop) */
+.wd-mobile-header {
+    display: none;
+}
+
+/* Description */
+.wd-description {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.wd-description h2 {
+    font-size: 1.25rem;
+    color: #333;
+    margin: 0 0 1.25rem 0;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3e8ff;
+}
+
+.description-content {
+    color: #555;
+    line-height: 1.8;
+}
+
+.description-content p {
+    margin: 0 0 1rem 0;
+}
+
+.description-content p:last-child {
+    margin-bottom: 0;
+}
+
+/* Gallery Section */
+.wd-gallery {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.wd-gallery h2 {
+    font-size: 1.25rem;
+    color: #333;
+    margin: 0 0 1.25rem 0;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.gallery-thumb {
+    aspect-ratio: 4/3;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 0;
+    background: none;
+}
+
+.gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gallery-thumb:hover {
+    border-color: #B19CD9;
+    transform: translateY(-2px);
+}
+
+.gallery-thumb.active {
     border-color: #E91E63;
 }
 
-/* CTA Section */
-.workshop-detail .workshop-cta {
-    background: linear-gradient(135deg, #B19CD9 0%, #E91E63 100%);
-    color: white;
-    padding: 4rem 0;
-    text-align: center;
-    margin-top: 2rem;
+/* Sidebar / Booking Card */
+.wd-sidebar {
+    position: sticky;
+    top: 2rem;
 }
 
-.workshop-detail .workshop-cta h2 {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: white;
-}
-
-.workshop-detail .workshop-cta p {
-    opacity: 0.9;
-    margin-bottom: 1.5rem;
-    font-size: 1.1rem;
-}
-
-.workshop-detail .workshop-cta .btn {
+.wd-booking-card {
     background: white;
-    color: #6B5B95;
+    border-radius: 16px;
+    padding: 1.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-.workshop-detail .workshop-cta .btn:hover {
-    background: #fce7f3;
+.wd-desktop-header {
+    margin-bottom: 1.5rem;
+}
+
+.wd-desktop-header h1 {
+    font-size: 1.5rem;
+    color: #333;
+    margin: 0 0 0.75rem 0;
+    line-height: 1.3;
+}
+
+.workshop-location {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.workshop-location svg {
+    color: #B19CD9;
+    flex-shrink: 0;
+}
+
+/* Price Display */
+.wd-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid #eee;
+}
+
+.wd-price .price-value {
+    font-size: 2.25rem;
+    font-weight: 700;
     color: #E91E63;
 }
 
-/* Buttons - scoped */
-.workshop-detail .btn {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
+.wd-price .price-label {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+/* Buttons */
+.wd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.875rem 1.5rem;
     border-radius: 50px;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 1rem;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all 0.3s;
     cursor: pointer;
     border: none;
 }
 
-.workshop-detail .btn-primary {
+.wd-btn-primary {
     background: linear-gradient(135deg, #B19CD9 0%, #E91E63 100%);
     color: white;
 }
 
-.workshop-detail .btn-primary:hover {
+.wd-btn-primary:hover {
     background: linear-gradient(135deg, #9B7BB8 0%, #C2185B 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.35);
 }
 
-.workshop-detail .btn-secondary {
-    background: #f5f5f5;
+.wd-btn-large {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1.05rem;
+}
+
+.wd-btn-white {
+    background: white;
+    color: #6B5B95;
+}
+
+.wd-btn-white:hover {
+    background: #fce7f3;
+    color: #E91E63;
+}
+
+/* Details List */
+.wd-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #eee;
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.detail-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #f8f4ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.detail-icon svg {
+    color: #B19CD9;
+}
+
+.detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 0.95rem;
     color: #333;
+    font-weight: 500;
 }
 
-/* Loading & Error */
-.workshop-detail .loading,
-.workshop-detail .error-message {
-    text-align: center;
-    padding: 4rem;
-    font-size: 1.1rem;
+/* Contact Hint */
+.wd-contact-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #eee;
     color: #666;
+    font-size: 0.9rem;
 }
 
-.workshop-detail .error-message {
-    color: #dc3545;
+.wd-contact-hint svg {
+    color: #B19CD9;
+    flex-shrink: 0;
 }
 
-/* Responsive */
+.wd-contact-hint p {
+    margin: 0;
+}
+
+.wd-contact-hint a {
+    color: #E91E63;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.wd-contact-hint a:hover {
+    text-decoration: underline;
+}
+
+/* CTA Section */
+.wd-cta {
+    background: linear-gradient(135deg, #B19CD9 0%, #E91E63 100%);
+    padding: 4rem 0;
+    margin-top: 3rem;
+}
+
+.cta-content {
+    text-align: center;
+    color: white;
+}
+
+.cta-content h2 {
+    font-size: 2rem;
+    margin: 0 0 0.75rem 0;
+}
+
+.cta-content p {
+    opacity: 0.9;
+    margin: 0 0 1.5rem 0;
+    font-size: 1.1rem;
+}
+
+/* ========== RESPONSIVE ========== */
+
 @media (max-width: 992px) {
-    .workshop-detail .content-grid {
+    .wd-layout {
         grid-template-columns: 1fr;
+        gap: 0;
     }
 
-    .workshop-detail .workshop-sidebar {
-        position: static;
+    .wd-sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        padding: 0;
+    }
+
+    .wd-booking-card {
+        border-radius: 20px 20px 0 0;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .wd-desktop-header {
+        display: none;
+    }
+
+    .wd-price {
+        margin: 0;
+        padding: 0;
+        border: none;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .wd-price .price-value {
+        font-size: 1.5rem;
+    }
+
+    .wd-price .price-label {
+        font-size: 0.75rem;
+    }
+
+    .wd-btn-large {
+        width: auto;
+        padding: 0.875rem 2rem;
+        font-size: 1rem;
+    }
+
+    .wd-details,
+    .wd-contact-hint {
+        display: none;
+    }
+
+    /* Show mobile header */
+    .wd-mobile-header {
+        display: block;
+    }
+
+    .wd-mobile-header h1 {
+        font-size: 1.75rem;
+        color: #333;
+        margin: 0 0 0.75rem 0;
+        line-height: 1.3;
+    }
+
+    .wd-quick-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .info-item svg {
+        color: #B19CD9;
+    }
+
+    /* Add padding at bottom for fixed sidebar */
+    .wd-main {
+        padding-bottom: 100px;
+    }
+
+    .wd-cta {
+        margin-top: 0;
+        padding: 3rem 0;
+    }
+
+    .cta-content h2 {
+        font-size: 1.5rem;
     }
 }
 
 @media (max-width: 768px) {
-    .workshop-detail .workshop-hero {
-        padding: 4rem 0 2.5rem;
+    .wd-hero-image {
+        border-radius: 0;
+        margin: 0 -1.5rem;
+        aspect-ratio: 4/3;
     }
 
-    .workshop-detail .detail-hero-content {
-        flex-direction: column;
+    .wd-breadcrumb {
+        display: none;
     }
 
-    .workshop-detail .workshop-hero h1 {
-        font-size: 2rem;
+    .wd-main {
+        padding-top: 0;
     }
 
-    .workshop-detail .detail-hero-price {
-        width: 100%;
-        padding: 1.5rem;
+    .wd-content {
+        gap: 1.5rem;
     }
 
-    .workshop-detail .price-amount {
-        font-size: 2.5rem;
+    .wd-mobile-header {
+        padding: 0 0.5rem;
     }
 
-    .workshop-detail .workshop-description {
-        padding: 1.5rem;
-    }
-
-    .workshop-detail .info-card {
-        padding: 1.5rem;
-    }
-
-    .workshop-detail .gallery-main img {
-        max-height: 300px;
-    }
-
-    .workshop-detail .workshop-cta {
-        padding: 3rem 0;
-    }
-
-    .workshop-detail .workshop-cta h2 {
+    .wd-mobile-header h1 {
         font-size: 1.5rem;
+    }
+
+    .wd-description,
+    .wd-gallery {
+        border-radius: 0;
+        margin: 0 -1.5rem;
+        padding: 1.5rem;
+    }
+
+    .cta-content {
+        padding: 0 1rem;
+    }
+
+    .cta-content h2 {
+        font-size: 1.25rem;
+    }
+
+    .cta-content p {
+        font-size: 1rem;
     }
 }
 
 @media (max-width: 480px) {
-    .workshop-detail .workshop-hero h1 {
-        font-size: 1.5rem;
+    .wd-booking-card {
+        flex-direction: row;
+        padding: 1rem 1.25rem;
     }
 
-    .workshop-detail .date-badge {
-        padding: 0.75rem 1rem;
+    .wd-btn-large {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
     }
 
-    .workshop-detail .date-badge .day {
-        font-size: 2rem;
+    .wd-price .price-value {
+        font-size: 1.35rem;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
     }
 }

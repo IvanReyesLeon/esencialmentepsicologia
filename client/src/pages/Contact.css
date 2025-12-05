@@ -5,17 +5,17 @@
 .contact-hero {
   background: linear-gradient(135deg, var(--primary-light) 0%, var(--background-light) 100%);
   color: var(--text-primary);
-  padding: 4rem 1rem 2rem;
+  padding: 2.5rem 1rem 1.5rem;
   text-align: center;
 }
 
 .contact-hero h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .contact-hero p {
-  font-size: 1.2rem;
+  font-size: 1rem;
   opacity: 0.9;
 }
 
@@ -312,23 +312,23 @@
 
 @media screen and (max-width: 768px) {
   .contact-hero h1 {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
-  
+
   .contact-grid {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
-  
+
   .contact-form {
     padding: 1.5rem;
   }
-  
+
   .info-item {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .info-icon {
     align-self: center;
   }
