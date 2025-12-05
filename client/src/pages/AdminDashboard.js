@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { therapistAPI, pricingAPI } from '../services/api';
+import { therapistAPI, pricingAPI, workshopAPI } from '../services/api';
 import TherapistsTab from '../components/TherapistsTab';
 import PricingTab from '../components/PricingTab';
+import WorkshopsTab from '../components/WorkshopsTab';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -11,6 +12,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('therapists');
   const [therapists, setTherapists] = useState([]);
   const [pricing, setPricing] = useState([]);
+  const [workshops, setWorkshops] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const checkAuth = useCallback(() => {
@@ -32,12 +34,14 @@ const AdminDashboard = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [therapistsRes, pricingRes] = await Promise.all([
+      const [therapistsRes, pricingRes, workshopsRes] = await Promise.all([
         therapistAPI.getAll(),
-        pricingAPI.getAll()
+        pricingAPI.getAll(),
+        workshopAPI.getAll()
       ]);
       setTherapists(therapistsRes.data);
       setPricing(pricingRes.data);
+      setWorkshops(workshopsRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -91,6 +95,12 @@ const AdminDashboard = () => {
           >
             💰 Precios
           </button>
+          <button
+            className={`nav-btn ${activeTab === 'workshops' ? 'active' : ''}`}
+            onClick={() => setActiveTab('workshops')}
+          >
+            🎓 Talleres
+          </button>
         </nav>
 
         <main className="dashboard-main">
@@ -103,6 +113,12 @@ const AdminDashboard = () => {
           {activeTab === 'pricing' && (
             <PricingTab
               pricing={pricing}
+              onRefresh={fetchData}
+            />
+          )}
+          {activeTab === 'workshops' && (
+            <WorkshopsTab
+              workshops={workshops}
               onRefresh={fetchData}
             />
           )}

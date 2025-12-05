@@ -1,0 +1,436 @@
+/* Workshop Detail Page Styles - All scoped to .workshop-detail */
+
+.workshop-detail {
+    min-height: 100vh;
+    background: #f8f9fa;
+}
+
+/* Hero Section */
+.workshop-detail .workshop-hero {
+    background: linear-gradient(135deg, #B19CD9 0%, #9B7BB8 50%, #E91E63 100%);
+    color: white;
+    padding: 5rem 0 3rem;
+    position: relative;
+}
+
+.workshop-detail .workshop-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+}
+
+.workshop-detail .back-link {
+    display: inline-flex;
+    align-items: center;
+    color: white;
+    opacity: 0.9;
+    text-decoration: none;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    transition: opacity 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.workshop-detail .back-link:hover {
+    opacity: 1;
+}
+
+.workshop-detail .detail-hero-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.workshop-detail .detail-hero-info {
+    flex: 1;
+}
+
+.workshop-detail .date-badge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.workshop-detail .date-badge .day {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.workshop-detail .date-badge .month {
+    font-size: 1rem;
+    text-transform: capitalize;
+    margin-top: 0.25rem;
+}
+
+.workshop-detail .date-badge .year {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.workshop-detail .workshop-hero h1 {
+    font-size: 2.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.workshop-detail .workshop-hero .location {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.workshop-detail .detail-hero-price {
+    background: white;
+    color: #6B5B95;
+    padding: 2rem;
+    border-radius: 20px;
+    text-align: center;
+    min-width: 200px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.workshop-detail .price-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.workshop-detail .price-amount {
+    display: block;
+    font-size: 3rem;
+    font-weight: 700;
+    color: #E91E63;
+    margin-bottom: 1rem;
+}
+
+.workshop-detail .btn-large {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+}
+
+/* Content Section */
+.workshop-detail .workshop-content {
+    padding: 4rem 0;
+}
+
+.workshop-detail .workshop-content .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.workshop-detail .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 3rem;
+    align-items: start;
+}
+
+/* Description */
+.workshop-detail .workshop-description {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.workshop-detail .workshop-description h2 {
+    color: #6B5B95;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3e8ff;
+}
+
+.workshop-detail .description-text {
+    color: #555;
+    line-height: 1.8;
+    font-size: 1.05rem;
+}
+
+.workshop-detail .description-text p {
+    margin-bottom: 1rem;
+}
+
+.workshop-detail .description-text p:last-child {
+    margin-bottom: 0;
+}
+
+/* Sidebar */
+.workshop-detail .workshop-sidebar {
+    position: sticky;
+    top: 2rem;
+}
+
+.workshop-detail .info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.workshop-detail .info-card h3 {
+    color: #6B5B95;
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3e8ff;
+}
+
+.workshop-detail .details-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+}
+
+.workshop-detail .details-list li {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.workshop-detail .details-list li:last-child {
+    border-bottom: none;
+}
+
+.workshop-detail .details-list .icon {
+    font-size: 1.25rem;
+}
+
+.workshop-detail .details-list strong {
+    display: block;
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 0.25rem;
+}
+
+.workshop-detail .details-list span:not(.icon) {
+    color: #333;
+}
+
+.workshop-detail .price-highlight {
+    font-size: 1.5rem !important;
+    font-weight: 700;
+    color: #E91E63 !important;
+}
+
+.workshop-detail .btn-block {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+/* Gallery */
+.workshop-detail .workshop-gallery {
+    margin-top: 3rem;
+}
+
+.workshop-detail .workshop-gallery h2 {
+    color: #6B5B95;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.workshop-detail .gallery-main {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.workshop-detail .gallery-main img {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+}
+
+.workshop-detail .gallery-thumbnails {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.workshop-detail .thumbnail {
+    flex-shrink: 0;
+    width: 80px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.3s ease;
+    padding: 0;
+    background: none;
+}
+
+.workshop-detail .thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.workshop-detail .thumbnail:hover {
+    border-color: #B19CD9;
+}
+
+.workshop-detail .thumbnail.active {
+    border-color: #E91E63;
+}
+
+/* CTA Section */
+.workshop-detail .workshop-cta {
+    background: linear-gradient(135deg, #B19CD9 0%, #E91E63 100%);
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.workshop-detail .workshop-cta h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.workshop-detail .workshop-cta p {
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.workshop-detail .workshop-cta .btn {
+    background: white;
+    color: #6B5B95;
+}
+
+.workshop-detail .workshop-cta .btn:hover {
+    background: #fce7f3;
+    color: #E91E63;
+}
+
+/* Buttons - scoped */
+.workshop-detail .btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.workshop-detail .btn-primary {
+    background: linear-gradient(135deg, #B19CD9 0%, #E91E63 100%);
+    color: white;
+}
+
+.workshop-detail .btn-primary:hover {
+    background: linear-gradient(135deg, #9B7BB8 0%, #C2185B 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+}
+
+.workshop-detail .btn-secondary {
+    background: #f5f5f5;
+    color: #333;
+}
+
+/* Loading & Error */
+.workshop-detail .loading,
+.workshop-detail .error-message {
+    text-align: center;
+    padding: 4rem;
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.workshop-detail .error-message {
+    color: #dc3545;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .workshop-detail .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .workshop-detail .workshop-sidebar {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .workshop-detail .workshop-hero {
+        padding: 4rem 0 2.5rem;
+    }
+
+    .workshop-detail .detail-hero-content {
+        flex-direction: column;
+    }
+
+    .workshop-detail .workshop-hero h1 {
+        font-size: 2rem;
+    }
+
+    .workshop-detail .detail-hero-price {
+        width: 100%;
+        padding: 1.5rem;
+    }
+
+    .workshop-detail .price-amount {
+        font-size: 2.5rem;
+    }
+
+    .workshop-detail .workshop-description {
+        padding: 1.5rem;
+    }
+
+    .workshop-detail .info-card {
+        padding: 1.5rem;
+    }
+
+    .workshop-detail .gallery-main img {
+        max-height: 300px;
+    }
+
+    .workshop-detail .workshop-cta {
+        padding: 3rem 0;
+    }
+
+    .workshop-detail .workshop-cta h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .workshop-detail .workshop-hero h1 {
+        font-size: 1.5rem;
+    }
+
+    .workshop-detail .date-badge {
+        padding: 0.75rem 1rem;
+    }
+
+    .workshop-detail .date-badge .day {
+        font-size: 2rem;
+    }
+}

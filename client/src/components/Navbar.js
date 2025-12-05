@@ -19,45 +19,52 @@ const Navbar = () => {
       <div className="nav-container">
         <div className="nav-brand">
           <Link to="/">
-            <img 
-              src="/assets/images/Esencialmente_log.png" 
-              alt="Esencialmente Psicología" 
+            <img
+              src="/assets/images/Esencialmente_log.png"
+              alt="Esencialmente Psicología"
               className="logo"
             />
           </Link>
         </div>
-        
+
         <div className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className={`nav-link ${isActive('/')}`}
             onClick={() => setIsMenuOpen(false)}
           >
             Inicio
           </Link>
-          <Link 
-            to="/terapeutas" 
-            className={`nav-link ${isActive('/terapeutas')}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Terapeutas
-          </Link>
-          <Link 
-            to="/servicios" 
+          <Link
+            to="/servicios"
             className={`nav-link ${isActive('/servicios')}`}
             onClick={() => setIsMenuOpen(false)}
           >
             Servicios
           </Link>
-          <Link 
-            to="/donde-estamos" 
+          <Link
+            to="/terapeutas"
+            className={`nav-link ${isActive('/terapeutas')}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Terapeutas
+          </Link>
+          <Link
+            to="/talleres"
+            className={`nav-link ${isActive('/talleres')}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Talleres
+          </Link>
+          <Link
+            to="/donde-estamos"
             className={`nav-link ${isActive('/donde-estamos')}`}
             onClick={() => setIsMenuOpen(false)}
           >
             Dónde Estamos
           </Link>
-          <Link 
-            to="/contacto" 
+          <Link
+            to="/contacto"
             className={`nav-link ${isActive('/contacto')}`}
             onClick={() => setIsMenuOpen(false)}
           >
