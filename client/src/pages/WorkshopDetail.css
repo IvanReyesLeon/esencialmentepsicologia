@@ -479,6 +479,10 @@
         gap: 0;
     }
 
+    .wd-breadcrumb {
+        display: none;
+    }
+
     .wd-sidebar {
         position: fixed;
         bottom: 0;
