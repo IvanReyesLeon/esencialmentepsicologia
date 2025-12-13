@@ -33,7 +33,7 @@ exports.sendContactEmail = async (req, res) => {
         const resend = new Resend(process.env.RESEND_API_KEY);
 
         const { data, error } = await resend.emails.send({
-          from: 'Esencialmente Psicología <onboarding@resend.dev>',
+          from: 'Esencialmente Psicología <contacto@esencialmentepsicologia.com>',
           to: [clinicEmail],
           replyTo: email,
           subject: `Nuevo mensaje de contacto: ${subject || 'Sin asunto'}`,
