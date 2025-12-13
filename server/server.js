@@ -12,6 +12,8 @@ const contactRoutes = require('./routes/contact');
 const workshopRoutes = require('./routes/workshops');
 const contactMessagesRoutes = require('./routes/contactMessages');
 const seoRoutes = require('./routes/seo');
+const contactController = require('./controllers/contactController');
+const { getSitemap } = require('./controllers/sitemapController');
 
 const app = express();
 
@@ -70,6 +72,7 @@ app.use('/api/pricing', pricingRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/workshops', workshopRoutes);
 app.use('/api/admin/contact-messages', contactMessagesRoutes);
+app.get('/sitemap.xml', getSitemap);
 app.use('/api', seoRoutes);
 
 // Health & raíz

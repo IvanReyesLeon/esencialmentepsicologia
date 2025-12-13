@@ -193,7 +193,11 @@ const WorkshopDetail = () => {
                                 <div className="wd-hero-image">
                                     <img
                                         src={getImageUrl(workshop.images[selectedImage].image_url)}
-                                        alt={workshop.title}
+                                        alt={`${workshop.title} - Imagen principal`}
+                                        width="800"
+                                        height="500"
+                                        style={{ aspectRatio: '16/10', objectFit: 'cover' }}
+                                        fetchPriority="high"
                                     />
                                     <div className="wd-date-badge">
                                         <span className="day">{new Date(workshop.start_date).getDate()}</span>
@@ -262,7 +266,12 @@ const WorkshopDetail = () => {
                                             >
                                                 <img
                                                     src={getImageUrl(img.image_url)}
-                                                    alt={`${workshop.title} - Imagen ${idx + 1}`}
+                                                    alt={`${workshop.title} - Miniatura ${idx + 1}`}
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    width="150"
+                                                    height="100"
+                                                    style={{ objectFit: 'cover' }}
                                                 />
                                             </button>
                                         ))}
