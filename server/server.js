@@ -17,7 +17,9 @@ const app = express();
 
 // --- CORS: permite tu front en Vercel (y local) ---
 const defaultOrigins = [
-  'https://esencialmentepsicologia-gpdf-j5u1bdgzv.vercel.app',
+  'https://esencialmentepsicologia-gpdf.vercel.app',
+  'https://www.esencialmentepsicologia.com',
+  'https://esencialmentepsicologia.com',
   'http://localhost:3000',
   'http://localhost:3001'
 ];
