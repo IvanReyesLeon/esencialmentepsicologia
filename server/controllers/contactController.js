@@ -36,8 +36,19 @@ exports.sendContactEmail = async (req, res) => {
           auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
-          }
+          },
+          connectionTimeout: 10000, // 10 seconds
+          greetingTimeout: 10000,
+          socketTimeout: 15000,
+          logger: true, // Enable logging
+          debug: true   // Enable debug output
         });
+
+        console.log('📧 Transporter created, verifying connection...');
+
+        // Verify connection before sending
+        await transporter.verify();
+        console.log('📧 SMTP connection verified successfully');
 
         const mailOptions = {
           from: process.env.EMAIL_USER,
