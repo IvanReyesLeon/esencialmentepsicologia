@@ -13,14 +13,21 @@ exports.sendContactEmail = async (req, res) => {
       return res.status(400).json({ message: 'Nombre, email y mensaje son requeridos' });
     }
 
-    // 1. Guardar mensaje en la base de datos
-    await createContactMessage(name, email, phone, subject, message);
+    // 1. Intentar guardar mensaje en la base de datos (no crítico)
+    try {
+      await createContactMessage(name, email, phone, subject, message);
+      console.log('Mensaje guardado en la base de datos');
+    } catch (dbError) {
+      console.warn('No se pudo guardar en BD, pero continuará con el envío de email:', dbError.message);
+    }
 
     // 2. Intentar enviar email via Nodemailer (solo si hay credenciales configuradas)
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       try {
         const transporter = nodemailer.createTransporter({
-          service: 'gmail',
+          host: 'authsmtp.securemail.pro',
+          port: 465,
+          secure: true, // use SSL
           auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
