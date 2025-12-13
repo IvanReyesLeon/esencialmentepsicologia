@@ -48,7 +48,7 @@
 }
 
 .logo {
-  height: 100px;
+  height: 130px;
   width: auto;
   object-fit: contain;
   transition: all var(--transition-normal);
