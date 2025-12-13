@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const { createContactMessage } = require('../models/contactQueries');
 
 // @desc    Send contact form email and save to database
@@ -21,38 +21,21 @@ exports.sendContactEmail = async (req, res) => {
       console.warn('No se pudo guardar en BD, pero continuará con el envío de email:', dbError.message);
     }
 
-    // 2. Intentar enviar email via Nodemailer (solo si hay credenciales configuradas)
-    console.log('📧 Checking email credentials...');
-    console.log('EMAIL_USER configured:', !!process.env.EMAIL_USER);
-    console.log('EMAIL_PASS configured:', !!process.env.EMAIL_PASS);
+    // 2. Intentar enviar email via Resend API (solo si hay API key configurada)
+    console.log('📧 Checking Resend API key...');
+    console.log('RESEND_API_KEY configured:', !!process.env.RESEND_API_KEY);
 
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      console.log('📧 Attempting to send email to:', process.env.CLINIC_EMAIL || 'info@esencialmentepsicologia.com');
+    if (process.env.RESEND_API_KEY) {
+      const clinicEmail = process.env.CLINIC_EMAIL || 'info@esencialmentepsicologia.com';
+      console.log('📧 Attempting to send email to:', clinicEmail);
+
       try {
-        const transporter = nodemailer.createTransport({
-          host: 'authsmtp.securemail.pro',
-          port: 465,
-          secure: true, // use SSL
-          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-          },
-          connectionTimeout: 10000, // 10 seconds
-          greetingTimeout: 10000,
-          socketTimeout: 15000,
-          logger: true, // Enable logging
-          debug: true   // Enable debug output
-        });
+        const resend = new Resend(process.env.RESEND_API_KEY);
 
-        console.log('📧 Transporter created, verifying connection...');
-
-        // Verify connection before sending
-        await transporter.verify();
-        console.log('📧 SMTP connection verified successfully');
-
-        const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: process.env.CLINIC_EMAIL || 'info@esencialmentepsicologia.com',
+        const { data, error } = await resend.emails.send({
+          from: 'Esencialmente Psicología <onboarding@resend.dev>',
+          to: [clinicEmail],
+          replyTo: email,
           subject: `Nuevo mensaje de contacto: ${subject || 'Sin asunto'}`,
           html: `
             <h3>Nuevo mensaje de contacto - Esencialmente Psicología</h3>
@@ -63,17 +46,20 @@ exports.sendContactEmail = async (req, res) => {
             <p><strong>Mensaje:</strong></p>
             <p>${message.replace(/\n/g, '<br>')}</p>
             <hr>
-            <p><small>Este mensaje fue enviado desde el formulario de contacto de la web y guardado en la base de datos.</small></p>
+            <p><small>Este mensaje fue enviado desde el formulario de contacto de la web.</small></p>
           `
-        };
+        });
 
-        await transporter.sendMail(mailOptions);
-        console.log('Email enviado correctamente');
+        if (error) {
+          console.warn('Error de Resend:', error);
+        } else {
+          console.log('📧 Email enviado correctamente via Resend. ID:', data.id);
+        }
       } catch (emailError) {
         console.warn('No se pudo enviar el email, pero el mensaje fue guardado:', emailError.message);
       }
     } else {
-      console.log('Variables de email no configuradas. Mensaje guardado en BD sin enviar email.');
+      console.log('RESEND_API_KEY no configurada. Mensaje guardado en BD sin enviar email.');
     }
 
     res.json({
