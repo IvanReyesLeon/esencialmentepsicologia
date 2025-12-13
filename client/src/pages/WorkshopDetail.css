@@ -600,10 +600,68 @@
 
     .wd-main {
         padding-top: 0;
+        padding-bottom: 140px;
+        /* Increase bottom padding for taller/stacked card */
     }
 
     .wd-content {
         gap: 1.5rem;
+    }
+
+    /* Fixed bottom card on mobile */
+    .wd-sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        padding: 0;
+    }
+
+    .wd-booking-card {
+        border-radius: 20px 20px 0 0;
+        padding: 1rem 1.5rem;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+        /* Force Stacked Layout */
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .wd-desktop-header,
+    .wd-attendees-count,
+    .wd-details,
+    .wd-contact-hint {
+        display: none;
+    }
+
+    /* Price and Label Row */
+    .wd-price {
+        margin: 0;
+        padding: 0;
+        border: none;
+        flex-direction: row;
+        justify-content: center;
+        align-items: baseline;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .wd-price .price-value {
+        font-size: 1.75rem;
+    }
+
+    .wd-price .price-label {
+        font-size: 0.9rem;
+    }
+
+    /* Full width button */
+    .wd-btn-large {
+        width: 100%;
+        padding: 0.875rem 1.5rem;
+        font-size: 1.1rem;
+        text-align: center;
     }
 
     .wd-mobile-header {
@@ -632,26 +690,15 @@
     .cta-content p {
         font-size: 1rem;
     }
-}
-
-@media (max-width: 480px) {
-    .wd-booking-card {
-        flex-direction: row;
-        padding: 1rem 1.25rem;
-    }
-
-    .wd-btn-large {
-        padding: 0.75rem 1.5rem;
-        font-size: 0.9rem;
-    }
-
-    .wd-price .price-value {
-        font-size: 1.35rem;
-    }
 
     .gallery-grid {
         grid-template-columns: repeat(3, 1fr);
     }
+}
+
+/* Remove conflicting smaller query */
+@media (max-width: 480px) {
+    /* Rules merged into 768px query for consistency */
 }
 
 /* ================== REGISTRATION FORM ================== */
