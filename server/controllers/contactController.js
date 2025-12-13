@@ -22,7 +22,12 @@ exports.sendContactEmail = async (req, res) => {
     }
 
     // 2. Intentar enviar email via Nodemailer (solo si hay credenciales configuradas)
+    console.log('📧 Checking email credentials...');
+    console.log('EMAIL_USER configured:', !!process.env.EMAIL_USER);
+    console.log('EMAIL_PASS configured:', !!process.env.EMAIL_PASS);
+
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      console.log('📧 Attempting to send email to:', process.env.CLINIC_EMAIL || 'info@esencialmentepsicologia.com');
       try {
         const transporter = nodemailer.createTransporter({
           host: 'authsmtp.securemail.pro',
