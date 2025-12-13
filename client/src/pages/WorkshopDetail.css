@@ -490,12 +490,14 @@
 
     .wd-booking-card {
         border-radius: 20px 20px 0 0;
-        padding: 1.25rem 1.5rem;
+        padding: 1rem 1.5rem;
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
         display: flex;
+        flex-wrap: wrap;
+        /* Permitir wrapping si no cabe */
         align-items: center;
         justify-content: space-between;
-        gap: 1rem;
+        gap: 0.75rem;
     }
 
     .wd-desktop-header {
@@ -508,20 +510,31 @@
         border: none;
         flex-direction: column;
         gap: 0;
+        flex-shrink: 0;
+        /* Evitar que se encoja demasiado */
     }
 
     .wd-price .price-value {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
     }
 
     .wd-price .price-label {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
     }
 
+    /* Ocultar contador de inscritos en móviles muy pequeños para dar espacio al botón */
+    .wd-attendees-count {
+        display: none;
+    }
+
+    /* Botón ocupa el espacio restante o ancho completo si salta de línea */
     .wd-btn-large {
         width: auto;
-        padding: 0.875rem 2rem;
-        font-size: 1rem;
+        flex-grow: 1;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        min-width: 140px;
+        text-align: center;
     }
 
     .wd-details,
