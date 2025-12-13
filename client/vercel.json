@@ -1,6 +1,13 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://esencialmentepsicologia.onrender.com/api/$1" }
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://esencialmentepsicologia.onrender.com/sitemap.xml"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "https://esencialmentepsicologia.onrender.com/api/$1"
+    }
   ],
   "headers": [
     {
