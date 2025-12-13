@@ -29,7 +29,7 @@ exports.sendContactEmail = async (req, res) => {
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       console.log('📧 Attempting to send email to:', process.env.CLINIC_EMAIL || 'info@esencialmentepsicologia.com');
       try {
-        const transporter = nodemailer.createTransporter({
+        const transporter = nodemailer.createTransport({
           host: 'authsmtp.securemail.pro',
           port: 465,
           secure: true, // use SSL
