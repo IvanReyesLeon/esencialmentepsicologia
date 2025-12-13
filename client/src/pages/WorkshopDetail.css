@@ -796,3 +796,61 @@
     cursor: not-allowed;
     pointer-events: none;
 }
+
+/* Social Share */
+.wd-social-share {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #eee;
+}
+
+.wd-social-share h3 {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.share-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.share-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    /* Pill shape */
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.share-whatsapp {
+    background-color: #25D366;
+    color: white;
+    border: 1px solid #25D366;
+}
+
+.share-whatsapp:hover {
+    background-color: #128C7E;
+    border-color: #128C7E;
+    transform: translateY(-2px);
+}
+
+.share-native {
+    background-color: white;
+    border-color: #e2e8f0;
+    color: #4a5568;
+}
+
+.share-native:hover {
+    background-color: #f7fafc;
+    border-color: #cbd5e0;
+    transform: translateY(-2px);
+}
