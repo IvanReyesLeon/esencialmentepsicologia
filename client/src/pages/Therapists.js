@@ -45,7 +45,7 @@ const Therapists = () => {
       {/* Hero Section */}
       <section className="therapists-hero">
         <div className="container">
-          <h1>Nuestos profesionales</h1>
+          <h1>Nuestros profesionales</h1>
           <p>Conoce a nuestro equipo de especialistas en psicología</p>
         </div>
       </section>

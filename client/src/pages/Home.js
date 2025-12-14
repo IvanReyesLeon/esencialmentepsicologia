@@ -32,7 +32,7 @@ const Home = () => {
           <h1>Esencialmente Psicología</h1>
           <p className="hero-subtitle">Tu bienestar emocional es nuestra prioridad</p>
           <p className="hero-description">
-            <strong>Esencialmente Psicología</strong> es un espacio donde encontraras salud mental, divulgación sobre temas de psicología, gran variedad de talleres y conferencias, herramientas e información para la gestión mental-emocional y una comunidad de personas como tu.
+            <strong>Esencialmente Psicología</strong> es un espacio donde encontrarás salud mental, divulgación sobre temas de psicología, gran variedad de talleres y conferencias, herramientas e información para la gestión mental-emocional y una comunidad de personas como tu.
             ¿Personas como tú? Sí, personas como tú y como yo. Personas que le damos importancia a lo que tenemos dentro: a nuestra <strong>esencia</strong>. Personas valientes que entendemos la necesidad de cuidar nuestro cuerpo y nuestra <strong>mente</strong>.
           </p>
           <div className="hero-buttons">
