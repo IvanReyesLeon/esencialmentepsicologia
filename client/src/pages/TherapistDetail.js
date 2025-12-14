@@ -61,7 +61,9 @@ const TherapistDetail = () => {
       "name": s
     })),
     "description": therapist.bio,
-    "image": therapist.photo ? `${API_ROOT}/uploads/terapeutas/${therapist.photo}` : undefined,
+    "image": therapist.photo
+      ? (therapist.photo.startsWith('http') ? therapist.photo : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`)
+      : undefined,
     "url": window.location.href,
     "telephone": "+34600000000", // Placeholder or actual clinic phone
     "address": {
@@ -78,7 +80,9 @@ const TherapistDetail = () => {
       <SEOHead
         title={`${therapist.full_name} | Psicólogo en Barcelona`}
         description={therapist.bio ? therapist.bio.substring(0, 160) + '...' : `Conoce a ${therapist.full_name}, especialista en ${therapist.specializations?.join(', ')}.`}
-        image={therapist.photo ? `/uploads/terapeutas/${therapist.photo}` : undefined}
+        image={therapist.photo
+          ? (therapist.photo.startsWith('http') ? therapist.photo : `/uploads/terapeutas/${therapist.photo}`)
+          : undefined}
         type="profile"
         structuredData={structuredData}
       />
@@ -90,7 +94,9 @@ const TherapistDetail = () => {
               <div className="photo-wrapper">
                 {therapist.photo ? (
                   <img
-                    src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
+                    src={therapist.photo.startsWith('http')
+                      ? therapist.photo
+                      : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
                     alt={therapist.full_name}
                     className="photo"
                     onError={(e) => {

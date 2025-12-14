@@ -70,7 +70,9 @@ const Therapists = () => {
                   <div className="therapist-image">
                     {therapist.photo ? (
                       <img
-                        src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
+                        src={therapist.photo.startsWith('http')
+                          ? therapist.photo
+                          : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
                         alt={therapist.full_name}
                         className="therapist-photo"
                         onError={(e) => {

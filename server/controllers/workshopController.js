@@ -75,7 +75,8 @@ exports.createWorkshop = async (req, res) => {
 
         // If files were uploaded (multiple)
         if (req.files && req.files.length > 0) {
-            workshopData.images = req.files.map(file => file.filename);
+            // Cloudinary returns the full URL in file.path
+            workshopData.images = req.files.map(file => file.path);
         }
 
         // Parsear booleanos
@@ -119,7 +120,7 @@ exports.updateWorkshop = async (req, res) => {
 
         // If new files were uploaded
         if (req.files && req.files.length > 0) {
-            updateData.images = req.files.map(file => file.filename);
+            updateData.images = req.files.map(file => file.path);
         }
 
         // Parsear booleanos
@@ -204,7 +205,7 @@ exports.addWorkshopImage = async (req, res) => {
 
         // If file was uploaded
         if (req.file) {
-            imageUrl = req.file.filename;
+            imageUrl = req.file.path;
         }
 
         if (!imageUrl) {

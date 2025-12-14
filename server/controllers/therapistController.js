@@ -88,9 +88,9 @@ exports.createTherapist = async (req, res) => {
       }
     }
 
-    // If file was uploaded, use the filename
+    // If file was uploaded, use the Cloudinary URL
     if (req.file) {
-      therapistData.photo = req.file.filename;
+      therapistData.photo = req.file.path;
     }
 
     const therapist = await createTherapist(therapistData);
@@ -149,9 +149,9 @@ exports.updateTherapist = async (req, res) => {
       }
     }
 
-    // If file was uploaded, use the filename
+    // If file was uploaded, use the Cloudinary URL
     if (req.file) {
-      updateData.photo = req.file.filename;
+      updateData.photo = req.file.path;
     }
 
     const therapist = await updateTherapist(id, updateData);

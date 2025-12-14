@@ -549,7 +549,9 @@ const WorkshopsTab = ({ workshops: initialWorkshops, onRefresh }) => {
                             <div className="workshop-image">
                                 {workshop.images && workshop.images.length > 0 && workshop.images[0].image_url ? (
                                     <img
-                                        src={`${API_ROOT}/uploads/talleres/${workshop.images[0].image_url}`}
+                                        src={workshop.images[0].image_url.startsWith('http')
+                                            ? workshop.images[0].image_url
+                                            : `${API_ROOT}/uploads/talleres/${workshop.images[0].image_url}`}
                                         alt={workshop.title}
                                         onError={(e) => { e.target.style.display = 'none'; }}
                                     />

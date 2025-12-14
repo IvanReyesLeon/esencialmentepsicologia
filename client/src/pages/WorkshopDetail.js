@@ -58,6 +58,10 @@ const WorkshopDetail = () => {
     };
 
     const getImageUrl = (imageUrl) => {
+        if (!imageUrl) return null;
+        if (imageUrl.startsWith('http')) {
+            return imageUrl;
+        }
         return `${API_ROOT}/uploads/talleres/${imageUrl}`;
     };
 

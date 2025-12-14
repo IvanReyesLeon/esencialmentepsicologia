@@ -38,7 +38,11 @@ const Workshops = () => {
 
     const getImageUrl = (workshop) => {
         if (workshop.images && workshop.images.length > 0 && workshop.images[0].image_url) {
-            return `${API_ROOT}/uploads/talleres/${workshop.images[0].image_url}`;
+            const imageUrl = workshop.images[0].image_url;
+            if (imageUrl.startsWith('http')) {
+                return imageUrl;
+            }
+            return `${API_ROOT}/uploads/talleres/${imageUrl}`;
         }
         return null;
     };

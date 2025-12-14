@@ -1,35 +1,29 @@
 const multer = require('multer');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const path = require('path');
-const fs = require('fs');
 
-// Create upload directories
-const terapeutasDir = path.join(__dirname, '../../client/public/assets/terapeutas');
-const talleresDir = path.join(__dirname, '../../client/public/assets/talleres');
-
-// Ensure directories exist
-[terapeutasDir, talleresDir].forEach(dir => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Use talleres directory for workshop images
-    if (req.originalUrl.includes('/workshops')) {
-      cb(null, talleresDir);
-    } else {
-      cb(null, terapeutasDir);
-    }
+// Configure storage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: (req, file) => {
+      // Use different folders for workshops and therapists
+      if (req.originalUrl.includes('/workshops')) {
+        return 'esencialmente/talleres';
+      }
+      return 'esencialmente/terapeutas';
+    },
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    // public_id: (req, file) => 'computed-filename-using-request',
   },
-  filename: function (req, file, cb) {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    const filename = file.fieldname + '-' + uniqueSuffix + extension;
-    cb(null, filename);
-  }
 });
 
 // File filter to only allow images

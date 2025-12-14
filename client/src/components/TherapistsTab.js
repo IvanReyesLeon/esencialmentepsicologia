@@ -236,7 +236,12 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                             <div className="therapist-photo-wrapper">
                                 <div className="therapist-photo">
                                     {therapist.photo ? (
-                                        <img src={`${API_ROOT}/uploads/terapeutas/${therapist.photo}`} alt={therapist.full_name} />
+                                        <img
+                                            src={therapist.photo.startsWith('http')
+                                                ? therapist.photo
+                                                : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
+                                            alt={therapist.full_name}
+                                        />
                                     ) : (
                                         <div className="no-photo">
                                             {therapist.full_name?.charAt(0).toUpperCase()}
