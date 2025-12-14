@@ -50,7 +50,7 @@ const Home = () => {
             <Link to="/servicios?tipo=individual" className="service-card-link">
               <div className="service-card">
                 <div className="service-image">
-                  <img src="/assets/home_sup/t_individual.jpg" alt="Terapia Individual" />
+                  <img src="/assets/home_sup/t_individual_new.png" alt="Terapia Individual" />
                 </div>
                 <h3>Terapia Individual</h3>
                 <p>Sesiones personalizadas para abordar tus necesidades específicas y promover tu bienestar emocional.</p>
@@ -60,7 +60,7 @@ const Home = () => {
             <Link to="/servicios?tipo=couple" className="service-card-link">
               <div className="service-card">
                 <div className="service-image">
-                  <img src="/assets/home_sup/t_pareja.jpg" alt="Terapia de Pareja" />
+                  <img src="/assets/home_sup/t_pareja_new.png" alt="Terapia de Pareja" />
                 </div>
                 <h3>Terapia de Pareja</h3>
                 <p>Fortalece tu relación y mejora la comunicación con tu pareja en un ambiente profesional.</p>
@@ -70,7 +70,7 @@ const Home = () => {
             <Link to="/servicios?tipo=family" className="service-card-link">
               <div className="service-card">
                 <div className="service-image">
-                  <img src="/assets/home_sup/t_familiar.jpg" alt="Terapia Familiar" />
+                  <img src="/assets/home_sup/t_familiar_new.png" alt="Terapia Familiar" />
                 </div>
                 <h3>Terapia Familiar</h3>
                 <p>Resuelve conflictos familiares y mejora la dinámica familiar con nuestro apoyo especializado.</p>
@@ -80,7 +80,7 @@ const Home = () => {
             <Link to="/servicios?tipo=group" className="service-card-link">
               <div className="service-card">
                 <div className="service-image">
-                  <img src="/assets/home_sup/t_grupo.jpg" alt="Terapia Grupal" />
+                  <img src="/assets/home_sup/t_grupo_new.png" alt="Terapia Grupal" />
                 </div>
                 <h3>Terapia Grupal</h3>
                 <p>Comparte experiencias y aprende de otros en un entorno grupal seguro y terapéutico.</p>

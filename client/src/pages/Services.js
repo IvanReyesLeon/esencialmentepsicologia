@@ -50,11 +50,11 @@ const Services = () => {
 
   const getServiceImage = (sessionType) => {
     switch (sessionType) {
-      case 'individual': return '/assets/home_sup/t_individual.jpg';
-      case 'couple': return '/assets/home_sup/t_pareja.jpg';
-      case 'family': return '/assets/home_sup/t_familiar.jpg';
-      case 'group': return '/assets/home_sup/t_grupo.jpg';
-      default: return '/assets/home_sup/t_individual.jpg';
+      case 'individual': return '/assets/home_sup/t_individual_new.png';
+      case 'couple': return '/assets/home_sup/t_pareja_new.png';
+      case 'family': return '/assets/home_sup/t_familiar_new.png';
+      case 'group': return '/assets/home_sup/t_grupo_new.png';
+      default: return '/assets/home_sup/t_individual_new.png';
     }
   };
 
@@ -107,7 +107,7 @@ const Services = () => {
                           src={getServiceImage(service.session_type_name)}
                           alt={getServiceTitle(service.session_type_name)}
                           loading="lazy"
-                          onError={(e) => { e.currentTarget.src = '/assets/home_sup/t_individual.jpg'; }}
+                          onError={(e) => { e.currentTarget.src = '/assets/home_sup/t_individual_new.png'; }}
                         />
                       </div>
                       <h3>{service.session_type_display_name || getServiceTitle(service.session_type_name)}</h3>
