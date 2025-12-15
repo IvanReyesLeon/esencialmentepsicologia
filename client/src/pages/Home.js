@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Reviews from '../components/Reviews';
+import SEOHead from '../components/SEOHead';
 import './Home.css';
 
 const Home = () => {
@@ -26,6 +27,7 @@ const Home = () => {
 
   return (
     <div className="home">
+      <SEOHead />
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">

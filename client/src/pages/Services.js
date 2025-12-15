@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { pricingAPI } from '../services/api';
+import SEOHead from '../components/SEOHead';
 import './Services.css';
 
 const Services = () => {
@@ -70,6 +71,10 @@ const Services = () => {
 
   return (
     <div className="services">
+      <SEOHead
+        title={`${sectionTitle} | Esencialmente Psicología`}
+        description="Ofrecemos una amplia gama de servicios psicológicos adaptados a tus necesidades"
+      />
       <div className="services-hero">
         <div className="container">
           <h1>Nuestros Servicios</h1>
