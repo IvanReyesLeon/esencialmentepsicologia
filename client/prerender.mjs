@@ -107,10 +107,24 @@ async function prerender() {
 
     try {
         // 3. Launch Puppeteer
-        browser = await puppeteer.launch({
-            headless: 'new',
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
+        try {
+            browser = await puppeteer.launch({
+                headless: 'new',
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--single-process', // Sometimes helps in strict containers
+                    '--no-zygote'
+                ]
+            });
+        } catch (launchError) {
+            console.warn('⚠️ Unable to launch Puppeteer. This is common in CI environments (Vercel/Netlify) lacking shared libraries.');
+            console.warn('⚠️ Error details:', launchError.message);
+            console.warn('⚠️ Skipping prerender phase. The site will be served as a standard SPA.');
+            process.exit(0); // Soft fail to allow deployment
+        }
 
         for (const route of ROUTES) {
             try {
