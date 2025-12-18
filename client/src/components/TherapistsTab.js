@@ -7,6 +7,7 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({
         full_name: '',
+        label: '',
         bio: '',
         experience: '',
         specializations: '',
@@ -43,6 +44,7 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
             data.append('email', `terapeuta${timestamp}@temp.com`);
             data.append('password', `temp${timestamp}`);
             data.append('full_name', formData.full_name);
+            if (formData.label) data.append('label', formData.label);
             data.append('bio', formData.bio);
             data.append('experience', formData.experience);
             data.append('specializations', formData.specializations);
@@ -59,6 +61,7 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
             setShowForm(false);
             setFormData({
                 full_name: '',
+                label: '',
                 bio: '',
                 experience: '',
                 specializations: '',
@@ -114,6 +117,18 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                                 required
                             />
                         </div>
+
+                        <div className="form-group">
+                            <label>Etiqueta / Cargo (Opcional)</label>
+                            <input
+                                type="text"
+                                value={formData.label || ''}
+                                onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                                placeholder="Ej: Fundadora, Directora Clínica"
+                            />
+                        </div>
+
+
 
                         <div className="form-group">
                             <label>Foto</label>
@@ -179,13 +194,13 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                         <div className="form-row">
                             <div className="form-group">
                                 <label>Metodología</label>
-                                <input
-                                    type="text"
+                                <textarea
                                     value={formData.methodology}
                                     onChange={(e) => setFormData({ ...formData, methodology: e.target.value })}
-                                    placeholder="Terapia cognitivo-conductual, sistémica..."
+                                    rows="4"
+                                    placeholder="Enfoque terapéutico principal..."
                                 />
-                                <small>Enfoque terapéutico principal</small>
+                                <small>Descripción detallada de la metodología</small>
                             </div>
                             <div className="form-group">
                                 <label>Número de Colegiado</label>
@@ -224,7 +239,7 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                             </button>
                         </div>
                     </form>
-                </div>
+                </div >
             )}
 
             <div className="items-list">
@@ -250,7 +265,10 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                                 </div>
                             </div>
                             <div className="item-info">
-                                <h3>{therapist.full_name}</h3>
+                                <h3>
+                                    {therapist.full_name}
+                                    {therapist.label && <span className="badge badge-info" style={{ marginLeft: '8px', fontSize: '0.8em', padding: '2px 6px', backgroundColor: '#e3f2fd', color: '#0277bd', borderRadius: '4px' }}>{therapist.label}</span>}
+                                </h3>
                                 <p className="item-meta">
                                     {therapist.specializations && Array.isArray(therapist.specializations)
                                         ? therapist.specializations.join(', ')
@@ -267,7 +285,7 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                     ))
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

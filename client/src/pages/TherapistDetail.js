@@ -13,22 +13,19 @@ const TherapistDetail = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Si no hay terapeuta, o si el slug del terapeuta actual no coincide con el de la URL
-    if (!therapist || therapist.slug !== id) {
-      const fetchData = async () => {
-        try {
-          setLoading(true);
-          const res = await therapistAPI.getById(id);
-          setTherapist(res.data);
-        } catch (e) {
-          setError('No se pudo cargar la información del terapeuta.');
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchData();
-    }
-  }, [id]); // Eliminamos 'therapist' de las dependencias para evitar bucles
+    const fetchData = async () => {
+      try {
+        setLoading(!initialTherapist); // Only show loading if we don't have initial data
+        const res = await therapistAPI.getById(id);
+        setTherapist(res.data);
+      } catch (e) {
+        setError('No se pudo cargar la información del terapeuta.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]); // Removed 'therapist' dependency, fixed SWR logic
 
   if (loading) {
     return (
@@ -94,9 +91,13 @@ const TherapistDetail = () => {
               <div className="photo-wrapper">
                 {therapist.photo ? (
                   <img
-                    src={therapist.photo.startsWith('http')
-                      ? therapist.photo
-                      : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
+                    src={
+                      therapist.photo.startsWith('http')
+                        ? therapist.photo
+                        : therapist.photo.includes('/uploads')
+                          ? `${API_ROOT}${therapist.photo}`
+                          : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`
+                    }
                     alt={therapist.full_name}
                     className="photo"
                     onError={(e) => {
@@ -149,12 +150,7 @@ const TherapistDetail = () => {
 
           <div className="info-grid">
 
-            {therapist.languages && Array.isArray(therapist.languages) && therapist.languages.length > 0 && (
-              <div className="info-card">
-                <h3>Idiomas</h3>
-                <p>{therapist.languages.join(', ')}</p>
-              </div>
-            )}
+
 
             {therapist.session_types && Array.isArray(therapist.session_types) && therapist.session_types.length > 0 && (
               <div className="info-card">
@@ -178,6 +174,13 @@ const TherapistDetail = () => {
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {therapist.languages && Array.isArray(therapist.languages) && therapist.languages.length > 0 && (
+            <div className="block">
+              <h2>Idiomas</h2>
+              <p className="languages-text">{therapist.languages.join(', ')}</p>
             </div>
           )}
 

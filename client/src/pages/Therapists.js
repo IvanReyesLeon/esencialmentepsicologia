@@ -72,13 +72,24 @@ const Therapists = () => {
                       <img
                         src={therapist.photo.startsWith('http')
                           ? therapist.photo
-                          : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
+                          : therapist.photo.includes('/uploads/terapeutas/')
+                            ? `${API_ROOT}${therapist.photo}`
+                            : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
                         alt={therapist.full_name}
                         className="therapist-photo"
                         onError={(e) => {
                           e.currentTarget.onerror = null;
+                          // Si falla la carga, ocultamos la imagen para mostrar el placeholder base si existe, 
+                          // o idealmente cambiamos el src a una imagen por defecto.
+                          // Dado que el diseño usa un div placeholder alternativa, lo más robusto aquí
+                          // es simplemente ocultar la imagen rota para que no se vea el icono de imagen rota.
+                          // O mejor aún, poner una imagen de fallback transparente o un avatar genérico.
                           e.currentTarget.style.display = 'none';
-                          e.currentTarget.parentElement.querySelector('.placeholder-avatar').style.display = 'flex';
+                          // Intentar mostrar el placeholder si existe como hermano (aunque en este render condicional no existe).
+                          // Solución: Forzamos el renderizado del placeholder siempre y ocultamos/mostramos con CSS,
+                          // O simplemente cambiamos el src a un placeholder.
+                          e.currentTarget.src = '/icons/avatar-placeholder.png';
+                          e.currentTarget.style.display = 'block'; // Aseguramos que se vea
                         }}
                       />
                     ) : (
@@ -89,11 +100,17 @@ const Therapists = () => {
                   </div>
                   <div className="therapist-info">
                     <h3>{therapist.full_name}</h3>
-                    <p className="therapist-title">
-                      {therapist.specializations && Array.isArray(therapist.specializations)
-                        ? therapist.specializations.join(' • ')
-                        : (therapist.specializations || 'Psicólogo')}
-                    </p>
+                    {therapist.label && (
+                      <div className="therapist-label">{therapist.label}</div>
+                    )}
+                    {/* Solo mostramos especializaciones si no hay etiqueta, o si la etiqueta es corta (menos de 20 caracteres) para evitar redundancia visual */}
+                    {(!therapist.label || therapist.label.length < 20) && (
+                      <p className="therapist-title">
+                        {therapist.specializations && Array.isArray(therapist.specializations)
+                          ? therapist.specializations.join(' • ')
+                          : (therapist.specializations || 'Psicólogo')}
+                      </p>
+                    )}
 
                     <Link
                       to={`/terapeutas/${therapist.slug || therapist.id}`}

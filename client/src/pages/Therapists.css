@@ -95,9 +95,10 @@
 ======================================== */
 .therapists-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
   margin-bottom: var(--space-16);
+  align-items: stretch !important;
 }
 
 /* ========================================
@@ -112,8 +113,13 @@
   text-align: center;
   padding: var(--space-8) var(--space-6);
   border: 1px solid var(--border-light);
+  display: flex !important;
+  flex-direction: column;
+  height: 100% !important;
+  justify-content: space-between;
 }
 
+/* Restored Styles */
 .therapist-card:hover {
   transform: translateY(-8px);
   box-shadow: var(--shadow-xl);
@@ -126,9 +132,11 @@
 }
 
 .therapist-photo {
-  width: 150px;
-  height: 150px;
-  border-radius: var(--radius-full);
+  width: 220px !important;
+  height: 220px !important;
+  min-width: 220px;
+  max-width: none;
+  border-radius: 50%;
   overflow: hidden;
   object-fit: cover;
   border: 4px solid white;
@@ -141,8 +149,8 @@
 }
 
 .placeholder-avatar {
-  width: 150px;
-  height: 150px;
+  width: 220px;
+  height: 220px;
   border-radius: var(--radius-full);
   background: var(--secondary-gradient);
   display: flex;
@@ -159,12 +167,36 @@
 ======================================== */
 .therapist-info {
   padding: var(--space-6);
+  flex: 1 1 auto !important;
+  /* Forces it to fill space */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.therapist-btn {
+  margin-top: auto !important;
+  /* Force push to bottom */
+  align-self: center;
 }
 
 .therapist-info h3 {
   color: var(--text-primary);
   margin-bottom: var(--space-2);
   font-size: 1.35rem;
+}
+
+.therapist-label {
+  display: inline-block;
+  background-color: var(--secondary-light);
+  color: var(--secondary-dark);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 12px;
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .therapist-title {

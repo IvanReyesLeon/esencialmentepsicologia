@@ -6,6 +6,10 @@ const therapistSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  label: {
+    type: String,
+    required: false
+  },
   specialization: {
     type: [String],
     required: true
