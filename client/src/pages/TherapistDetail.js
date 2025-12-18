@@ -114,6 +114,9 @@ const TherapistDetail = () => {
             </div>
             <div className="title">
               <h1>{therapist.full_name}</h1>
+              {therapist.label && (
+                <div className="therapist-role-label">{therapist.label}</div>
+              )}
               {therapist.license_number && (
                 <div className="license-number" style={{
                   fontSize: '0.9rem',

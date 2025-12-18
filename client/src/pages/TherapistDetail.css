@@ -111,6 +111,15 @@
     color: var(--text-primary);
 }
 
+.detail-hero .therapist-role-label {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 .detail-hero .license-number {
     text-align: left;
     margin: 0;

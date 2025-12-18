@@ -36,15 +36,51 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
         }
     };
 
+    const [editingId, setEditingId] = useState(null);
+
+    const handleEdit = (therapist) => {
+        setFormData({
+            full_name: therapist.full_name,
+            label: therapist.label || '',
+            bio: therapist.bio || '',
+            experience: therapist.experience,
+            specializations: Array.isArray(therapist.specializations) ? therapist.specializations.join(', ') : therapist.specializations || '',
+            languages: Array.isArray(therapist.languages) ? therapist.languages.join(', ') : therapist.languages || '',
+            methodology: therapist.methodology || '',
+            education: Array.isArray(therapist.education)
+                ? therapist.education.map(e => e.degree).join('\n')
+                : '',
+            license_number: therapist.license_number || '',
+            session_types: therapist.session_types || [],
+            photo: null // Reset photo input
+        });
+        setPhotoPreview(
+            therapist.photo
+                ? (therapist.photo.startsWith('http')
+                    ? therapist.photo
+                    : therapist.photo.includes('/uploads')
+                        ? `${API_ROOT}${therapist.photo}`
+                        : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`)
+                : null
+        );
+        setEditingId(therapist.id);
+        setShowForm(true);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const data = new FormData();
-            const timestamp = Date.now();
-            data.append('email', `terapeuta${timestamp}@temp.com`);
-            data.append('password', `temp${timestamp}`);
+
+            if (!editingId) {
+                const timestamp = Date.now();
+                data.append('email', `terapeuta${timestamp}@temp.com`);
+                data.append('password', `temp${timestamp}`);
+            }
+
             data.append('full_name', formData.full_name);
-            if (formData.label) data.append('label', formData.label);
+            // Append label even if empty to allow clearing it
+            data.append('label', formData.label);
             data.append('bio', formData.bio);
             data.append('experience', formData.experience);
             data.append('specializations', formData.specializations);
@@ -52,13 +88,30 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
             data.append('methodology', formData.methodology);
             data.append('license_number', formData.license_number);
             data.append('session_types', JSON.stringify(formData.session_types));
+
+            // Process education: split by newline and create objects
+            const educationArray = formData.education
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0)
+                .map(degree => ({ degree, university: "", year: null }));
+
+            data.append('education', JSON.stringify(educationArray));
+
             if (formData.photo) {
                 data.append('photo', formData.photo);
             }
 
-            await therapistAPI.create(data);
-            setToast({ message: '✓ Terapeuta creado correctamente', type: 'success' });
+            if (editingId) {
+                await therapistAPI.update(editingId, data);
+                setToast({ message: '✓ Terapeuta actualizado correctamente', type: 'success' });
+            } else {
+                await therapistAPI.create(data);
+                setToast({ message: '✓ Terapeuta creado correctamente', type: 'success' });
+            }
+
             setShowForm(false);
+            setEditingId(null);
             setFormData({
                 full_name: '',
                 label: '',
@@ -67,6 +120,7 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                 specializations: '',
                 languages: '',
                 methodology: '',
+                education: '',
                 license_number: '',
                 session_types: [],
                 photo: null
@@ -74,8 +128,28 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
             setPhotoPreview(null);
             onRefresh();
         } catch (error) {
-            setToast({ message: 'Error al crear terapeuta', type: 'error' });
+            console.error(error);
+            setToast({ message: `Error al ${editingId ? 'actualizar' : 'crear'} terapeuta`, type: 'error' });
         }
+    };
+
+    const handleCancel = () => {
+        setShowForm(false);
+        setEditingId(null);
+        setFormData({
+            full_name: '',
+            label: '',
+            bio: '',
+            experience: '',
+            specializations: '',
+            languages: '',
+            methodology: '',
+            education: '',
+            license_number: '',
+            session_types: [],
+            photo: null
+        });
+        setPhotoPreview(null);
     };
 
     const handleDelete = async (id) => {
@@ -98,7 +172,10 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                 <h2>👨‍⚕️ Gestión de Terapeutas</h2>
                 <button
                     className="btn btn-primary"
-                    onClick={() => setShowForm(!showForm)}
+                    onClick={() => {
+                        if (showForm && editingId) handleCancel();
+                        else setShowForm(!showForm);
+                    }}
                 >
                     {showForm ? '✕ Cancelar' : '➕ Añadir Terapeuta'}
                 </button>
@@ -106,7 +183,7 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
 
             {showForm && (
                 <div className="form-section">
-                    <h3>Nuevo Terapeuta</h3>
+                    <h3>{editingId ? 'Editar Terapeuta' : 'Nuevo Terapeuta'}</h3>
                     <form onSubmit={handleSubmit} className="therapist-form">
                         <div className="form-group">
                             <label>Nombre Completo *</label>
@@ -127,8 +204,6 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                                 placeholder="Ej: Fundadora, Directora Clínica"
                             />
                         </div>
-
-
 
                         <div className="form-group">
                             <label>Foto</label>
@@ -215,6 +290,17 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                         </div>
 
                         <div className="form-group">
+                            <label>Formación (Una por línea)</label>
+                            <textarea
+                                value={formData.education}
+                                onChange={(e) => setFormData({ ...formData, education: e.target.value })}
+                                rows="5"
+                                placeholder="Licenciatura en Psicología&#10;Máster en Terapia Familiar"
+                            />
+                            <small>Cada línea se convertirá en un punto de la lista de formación.</small>
+                        </div>
+
+                        <div className="form-group">
                             <label>Tipos de Sesión *</label>
                             <div className="checkbox-group">
                                 {['Individual', 'Pareja', 'Familiar', 'Grupal'].map(type => (
@@ -232,9 +318,9 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
 
                         <div className="form-actions" style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
                             <button type="submit" className="btn btn-primary">
-                                ✅ Crear Terapeuta
+                                {editingId ? '💾 Actualizar' : '✅ Crear Terapeuta'}
                             </button>
-                            <button type="button" onClick={() => setShowForm(false)} className="btn btn-secondary">
+                            <button type="button" onClick={handleCancel} className="btn btn-secondary">
                                 ✕ Cancelar
                             </button>
                         </div>
@@ -252,9 +338,13 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                                 <div className="therapist-photo">
                                     {therapist.photo ? (
                                         <img
-                                            src={therapist.photo.startsWith('http')
-                                                ? therapist.photo
-                                                : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`}
+                                            src={
+                                                therapist.photo.startsWith('http')
+                                                    ? therapist.photo
+                                                    : therapist.photo.includes('/uploads')
+                                                        ? `${API_ROOT}${therapist.photo}`
+                                                        : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`
+                                            }
                                             alt={therapist.full_name}
                                         />
                                     ) : (
@@ -277,6 +367,9 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                                 <p className="item-detail">{therapist.experience} años de experiencia</p>
                             </div>
                             <div className="item-actions">
+                                <button className="btn btn-small btn-secondary" onClick={() => handleEdit(therapist)} style={{ marginRight: '5px' }}>
+                                    ✏️ Editar
+                                </button>
                                 <button className="btn btn-small btn-danger" onClick={() => handleDelete(therapist.id)}>
                                     🗑️ Eliminar
                                 </button>

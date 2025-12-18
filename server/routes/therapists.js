@@ -18,7 +18,7 @@ router.get('/:id', getTherapist);
 // Protected routes (admin only)
 router.post('/', upload.single('photo'), createTherapist);
 router.put('/:id/photo', updateTherapistPhoto);
-router.put('/:id', auth, admin, updateTherapist);
+router.put('/:id', auth, admin, upload.single('photo'), updateTherapist);
 router.delete('/:id', auth, admin, deleteTherapist);
 
 module.exports = router;

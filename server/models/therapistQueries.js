@@ -259,6 +259,18 @@ const updateTherapist = async (id, updates) => {
             }
         }
 
+        // Actualizar educación si se proporciona
+        if (updates.education) {
+            await client.query('DELETE FROM education WHERE therapist_id = $1', [id]);
+
+            for (const edu of updates.education) {
+                await client.query(
+                    'INSERT INTO education (therapist_id, degree, university, year) VALUES ($1, $2, $3, $4)',
+                    [id, edu.degree, edu.university, edu.year]
+                );
+            }
+        }
+
         await client.query('COMMIT');
         return await getTherapistById(id);
 
