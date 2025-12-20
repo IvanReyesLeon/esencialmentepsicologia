@@ -1,99 +1,381 @@
-const { getAggregatedHours } = require('../services/calendarService');
+const {
+    getSessions,
+    getWeeklySummary,
+    getWeeksOfMonth,
+    getRawEvents,
+    detectTherapist,
+    isNonBillable
+} = require('../services/calendarService');
 const { getAllTherapists } = require('../models/therapistQueries');
+const pool = require('../config/db');
+
+// Calendar ID - could be moved to env
+const CALENDAR_ID = 'esencialmentepsicologia@gmail.com';
 
 /**
- * Get hours for all therapists (Admin view)
+ * Get weeks of a month
  */
-exports.getAdminBilling = async (req, res) => {
+exports.getWeeks = async (req, res) => {
     try {
-        const { calendarId } = req.params; // Or from a config/env
-        // We will force the calendarId for now if not sent, or use the one from config
-        // Actually, user hasn't provided the calendar ID in code yet, I should probably put it in .env
-        // For now I'll expect it in query or body, or hardcode/env it. 
-        // User provided it in chat, I should have asked them to put it in .env strictly, 
-        // but I can also accept it from the frontend request which has the configuration.
-        // Let's assume frontend sends it for flexibility, or we store it in DB.
+        const { year, month } = req.query;
+        const y = parseInt(year) || new Date().getFullYear();
+        const m = parseInt(month) ?? new Date().getMonth();
 
-        // BETTER: Allow passing it, but default to a known one if we save it.
-        // Since I don't have it saved, I'll rely on the frontend sending it.
-        const targetCalendarId = req.query.calendarId;
-
-        if (!targetCalendarId) {
-            return res.status(400).json({ message: 'Calendar ID required' });
-        }
-
-        const [billingData, therapists] = await Promise.all([
-            getAggregatedHours(targetCalendarId),
-            getAllTherapists()
-        ]);
-
-        // Map colors to therapists
-        // billingData.totals = { "1": 5, "4": 10 }
-        // therapists = [ { id: 1, full_name: 'Teresa', calendar_color_id: '1' }, ... ]
-
-        const report = therapists.map(t => {
-            const hours = billingData.totals[t.calendar_color_id] || 0;
-            return {
-                therapistId: t.id,
-                name: t.full_name,
-                colorId: t.calendar_color_id,
-                hours,
-                total: hours // Can be multiplied by rate if we had it
-            };
-        }).filter(item => item.colorId); // Only show linked therapists? Or show all with 0?
-        // Show all is better so they see who is missing configuration.
+        const weeks = getWeeksOfMonth(y, m);
 
         res.json({
-            period: billingData.period,
-            report,
-            rawTotals: billingData.totals // For debugging/unmapped colors
+            year: y,
+            month: m,
+            weeks
         });
-
     } catch (error) {
-        console.error('Billing error:', error);
-        res.status(500).json({ message: 'Error calculating billing' });
+        console.error('Error getting weeks:', error);
+        res.status(500).json({ message: 'Error getting weeks' });
     }
 };
 
 /**
- * Get hours for the logged-in therapist
+ * Get weekly billing summary for admin (all therapists)
  */
-exports.getTherapistBilling = async (req, res) => {
+exports.getWeeklySummaryAdmin = async (req, res) => {
+    try {
+        const { year, month, week } = req.query;
+
+        const y = parseInt(year) || new Date().getFullYear();
+        const m = parseInt(month) ?? new Date().getMonth();
+        const w = parseInt(week) || 1;
+
+        const weeks = getWeeksOfMonth(y, m);
+        const selectedWeek = weeks[w - 1];
+
+        if (!selectedWeek) {
+            return res.status(400).json({ message: 'Invalid week number' });
+        }
+
+        const therapists = await getAllTherapists();
+        const summary = await getWeeklySummary(
+            CALENDAR_ID,
+            selectedWeek.start,
+            selectedWeek.end,
+            therapists
+        );
+
+        // Get payment status from database for these sessions
+        const sessionIds = summary.byTherapist.flatMap(t => t.sessions.map(s => s.id));
+
+        let payments = [];
+        if (sessionIds.length > 0) {
+            const paymentResult = await pool.query(
+                `SELECT event_id, payment_type, marked_at, therapist_id 
+                 FROM session_payments 
+                 WHERE event_id = ANY($1)`,
+                [sessionIds]
+            );
+            payments = paymentResult.rows;
+        }
+
+        // Merge payment data with sessions
+        const paymentMap = {};
+        payments.forEach(p => {
+            paymentMap[p.event_id] = p;
+        });
+
+        summary.byTherapist.forEach(therapist => {
+            let paidAmount = 0;
+            let pendingAmount = 0;
+            let paidCount = 0;
+            let pendingCount = 0;
+
+            therapist.sessions.forEach(session => {
+                const payment = paymentMap[session.id];
+                session.paymentStatus = payment ? payment.payment_type : 'pending';
+                session.markedAt = payment?.marked_at || null;
+
+                if (payment && payment.payment_type !== 'cancelled') {
+                    paidAmount += session.price;
+                    paidCount++;
+                } else if (!payment || payment.payment_type === 'pending') {
+                    pendingAmount += session.price;
+                    pendingCount++;
+                }
+                // Cancelled sessions are neither paid nor pending for totals
+            });
+
+            therapist.paidAmount = paidAmount;
+            therapist.pendingAmount = pendingAmount;
+            therapist.paidCount = paidCount;
+            therapist.pendingCount = pendingCount;
+        });
+
+        // Calculate totals
+        summary.summary.paidAmount = summary.byTherapist.reduce((sum, t) => sum + t.paidAmount, 0);
+        summary.summary.pendingAmount = summary.byTherapist.reduce((sum, t) => sum + t.pendingAmount, 0);
+
+        res.json({
+            week: {
+                number: w,
+                ...selectedWeek
+            },
+            ...summary
+        });
+
+    } catch (error) {
+        console.error('Weekly summary error:', error);
+        res.status(500).json({ message: 'Error getting weekly summary' });
+    }
+};
+
+/**
+ * Get sessions for a therapist (their own sessions only)
+ */
+exports.getTherapistSessions = async (req, res) => {
     try {
         const { therapist_id } = req.user;
-        const targetCalendarId = req.query.calendarId;
+        const { year, month, week } = req.query;
 
         if (!therapist_id) {
             return res.status(400).json({ message: 'User is not linked to a therapist profile' });
         }
 
-        if (!targetCalendarId) {
-            return res.status(400).json({ message: 'Calendar ID required' });
-        }
-
-        // Get all data first (API doesn't filter by color, we filter here)
-        const billingData = await getAggregatedHours(targetCalendarId);
+        // Get therapist info
         const therapists = await getAllTherapists();
         const me = therapists.find(t => t.id === therapist_id);
 
-        if (!me || !me.calendar_color_id) {
-            return res.json({
-                period: billingData.period,
-                hours: 0,
-                message: 'Profile not linked to a calendar color'
-            });
+        if (!me) {
+            return res.status(400).json({ message: 'Therapist profile not found' });
         }
 
-        const myHours = billingData.totals[me.calendar_color_id] || 0;
+        const y = parseInt(year) || new Date().getFullYear();
+        const m = parseInt(month) ?? new Date().getMonth();
+        const w = parseInt(week) || 1;
+
+        const weeks = getWeeksOfMonth(y, m);
+        const selectedWeek = weeks[w - 1];
+
+        if (!selectedWeek) {
+            return res.status(400).json({ message: 'Invalid week number' });
+        }
+
+        // Get ALL sessions first (no colorId filter)
+        const allSessions = await getSessions(
+            CALENDAR_ID,
+            selectedWeek.start,
+            selectedWeek.end,
+            null // No filter - we'll filter by therapistId below
+        );
+
+        // Filter sessions by therapistId (from /nombre/ detection)
+        const sessions = allSessions.filter(s => s.therapistId === therapist_id);
+
+        // Get payment status
+        const sessionIds = sessions.map(s => s.id);
+        let payments = [];
+        if (sessionIds.length > 0) {
+            const paymentResult = await pool.query(
+                `SELECT event_id, payment_type, marked_at 
+                 FROM session_payments 
+                 WHERE event_id = ANY($1) AND therapist_id = $2`,
+                [sessionIds, therapist_id]
+            );
+            payments = paymentResult.rows;
+        }
+
+        const paymentMap = {};
+        payments.forEach(p => {
+            paymentMap[p.event_id] = p;
+        });
+
+        let paidAmount = 0;
+        let pendingAmount = 0;
+
+        sessions.forEach(session => {
+            const payment = paymentMap[session.id];
+            session.paymentStatus = payment ? payment.payment_type : 'pending';
+            session.markedAt = payment?.marked_at || null;
+
+            if (payment && payment.payment_type !== 'cancelled') {
+                paidAmount += session.price;
+            } else if (!payment || payment.payment_type === 'pending') {
+                pendingAmount += session.price;
+            }
+            // Cancelled sessions are neither paid nor pending for totals
+        });
 
         res.json({
-            period: billingData.period,
             therapist: me.full_name,
-            hours: myHours
+            week: {
+                number: w,
+                ...selectedWeek
+            },
+            sessions,
+            summary: {
+                totalSessions: sessions.length,
+                totalAmount: sessions.reduce((sum, s) => sum + s.price, 0),
+                paidAmount,
+                pendingAmount
+            }
         });
 
     } catch (error) {
-        console.error('My Billing error:', error);
-        res.status(500).json({ message: 'Error calculating your billing' });
+        console.error('Therapist sessions error:', error);
+        res.status(500).json({ message: 'Error getting sessions' });
+    }
+};
+
+/**
+ * Get global sessions for payment management (flat list, date range)
+ */
+exports.getGlobalSessions = async (req, res) => {
+    try {
+        const { therapist_id, role } = req.user;
+        const { targetTherapistId, startDate, endDate } = req.query;
+
+        let queryTherapistId = therapist_id;
+        if (role === 'admin' && targetTherapistId) {
+            queryTherapistId = targetTherapistId; // Admin viewing specific therapist
+        } else if (role === 'admin' && !targetTherapistId) {
+            queryTherapistId = null; // Admin viewing ALL (processed below)
+        }
+
+        // Parse dates
+        const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), 0, 1);
+        const end = endDate ? new Date(endDate) : new Date(new Date().getFullYear(), 11, 31);
+
+        // Calculate ISO strings for Google Calendar
+        const timeMin = start.toISOString();
+        const timeMax = end.toISOString();
+
+        // 1. Fetch from Google Calendar (using service)
+        const events = await getRawEvents(start, end);
+
+        // 2. Fetch payments from DB
+        const paymentsRes = await pool.query(`SELECT * FROM session_payments`);
+        const paymentsMap = {};
+        paymentsRes.rows.forEach(p => {
+            paymentsMap[p.event_id] = p;
+        });
+
+        // 3. Process events
+        const processedSessions = events
+            .map(event => {
+                // Detect therapist
+                const detected = detectTherapist(event.summary || '');
+                if (!detected && !process.env.IncludeUnknown) return null; // Skip if strict
+
+                const sessionTherapistId = detected ? detected.id : 'unknown';
+                const sessionTherapistName = detected ? detected.name : 'Desconocido';
+                const sessionColor = detected ? detected.color : event.colorId;
+
+                // Create session object
+                const session = {
+                    id: event.id,
+                    title: event.summary,
+                    start: event.start.dateTime || event.start.date,
+                    end: event.end.dateTime || event.end.date,
+                    date: (event.start.dateTime || event.start.date).split('T')[0],
+                    therapistId: sessionTherapistId,
+                    therapistName: sessionTherapistName,
+                    therapistColor: sessionColor,
+                    description: event.description
+                };
+
+                // Filter by Requested Therapist
+                if (queryTherapistId && session.therapistId !== queryTherapistId) {
+                    return null;
+                }
+
+                // Skip 'Unknown' if we only want assigned
+                if (sessionTherapistId === 'unknown') return null;
+
+                // Check "Libre"
+                if (isNonBillable(session.title)) {
+                    session.isLibre = true;
+                    session.price = 0;
+                } else {
+                    session.isLibre = false;
+                    session.price = 55; // Default price
+                }
+
+                // Attach Payment Info
+                if (paymentsMap[session.id]) {
+                    session.paymentStatus = paymentsMap[session.id].payment_type;
+                    session.paidAt = paymentsMap[session.id].marked_at;
+                    session.paymentDate = paymentsMap[session.id].payment_date;
+                } else {
+                    session.paymentStatus = 'pending';
+                }
+
+                return session;
+            })
+            .filter(Boolean) // Remove nulls
+            .sort((a, b) => new Date(b.date) - new Date(a.date)); // Newest first
+
+        res.json({ sessions: processedSessions });
+
+    } catch (error) {
+        console.error('Error fetching global sessions:', error);
+        res.status(500).json({ message: 'Error fetching sessions' });
+    }
+};
+
+exports.markSessionPaid = async (req, res) => {
+    try {
+        const { therapist_id } = req.user;
+        const { eventId } = req.params;
+        const { paymentType, paymentDate } = req.body; // 'transfer' | 'cash' | 'cancelled' | null
+
+        if (!therapist_id) {
+            return res.status(400).json({ message: 'User is not linked to a therapist profile' });
+        }
+
+        if (!eventId) {
+            return res.status(400).json({ message: 'Event ID required' });
+        }
+
+        if (paymentType === null || paymentType === 'pending') {
+            // Remove payment record
+            await pool.query(
+                `DELETE FROM session_payments WHERE event_id = $1 AND therapist_id = $2`,
+                [eventId, therapist_id]
+            );
+        } else {
+            // Upsert payment record with optional payment_date
+            await pool.query(
+                `INSERT INTO session_payments (event_id, therapist_id, payment_type, marked_at, payment_date)
+                 VALUES ($1, $2, $3, NOW(), $4)
+                 ON CONFLICT (event_id) 
+                 DO UPDATE SET payment_type = $3, marked_at = NOW(), payment_date = $4`,
+                [eventId, therapist_id, paymentType, paymentDate || null]
+            );
+        }
+
+        res.json({ success: true, eventId, paymentType });
+
+    } catch (error) {
+        console.error('Mark paid error:', error);
+        res.status(500).json({ message: 'Error marking session' });
+    }
+};
+
+/**
+ * Get all months with session counts (for navigation)
+ */
+exports.getMonthsOverview = async (req, res) => {
+    try {
+        const currentYear = new Date().getFullYear();
+        const months = [];
+
+        for (let m = 0; m < 12; m++) {
+            months.push({
+                month: m,
+                name: new Date(currentYear, m).toLocaleDateString('es-ES', { month: 'long' }),
+                year: currentYear
+            });
+        }
+
+        res.json({ year: currentYear, months });
+    } catch (error) {
+        console.error('Months overview error:', error);
+        res.status(500).json({ message: 'Error getting months' });
     }
 };

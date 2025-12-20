@@ -1,92 +1,1264 @@
-.billing-tab {
-    padding: 20px;
+/* Billing Tab Styles */
+
+.billing-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* === CALENDAR TOGGLE === */
+.calendar-toggle-section {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.btn-calendar-toggle {
+    background: white;
+    border: 2px solid #4285F4;
+    color: #4285F4;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-calendar-toggle:hover {
+    background: #e3f2fd;
+}
+
+.btn-calendar-toggle.active {
+    background: #4285F4;
+    color: white;
+}
+
+.embedded-calendar {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.calendar-container {
+    padding: 15px;
     margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.embedded-calendar iframe {
     border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.billing-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+.billing-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
-.billing-table th,
-.billing-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
+.billing-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
 }
 
-.billing-table th {
-    background-color: #f8f9fa;
-    color: #495057;
+.btn-back-billing {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.btn-back-billing:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.billing-loading {
+    text-align: center;
+    padding: 60px;
+    color: #666;
+    font-size: 1.2rem;
+}
+
+/* === MONTHS VIEW === */
+.year-selector {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-left: auto;
+}
+
+.year-selector button {
+    background: #f0f0f0;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background 0.2s;
+}
+
+.year-selector button:hover {
+    background: #e0e0e0;
+}
+
+.year-selector span {
+    font-size: 1.3rem;
     font-weight: 600;
+    min-width: 60px;
+    text-align: center;
 }
 
-.color-badge {
-    display: inline-block;
-    padding: 2px 8px;
+.months-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.month-card {
+    background: white;
+    border: 2px solid #e9ecef;
     border-radius: 12px;
+    padding: 25px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.month-card:hover {
+    border-color: #4285F4;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(66, 133, 244, 0.15);
+}
+
+.month-card.current {
+    border-color: #4285F4;
+    background: linear-gradient(135deg, #e3f2fd, #fff);
+}
+
+.month-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.current-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #4285F4;
     color: white;
-    font-size: 0.8em;
-    font-weight: bold;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 10px;
+}
+
+/* === WEEKS VIEW === */
+.weeks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.week-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.week-card:hover {
+    border-color: #4285F4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.week-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.week-number {
+    font-weight: 600;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.week-dates {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.week-arrow {
+    font-size: 1.3rem;
+    color: #adb5bd;
+}
+
+/* === BILLING SUMMARY CARDS === */
+.billing-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #e9ecef;
+}
+
+.summary-card.total {
+    border-left-color: #4285F4;
+    background: linear-gradient(135deg, #e3f2fd, #fff);
+}
+
+.summary-card.paid {
+    border-left-color: #0F9D58;
+}
+
+.summary-card.pending {
+    border-left-color: #F4B400;
+}
+
+.summary-card.sessions {
+    border-left-color: #9C27B0;
+}
+
+.summary-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    line-height: 1.2;
+}
+
+.summary-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+    display: block;
+}
+
+/* === DAYS GRID (NEW) === */
+.days-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.day-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.day-card:hover {
+    border-color: #4285F4;
+    box-shadow: 0 6px 20px rgba(66, 133, 244, 0.1);
+}
+
+.day-card.expanded {
+    border-color: #4285F4;
+}
+
+.day-card-header {
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.day-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 120px;
+}
+
+.day-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 1.1rem;
+    text-transform: capitalize;
+}
+
+.day-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.day-stats {
+    flex: 1;
+    display: flex;
+    gap: 20px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.day-sessions {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.day-amount {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #4285F4;
+}
+
+.day-sessions-list {
+    border-top: 1px solid #e9ecef;
+    padding: 20px;
+    background: #f8f9fa;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.session-item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-left: 4px solid #e9ecef;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.session-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.session-item.bizum {
+    border-left-color: #0F9D58;
+    background: linear-gradient(135deg, #f0fff4, white);
+}
+
+.session-item.cash {
+    border-left-color: #4285F4;
+    background: linear-gradient(135deg, #e8f4fd, white);
+}
+
+.session-item.pending {
+    border-left-color: #F4B400;
+    background: linear-gradient(135deg, #fffbeb, white);
+}
+
+.session-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.session-time-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.session-time-col .session-time {
+    font-weight: 700;
+    color: #333;
+    font-size: 1.15rem;
+}
+
+.session-time-col .session-duration {
+    color: #888;
+    font-size: 0.8rem;
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+    width: fit-content;
+}
+
+.session-info-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.session-info-col .session-title {
+    font-weight: 600;
+    color: #333;
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.session-info-col .session-therapist {
+    font-size: 0.85rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.session-info-col .session-therapist::before {
+    content: '👤';
+    font-size: 0.9rem;
+}
+
+.session-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.session-price-col {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.session-price-col .session-price {
+    font-weight: 700;
+    color: #4285F4;
+    font-size: 1.2rem;
+}
+
+.session-price-col .session-status {
+    font-size: 1.3rem;
+}
+
+/* === THERAPISTS BILLING LIST === */
+.therapists-billing-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.therapist-billing-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
+}
+
+.therapist-billing-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.therapist-billing-header:hover {
+    background: #f8f9fa;
+}
+
+.therapist-info {
+    flex: 1;
+}
+
+.therapist-info h3 {
+    margin: 0 0 5px;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.session-count {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.therapist-amounts {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.amount-paid {
+    color: #0F9D58;
+    font-weight: 500;
+}
+
+.amount-pending {
+    color: #F4B400;
+    font-weight: 500;
+}
+
+.amount-total {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.expand-icon {
+    margin-left: 15px;
+    color: #adb5bd;
+    font-size: 0.8rem;
+}
+
+/* === SESSION ROWS === */
+.therapist-sessions {
+    border-top: 1px solid #e9ecef;
+    padding: 15px;
+    background: #fafbfc;
+}
+
+.session-row {
+    display: grid;
+    grid-template-columns: 150px 1fr 80px 80px 100px;
+    gap: 15px;
+    padding: 12px 15px;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border-left: 3px solid #e9ecef;
+}
+
+.session-row.bizum {
+    border-left-color: #0F9D58;
+}
+
+.session-row.cash {
+    border-left-color: #4285F4;
+}
+
+.session-row.pending {
+    border-left-color: #F4B400;
+}
+
+.session-datetime {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+}
+
+.session-day {
+    font-weight: 600;
+    color: #333;
+    text-transform: capitalize;
+}
+
+.session-date {
+    color: #666;
+}
+
+.session-time {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.session-title {
+    color: #333;
+    font-weight: 500;
+}
+
+.session-duration {
+    color: #666;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.session-price {
+    font-weight: 600;
+    color: #333;
+    text-align: right;
+}
+
+.session-status {
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.session-status.bizum {
+    color: #0F9D58;
+}
+
+.session-status.cash {
+    color: #4285F4;
+}
+
+.session-status.pending {
+    color: #F4B400;
+}
+
+/* === THERAPIST VIEW - MY SESSIONS === */
+.my-sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.my-session-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #e9ecef;
+}
+
+.my-session-card.bizum {
+    border-left-color: #0F9D58;
+}
+
+.my-session-card.cash {
+    border-left-color: #4285F4;
+}
+
+.my-session-card.pending {
+    border-left-color: #F4B400;
+}
+
+.session-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.session-info .session-datetime {
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+}
+
+.session-patient {
+    flex: 1;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.session-price-tag {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #4285F4;
+}
+
+.payment-options {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.payment-options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.payment-options label:hover {
+    border-color: #adb5bd;
+}
+
+.payment-options label.selected {
+    border-color: #4285F4;
+    background: #e3f2fd;
+}
+
+.payment-options input[type="radio"] {
+    display: none;
+}
+
+.no-sessions {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .months-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .month-card {
+        padding: 20px 10px;
+    }
+
+    .billing-summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .session-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .therapist-amounts {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+    }
+
+    .payment-options {
+        flex-direction: column;
+    }
+
+    .payment-options label {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .months-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .billing-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .year-selector {
+        margin-left: 0;
+    }
+}
+
+/* === FILTER BAR === */
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 20px;
+    background: white;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.filter-bar label {
+    font-weight: 500;
+    color: #555;
+}
+
+.therapist-filter {
+    padding: 10px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    min-width: 200px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.therapist-filter:hover {
+    border-color: #4285F4;
+}
+
+.therapist-filter:focus {
+    outline: none;
+    border-color: #4285F4;
+}
+
+/* === CLICKABLE SUMMARY CARD === */
+.summary-card.clickable {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.summary-card.clickable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* === PENDING VIEW === */
+.pending-view {
+    max-width: 900px;
+}
+
+.no-pending {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.pending-therapists {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.pending-therapist-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.pending-therapist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, #fff3e0, #fff);
+    border-left: 5px solid #F4B400;
+}
+
+.pending-therapist-header .therapist-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.pending-therapist-header .therapist-stats {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.pending-count {
+    background: #fff3e0;
+    color: #e65100;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.pending-amount {
+    font-weight: 700;
+    color: #F4B400;
+    font-size: 1.2rem;
+}
+
+.pending-days {
+    padding: 15px 20px;
+}
+
+.pending-day {
+    margin-bottom: 15px;
+}
+
+.pending-day:last-child {
+    margin-bottom: 0;
+}
+
+.pending-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.pending-date {
+    font-weight: 600;
+    color: #555;
+}
+
+.pending-day-count {
+    color: #e65100;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.pending-sessions {
+    padding: 10px 0;
+}
+
+.pending-session {
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    gap: 15px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 5px;
+}
+
+.pending-session:nth-child(odd) {
+    background: #fafafa;
+}
+
+.pending-session .session-time {
+    font-weight: 600;
+    color: #333;
+}
+
+.pending-session .session-title {
+    color: #666;
+}
+
+.pending-session .session-price {
+    font-weight: 600;
+    color: #F4B400;
+}
+
+/* === PAYMENT ACTIONS === */
+.pending-session-card {
+    background: #fafafa;
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    transition: background-color 0.2s;
+}
+
+.pending-session-card:hover {
+    background: #f0f0f0;
+}
+
+.pending-session-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.payment-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-pay {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-pay:hover {
+    transform: scale(1.1);
+}
+
+.btn-pay.bizum {
+    color: #8E24AA;
+}
+
+.btn-pay.bizum:hover {
+    background: #F3E5F5;
+}
+
+.btn-pay.cash {
+    color: #2E7D32;
+}
+
+.btn-pay.cash:hover {
+    background: #E8F5E9;
+}
+
+.btn-pay.cancel {
+    color: #D32F2F;
+}
+
+.btn-pay.cancel:hover {
+    background: #FFEBEE;
+}
+
+/* === READ ONLY STATUS === */
+.payment-options.read-only {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 5px;
 }
 
 .status-badge {
     padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 0.85em;
+    border-radius: 12px;
+    font-size: 0.85rem;
     font-weight: 500;
 }
 
+.status-badge.bizum {
+    background: #F3E5F5;
+    color: #8E24AA;
+}
+
+.status-badge.cash {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
 .status-badge.pending {
-    background-color: #ffeeba;
-    color: #856404;
+    background: #FFF3E0;
+    color: #EF6C00;
 }
 
-.therapist-billing-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.status-badge.cancelled {
+    background: #FFEBEE;
+    color: #D32F2F;
+    text-decoration: line-through;
+}
+
+@media (max-width: 600px) {
+    .pending-session-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .payment-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* === TRANSFER UI === */
+.btn-pay.transfer {
+    color: #1976D2;
+}
+
+.btn-pay.transfer:hover {
+    background: #E3F2FD;
+}
+
+.status-badge.transfer {
+    background: #E3F2FD;
+    color: #1976D2;
+}
+
+.transfer-date-input {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.date-input-mini {
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    width: 140px;
+}
+
+.btn-confirm-transfer,
+.btn-cancel-transfer {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: transform 0.2s;
+}
+
+.btn-confirm-transfer {
+    background: #4CAF50;
     color: white;
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    max-width: 400px;
-    margin: 0 auto;
 }
 
-.billing-stat-big {
-    font-size: 4em;
-    font-weight: 800;
-    line-height: 1;
-    margin: 20px 0;
+.btn-confirm-transfer:disabled {
+    background: #ccc;
+    cursor: not-allowed;
 }
 
-.billing-stat-big span {
-    display: block;
-    font-size: 0.25em;
-    /* 1em relative to big font */
-    font-weight: 400;
+.btn-cancel-transfer {
+    background: #ef5350;
+    color: white;
+}
+
+.btn-confirm-transfer:hover:not(:disabled),
+.btn-cancel-transfer:hover {
+    transform: scale(1.1);
+}
+
+.embedded-calendar-pending {
+    margin-bottom: 20px;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Status Styling in List */
+.pending-session-card.transfer,
+.pending-session-card.bizum {
+    border-left: 4px solid #1976D2;
+    background-color: #F8FDFF;
+}
+
+.pending-session-card.cash {
+    border-left: 4px solid #4CAF50;
+    background-color: #F1F8E9;
+}
+
+.pending-session-card.cancelled {
+    border-left: 4px solid #F44336;
+    background-color: #FFEBEE;
     opacity: 0.8;
 }
 
-.debug-details {
-    margin-top: 40px;
-    color: #999;
-    font-size: 0.8em;
+.mini-badge {
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 10px;
 }
 
-@media (max-width: 768px) {
-    .billing-table {
-        display: block;
-        overflow-x: auto;
-    }
+.btn-pay.active {
+    transform: scale(0.95);
+    border: 2px solid #555;
+    font-weight: bold;
+}
+
+/* Specific active colors */
+.btn-pay.transfer.active {
+    background: #E3F2FD;
+    border-color: #1976D2;
+}
+
+.btn-pay.cash.active {
+    background: #E8F5E9;
+    border-color: #2E7D32;
+}
+
+.btn-pay.cancel.active {
+    background: #FFEBEE;
+    border-color: #C62828;
+}
+
+/* === GLOBAL PAYMENT VIEW === */
+
+.billing-mode-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.btn-mode {
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    transition: all 0.2s;
+}
+
+.btn-mode:hover {
+    background: #f5f5f5;
+}
+
+.btn-mode.active {
+    background: #4A148C;
+    color: white;
+    border-color: #4A148C;
+    font-weight: bold;
+}
+
+.global-payment-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.date-range label {
+    margin-right: 15px;
+    font-weight: 500;
+}
+
+.date-range input {
+    margin-left: 5px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.therapist-select {
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    min-width: 150px;
+}
+
+.global-sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.global-card {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #eee;
+    /* Default border */
+}
+
+/* Inherits colors from .pending-session-card.transfer etc */
+
+.session-date-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.session-therapist-tag {
+    font-weight: bold;
+}
+
+.payment-date-small {
+    font-size: 0.8rem;
+    color: #666;
+    font-weight: normal;
+}
+
+.no-sessions {
+    text-align: center;
+    padding: 40px;
+    color: #888;
+    font-size: 1.1rem;
+}
+
+.summary-card.clickable {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.summary-card.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }

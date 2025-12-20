@@ -1,30 +1,15 @@
-const mongoose = require('mongoose');
-const Therapist = require('./models/Therapist');
+require('dotenv').config();
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE || process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 async function checkTherapists() {
-  try {
-    await mongoose.connect('mongodb://localhost:27017/psychology-clinic');
-    console.log('Conectado a MongoDB');
-    
-    const therapists = await Therapist.find({});
-    console.log('\n=== Terapeutas en la base de datos ===');
-    
-    if (therapists.length === 0) {
-      console.log('No hay terapeutas en la base de datos');
-    } else {
-      therapists.forEach((therapist, index) => {
-        console.log(`${index + 1}. ${therapist.fullName}`);
-        console.log(`   Foto: "${therapist.photo}"`);
-        console.log(`   ID: ${therapist._id}`);
-        console.log('');
-      });
-    }
-    
-    process.exit(0);
-  } catch (error) {
-    console.error('Error:', error);
-    process.exit(1);
-  }
+  const result = await pool.query('SELECT id, full_name, calendar_color_id FROM therapists ORDER BY full_name');
+  console.table(result.rows);
+  pool.end();
 }
 
 checkTherapists();

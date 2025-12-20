@@ -266,23 +266,24 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                             </div>
 
                             <div className="form-group highlight-box">
-                                <label>🎨 Color en Google Calendar *</label>
+                                <label>🎨 Color en Google Calendar</label>
                                 <select
                                     value={formData.calendar_color_id || ''}
                                     onChange={(e) => setFormData({ ...formData, calendar_color_id: e.target.value })}
+                                    style={{ padding: '10px', fontSize: '1rem' }}
                                 >
-                                    <option value="">-- Seleccionar --</option>
-                                    <option value="1">Lavanda (1)</option>
-                                    <option value="2">Salvia (2)</option>
-                                    <option value="3">Uva (3)</option>
-                                    <option value="4">Flamenco (4)</option>
-                                    <option value="5">Banana (5)</option>
-                                    <option value="6">Mandarina (6)</option>
-                                    <option value="7">Pavo Real (7)</option>
-                                    <option value="8">Grafito (8)</option>
-                                    <option value="9">Arándano (9)</option>
-                                    <option value="10">Albahaca (10)</option>
-                                    <option value="11">Tomate (11)</option>
+                                    <option value="">-- Seleccionar color --</option>
+                                    <option value="1" style={{ backgroundColor: '#7986cb' }}>🔵 Lavanda (Azul-lila)</option>
+                                    <option value="2" style={{ backgroundColor: '#33b679' }}>🟢 Verde claro</option>
+                                    <option value="3" style={{ backgroundColor: '#8e24aa' }}>🟣 Morado</option>
+                                    <option value="4" style={{ backgroundColor: '#e67c73' }}>🩷 Rosa coral</option>
+                                    <option value="5" style={{ backgroundColor: '#f6c026' }}>🟡 Amarillo</option>
+                                    <option value="6" style={{ backgroundColor: '#f4511e' }}>🟠 Naranja</option>
+                                    <option value="7" style={{ backgroundColor: '#039be5' }}>🔵 Azul claro</option>
+                                    <option value="8" style={{ backgroundColor: '#616161' }}>⚫ Gris</option>
+                                    <option value="9" style={{ backgroundColor: '#3f51b5' }}>🔵 Azul oscuro</option>
+                                    <option value="10" style={{ backgroundColor: '#0b8043' }}>🟢 Verde oscuro</option>
+                                    <option value="11" style={{ backgroundColor: '#d50000' }}>🔴 Rojo</option>
                                 </select>
                                 <small>Vincula a este terapeuta con sus eventos en el calendario.</small>
                             </div>
