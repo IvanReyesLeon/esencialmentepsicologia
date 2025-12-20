@@ -131,14 +131,12 @@ async function prerender() {
         // 3. Launch Puppeteer
         try {
             browser = await puppeteer.launch({
-                headless: 'new',
+                headless: true,
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
-                    '--disable-gpu',
-                    '--single-process', // Sometimes helps in strict containers
-                    '--no-zygote'
+                    '--disable-gpu'
                 ]
             });
         } catch (launchError) {
