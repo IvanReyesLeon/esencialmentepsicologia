@@ -22,7 +22,12 @@ const Blog = () => {
             // Assuming proxy is set in package.json or using env vars. `Services.js` uses `pricingAPI`.
             // Let's rely on standard fetch to the API we created.
 
-            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+            let API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+            // Ensure API_URL ends with /api
+            if (!API_URL.endsWith('/api')) {
+                API_URL = `${API_URL}/api`;
+            }
+
             const response = await fetch(`${API_URL}/posts`);
             if (!response.ok) {
                 throw new Error('Error al cargar los posts');

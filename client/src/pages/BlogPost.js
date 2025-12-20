@@ -15,7 +15,12 @@ const BlogPost = () => {
 
     const fetchPost = async () => {
         try {
-            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+            let API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+            // Ensure API_URL ends with /api
+            if (!API_URL.endsWith('/api')) {
+                API_URL = `${API_URL}/api`;
+            }
+
             const response = await fetch(`${API_URL}/posts/${slug}`);
 
             if (response.status === 404) {
