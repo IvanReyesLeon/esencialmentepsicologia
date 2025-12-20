@@ -20,6 +20,7 @@ const BillingTab = ({ user }) => {
     const [expandedTherapist, setExpandedTherapist] = useState(null);
     const [showCalendar, setShowCalendar] = useState(false);
     const [filterTherapist, setFilterTherapist] = useState('all'); // 'all' or therapist name
+    const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'pending' | 'paid'
     const [transferDateSessionId, setTransferDateSessionId] = useState(null);
     const [transferDateValue, setTransferDateValue] = useState('');
 
@@ -183,7 +184,34 @@ const BillingTab = ({ user }) => {
         setGlobalStartDate(s);
         setGlobalEndDate(e);
         setBillingMode('payments');
+        setFilterStatus('pending'); // Auto-filter to show only pending
         // filterTherapist state is preserved for Admin
+    };
+
+    const handleTherapistHistoryClick = () => {
+        // Show full year history of PAID sessions
+        const currentYear = new Date().getFullYear();
+        setGlobalStartDate(`${currentYear}-01-01`);
+        setGlobalEndDate(`${currentYear}-12-31`);
+        setBillingMode('payments');
+        setFilterStatus('paid'); // Auto-filter to show only paid
+    };
+
+    const handleMonthPaymentsClick = () => {
+        // Set date to full month
+        // selectedMonth is 0-index
+        const year = selectedYear;
+        const month = selectedMonth;
+        const startDate = new Date(year, month, 1);
+        const endDate = new Date(year, month + 1, 0); // Last day of month
+
+        // Adjust for timezone/formatting
+        const s = startDate.toLocaleDateString('en-CA'); // YYYY-MM-DD
+        const e = endDate.toLocaleDateString('en-CA');
+
+        setGlobalStartDate(s);
+        setGlobalEndDate(e);
+        setBillingMode('payments');
     };
 
     // === MONTH SELECTOR VIEW ===
@@ -220,6 +248,11 @@ const BillingTab = ({ user }) => {
             <div className="billing-header">
                 <button className="btn-back-billing" onClick={handleBack}>← Volver</button>
                 <h2>📆 {months[selectedMonth]} {selectedYear}</h2>
+                {user.role === 'admin' && (
+                    <button className="btn-month-payments" onClick={handleMonthPaymentsClick}>
+                        Ver Pagos del Mes
+                    </button>
+                )}
             </div>
             <div className="weeks-list">
                 {weeks.map((week, index) => (
@@ -400,7 +433,12 @@ const BillingTab = ({ user }) => {
             <div className="billing-detail therapist-view">
                 <div className="billing-header">
                     <button className="btn-back-billing" onClick={handleBack}>← Volver</button>
-                    <h2>💰 Mis Sesiones - Semana {weekData.week?.number}</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <h2>💰 Mis Sesiones - Semana {weekData.week?.number}</h2>
+                        <button className="btn-history" onClick={handleTherapistHistoryClick}>
+                            📜 Ver Mi Historial
+                        </button>
+                    </div>
                 </div>
 
                 {/* Summary */}
@@ -458,29 +496,82 @@ const BillingTab = ({ user }) => {
 
     // === GLOBAL PAYMENT VIEW ===
     const renderGlobalPayments = () => {
-        // Filter by Therapist (Frontend name match)
+        // Filter by Therapist (Frontend name match) an STATUS
         const visibleSessions = globalSessions.filter(session => {
             // Exclude non-billable sessions (libre/anulada)
             if (session.isLibre) return false;
 
-            if (filterTherapist === 'all') return true;
-            // Admin sees names like 'Joan', 'Marcos', etc.
-            // Therapist sees only theirs (backend returns only theirs).
-            if (user.role === 'admin') {
-                return session.therapistName === filterTherapist;
+            // 1. Filter by Therapist
+            if (filterTherapist !== 'all') {
+                // Admin sees names, Therapist has restricted view from backend anyway, but this checks frontend match just in case
+                if (user.role === 'admin' && session.therapistName !== filterTherapist) {
+                    return false;
+                }
             }
+
+            // 2. Filter by Status
+            if (filterStatus !== 'all') {
+                const isPaid = session.paymentStatus === 'transfer' || session.paymentStatus === 'cash' || session.paymentStatus === 'bizum';
+                const isPending = session.paymentStatus === 'pending';
+                // Note: Cancelled is hidden from totals usually, but let's include 'cancelled' in 'paid' bucket? Or separate? 
+                // User asked for "Pagados" and "Pendientes". Cancelled is neither, or "Finalized".
+                // Let's assume 'Paid' = Transfer/Cash/Bizum. 'Pending' = Pending. 
+
+                if (filterStatus === 'paid' && !isPaid) return false;
+                if (filterStatus === 'pending' && !isPending) return false;
+            }
+
             return true;
         });
+
+        // Calculate Totals for VISIBLE sessions
+        const summary = visibleSessions.reduce((acc, s) => {
+            if (s.paymentStatus === 'cancelled') return acc; // Don't count cancelled in money
+            acc.total += s.price;
+            if (s.paymentStatus === 'pending') acc.pending += s.price;
+            else acc.paid += s.price;
+            return acc;
+        }, { total: 0, pending: 0, paid: 0 });
 
         // Get unique therapist names for filter dropdown
         const therapistNames = [...new Set(globalSessions.map(s => s.therapistName))].sort();
 
         return (
             <div className="billing-detail global-payment-view">
+
+                {/* Global Summary Dashboard */}
+                <div className="billing-summary-cards" style={{ marginBottom: '20px' }}>
+                    <div className="summary-card total">
+                        <span className="summary-value">{formatCurrency(summary.total)}</span>
+                        <span className="summary-label">Total Visible</span>
+                    </div>
+                    <div className="summary-card paid">
+                        <span className="summary-value">{formatCurrency(summary.paid)}</span>
+                        <span className="summary-label">✅ Pagado</span>
+                    </div>
+                    <div className="summary-card pending">
+                        <span className="summary-value">{formatCurrency(summary.pending)}</span>
+                        <span className="summary-label">⏳ Pendiente</span>
+                    </div>
+                </div>
+
                 <div className="global-payment-filters">
                     <div className="date-range">
                         <label>Desde: <input type="date" value={globalStartDate} onChange={e => setGlobalStartDate(e.target.value)} /></label>
                         <label>Hasta: <input type="date" value={globalEndDate} onChange={e => setGlobalEndDate(e.target.value)} /></label>
+                    </div>
+
+                    <div className="status-filter">
+                        <label>Estado: </label>
+                        <select
+                            value={filterStatus}
+                            onChange={(e) => setFilterStatus(e.target.value)}
+                            className="therapist-select"
+                        >
+                            <option value="all">Todos</option>
+                            <option value="pending">⏳ Pendientes</option>
+                            <option value="paid">✅ Pagados</option>
+                        </select>
                     </div>
 
                     {user.role === 'admin' && (
@@ -525,37 +616,41 @@ const BillingTab = ({ user }) => {
                                 </div>
 
                                 <div className="payment-actions">
-                                    {transferDateSessionId === session.id ? (
-                                        <div className="transfer-date-input">
-                                            <input
-                                                type="date"
-                                                value={transferDateValue}
-                                                onChange={(e) => setTransferDateValue(e.target.value)}
-                                                className="date-input-mini"
-                                                autoFocus
-                                            />
-                                            <button className="btn-confirm-transfer" onClick={() => markPayment(session.id, 'transfer', transferDateValue)} disabled={!transferDateValue}>✅</button>
-                                            <button className="btn-cancel-transfer" onClick={() => setTransferDateSessionId(null)}>✖️</button>
-                                        </div>
+                                    {/* Permission Check: If Therapist and Payment is Paid (not pending), show Read Only */}
+                                    {(user.role !== 'admin' && session.paymentStatus !== 'pending') ? (
+                                        <span className="read-only-msg">✅ Procesado</span>
                                     ) : (
-                                        <>
-                                            <button
-                                                className={`btn-pay transfer ${session.paymentStatus === 'transfer' ? 'active' : ''}`}
-                                                onClick={() => handleTransferClick(session.id)}
-                                                title="Marcar como Transferencia"
-                                            >🏦</button>
-                                            <button
-                                                className={`btn-pay cash ${session.paymentStatus === 'cash' ? 'active' : ''}`}
-                                                onClick={() => markPayment(session.id, 'cash')}
-                                                title="Marcar como Efectivo"
-                                            >💵</button>
-                                            <button
-                                                className={`btn-pay cancel ${session.paymentStatus === 'cancelled' ? 'active' : ''}`}
-                                                onClick={() => markPayment(session.id, 'cancelled')}
-                                                title="Cancelar (No cobrar)"
-                                            >❌</button>
-                                        </>
-                                    )}
+                                        transferDateSessionId === session.id ? (
+                                            <div className="transfer-date-input">
+                                                <input
+                                                    type="date"
+                                                    value={transferDateValue}
+                                                    onChange={(e) => setTransferDateValue(e.target.value)}
+                                                    className="date-input-mini"
+                                                    autoFocus
+                                                />
+                                                <button className="btn-confirm-transfer" onClick={() => markPayment(session.id, 'transfer', transferDateValue)} disabled={!transferDateValue}>✅</button>
+                                                <button className="btn-cancel-transfer" onClick={() => setTransferDateSessionId(null)}>✖️</button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    className={`btn-pay transfer ${session.paymentStatus === 'transfer' ? 'active' : ''}`}
+                                                    onClick={() => handleTransferClick(session.id)}
+                                                    title="Marcar como Transferencia"
+                                                >🏦</button>
+                                                <button
+                                                    className={`btn-pay cash ${session.paymentStatus === 'cash' ? 'active' : ''}`}
+                                                    onClick={() => markPayment(session.id, 'cash')}
+                                                    title="Marcar como Efectivo"
+                                                >💵</button>
+                                                <button
+                                                    className={`btn-pay cancel ${session.paymentStatus === 'cancelled' ? 'active' : ''}`}
+                                                    onClick={() => markPayment(session.id, 'cancelled')}
+                                                    title="Cancelar (No cobrar)"
+                                                >❌</button>
+                                            </>
+                                        ))}
                                 </div>
                             </div>
                         ))

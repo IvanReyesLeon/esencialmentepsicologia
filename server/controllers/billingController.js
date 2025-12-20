@@ -332,6 +332,23 @@ exports.markSessionPaid = async (req, res) => {
             return res.status(400).json({ message: 'Event ID required' });
         }
 
+        // Check permissions: Therapists cannot modify 'paid' sessions (unless they are cancelling/transferring FROM pending?)
+        // Requirement: "once the payment changes from pending to a paid status, the therapist is not allowed to modify the payment"
+        if (req.user.role !== 'admin') {
+            const existingPaymentResult = await pool.query(
+                `SELECT payment_type FROM session_payments WHERE event_id = $1`,
+                [eventId]
+            );
+            const existingPayment = existingPaymentResult.rows[0];
+
+            if (existingPayment && existingPayment.payment_type !== 'pending' && existingPayment.payment_type !== 'cancelled') {
+                // Allowing 'cancelled' to be modified? User said "a estado pagado". Usually cancelled is final or treated as such.
+                // Let's be strict: if it's paid (transfer/cash) OR cancelled, they can't change it.
+                // Only 'pending' or no record can be changed.
+                return res.status(403).json({ message: 'No tienes permiso para modificar un pago ya procesado.' });
+            }
+        }
+
         if (paymentType === null || paymentType === 'pending') {
             // Remove payment record
             await pool.query(
