@@ -88,6 +88,13 @@ exports.createTherapist = async (req, res) => {
       }
     }
 
+    // Sanitize calendar_color_id
+    if (therapistData.calendar_color_id === '' || therapistData.calendar_color_id === 'null' || !therapistData.calendar_color_id) {
+      therapistData.calendar_color_id = null;
+    } else {
+      therapistData.calendar_color_id = parseInt(therapistData.calendar_color_id, 10);
+    }
+
     // If file was uploaded, use the Cloudinary URL
     if (req.file) {
       therapistData.photo = req.file.path;
@@ -128,6 +135,10 @@ exports.updateTherapistPhoto = async (req, res) => {
 exports.updateTherapist = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(`[UPDATE THERAPIST] ID: ${id}`);
+    console.log('[UPDATE THERAPIST] Body:', req.body);
+    console.log('[UPDATE THERAPIST] File:', req.file);
+
     const updateData = { ...req.body };
 
     // Normalizar arrays si vienen como strings
@@ -149,6 +160,13 @@ exports.updateTherapist = async (req, res) => {
       }
     }
 
+    // Sanitize calendar_color_id
+    if (updateData.calendar_color_id === '' || updateData.calendar_color_id === 'null' || !updateData.calendar_color_id) {
+      updateData.calendar_color_id = null;
+    } else {
+      updateData.calendar_color_id = parseInt(updateData.calendar_color_id, 10);
+    }
+
     // If file was uploaded, use the Cloudinary URL
     if (req.file) {
       updateData.photo = req.file.path;
@@ -157,13 +175,16 @@ exports.updateTherapist = async (req, res) => {
     const therapist = await updateTherapist(id, updateData);
 
     if (!therapist) {
+      console.log('[UPDATE THERAPIST] Not found');
       return res.status(404).json({ message: 'Therapist not found' });
     }
 
     res.json(therapist);
   } catch (error) {
-    console.error('Update therapist error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('[UPDATE THERAPIST] Error:', error);
+    // Return 400 if it's a known error type, otherwise 500
+    // But currently we were sending 500. If user saw 400, it might be from OUTSIDE this function.
+    res.status(500).json({ message: 'Server error: ' + error.message });
   }
 };
 

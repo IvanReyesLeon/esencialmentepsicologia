@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CookieConsent from './components/CookieConsent';
@@ -18,6 +18,21 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
 
+// Layout wrapper that conditionally shows Navbar/Footer
+const Layout = ({ children }) => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  return (
+    <div className="App">
+      {!isAdminRoute && <Navbar />}
+      <main>{children}</main>
+      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <CookieConsent />}
+    </div>
+  );
+};
+
 function App() {
   React.useEffect(() => {
     // Ping al servidor para despertar el servicio en Render
@@ -29,29 +44,24 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
-      <div className="App">
-        <Navbar />
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/terapeutas" element={<Therapists />} />
-            <Route path="/terapeutas/:id" element={<TherapistDetail />} />
-            <Route path="/servicios" element={<Services />} />
-            <Route path="/donde-estamos" element={<Location />} />
-            <Route path="/contacto" element={<Contact />} />
-            <Route path="/talleres" element={<Workshops />} />
-            <Route path="/talleres/:id" element={<WorkshopDetail />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/terapeutas" element={<Therapists />} />
+          <Route path="/terapeutas/:id" element={<TherapistDetail />} />
+          <Route path="/servicios" element={<Services />} />
+          <Route path="/donde-estamos" element={<Location />} />
+          <Route path="/contacto" element={<Contact />} />
+          <Route path="/talleres" element={<Workshops />} />
+          <Route path="/talleres/:id" element={<WorkshopDetail />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          </Routes>
-        </main>
-        <Footer />
-        <CookieConsent />
-      </div>
+          {/* Admin Routes - No Navbar/Footer */}
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        </Routes>
+      </Layout>
     </Router>
   );
 }

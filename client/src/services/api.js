@@ -71,4 +71,9 @@ export const contactAPI = {
   sendMessage: (data) => api.post('/contact', data),
 };
 
+export const billingAPI = {
+  getGlobal: (calendarId) => api.get('/admin/billing/global', { params: { calendarId } }),
+  getMe: (calendarId) => api.get('/admin/billing/me', { params: { calendarId } }),
+};
+
 export default api;

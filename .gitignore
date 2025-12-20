@@ -94,3 +94,7 @@ jspm_packages/
 
 # TernJS port file
 .tern-port
+
+# Credentials
+credentials.json
+server/credentials.json

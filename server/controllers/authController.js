@@ -67,7 +67,8 @@ exports.login = async (req, res) => {
     // Create token
     const payload = {
       userId: user.id,
-      role: user.role
+      role: user.role || 'admin', // Default fallboack
+      therapistId: user.therapist_id
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -78,7 +79,8 @@ exports.login = async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role || 'admin',
+        therapist_id: user.therapist_id
       }
     });
   } catch (error) {
