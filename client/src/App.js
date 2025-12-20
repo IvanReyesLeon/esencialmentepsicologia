@@ -12,6 +12,8 @@ import Contact from './pages/Contact';
 import Location from './pages/Location';
 import Workshops from './pages/Workshops';
 import WorkshopDetail from './pages/WorkshopDetail';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
@@ -39,6 +41,8 @@ function App() {
             <Route path="/contacto" element={<Contact />} />
             <Route path="/talleres" element={<Workshops />} />
             <Route path="/talleres/:id" element={<WorkshopDetail />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLogin />} />

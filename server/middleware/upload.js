@@ -15,9 +15,11 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: (req, file) => {
-      // Use different folders for workshops and therapists
+      // Use different folders for workshops, blog, and therapists
       if (req.originalUrl.includes('/workshops')) {
         return 'esencialmente/talleres';
+      } else if (req.originalUrl.includes('/posts')) {
+        return 'esencialmente/blog';
       }
       return 'esencialmente/terapeutas';
     },

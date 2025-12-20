@@ -2,7 +2,7 @@
    NAVBAR - Modern Design
 ======================================== */
 .navbar {
-  background: var(--surface-overlay);
+  background: #ffffff;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   padding: 0;

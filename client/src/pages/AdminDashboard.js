@@ -4,6 +4,7 @@ import { therapistAPI, pricingAPI, workshopAPI } from '../services/api';
 import TherapistsTab from '../components/TherapistsTab';
 import PricingTab from '../components/PricingTab';
 import WorkshopsTab from '../components/WorkshopsTab';
+import BlogTab from '../components/BlogTab';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -101,6 +102,12 @@ const AdminDashboard = () => {
           >
             🎓 Talleres
           </button>
+          <button
+            className={`nav-btn ${activeTab === 'blog' ? 'active' : ''}`}
+            onClick={() => setActiveTab('blog')}
+          >
+            📰 Blog
+          </button>
         </nav>
 
         <main className="dashboard-main">
@@ -121,6 +128,9 @@ const AdminDashboard = () => {
               workshops={workshops}
               onRefresh={fetchData}
             />
+          )}
+          {activeTab === 'blog' && (
+            <BlogTab />
           )}
         </main>
       </div>

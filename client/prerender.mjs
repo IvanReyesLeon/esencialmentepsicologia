@@ -14,13 +14,15 @@ const BASE_URL = `http://localhost:${PORT}`;
 const BUILD_DIR = path.join(__dirname, 'build');
 
 // Routes to prerender
+// Routes to prerender
 const ROUTES = [
     '/',
     '/servicios',
     '/terapeutas',
     '/contacto',
     '/talleres',
-    '/donde-estamos'
+    '/donde-estamos',
+    '/blog'
 ];
 
 // Simple MIME types
@@ -35,7 +37,27 @@ const MIMES = {
     '.svg': 'image/svg+xml'
 };
 
+async function fetchDynamicRoutes() {
+    try {
+        console.log('🔄 Fetching dynamic blog posts...');
+        const response = await fetch('http://localhost:3001/api/posts');
+        if (!response.ok) throw new Error('API not available');
+        const posts = await response.json();
+
+        posts.forEach(post => {
+            if (post.slug) {
+                ROUTES.push(`/blog/${post.slug}`);
+            }
+        });
+        console.log(`✅ Added ${posts.length} blog posts to prerender queue.`);
+    } catch (error) {
+        console.warn('⚠️ Could not fetch blog posts for prerendering. Ensure server is running on port 3001.');
+        console.warn(`Error: ${error.message}`);
+    }
+}
+
 async function prerender() {
+    await fetchDynamicRoutes();
     console.log('🚀 Starting custom prerender (Native HTTP)...');
 
     // 1. Verify build exists
