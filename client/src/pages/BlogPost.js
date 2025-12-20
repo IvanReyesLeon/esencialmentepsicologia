@@ -86,52 +86,52 @@ const BlogPost = () => {
                     {/* Content injected here from backend HTML */}
                 </article>
 
-            </article>
 
-            <div className="social-share">
-                <h4>Compartir este artículo:</h4>
-                <div className="share-buttons">
-                    <a
-                        href={`https://api.whatsapp.com/send?text=${encodeURIComponent(post.title)}%20${encodeURIComponent(window.location.href)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="share-btn whatsapp"
-                    >
-                        WhatsApp
-                    </a>
-                    <a
-                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="share-btn facebook"
-                    >
-                        Facebook
-                    </a>
-                    <a
-                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(window.location.href)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="share-btn twitter"
-                    >
-                        X (Twitter)
-                    </a>
-                    <a
-                        href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(window.location.href)}&title=${encodeURIComponent(post.title)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="share-btn linkedin"
-                    >
-                        LinkedIn
-                    </a>
+
+                <div className="social-share">
+                    <h4>Compartir este artículo:</h4>
+                    <div className="share-buttons">
+                        <a
+                            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(post.title)}%20${encodeURIComponent(window.location.href)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="share-btn whatsapp"
+                        >
+                            WhatsApp
+                        </a>
+                        <a
+                            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="share-btn facebook"
+                        >
+                            Facebook
+                        </a>
+                        <a
+                            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(window.location.href)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="share-btn twitter"
+                        >
+                            X (Twitter)
+                        </a>
+                        <a
+                            href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(window.location.href)}&title=${encodeURIComponent(post.title)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="share-btn linkedin"
+                        >
+                            LinkedIn
+                        </a>
+                    </div>
+                </div>
+
+                <div className="cta-box">
+                    <h3>¿Te ha parecido interesante este artículo?</h3>
+                    <p>Si te identificas con lo que has leído y sientes que necesitas apoyo profesional, estamos aquí para escucharte.</p>
+                    <Link to="/contacto" className="btn btn-primary">Solicitar Primera Cita</Link>
                 </div>
             </div>
-
-            <div className="cta-box">
-                <h3>¿Te ha parecido interesante este artículo?</h3>
-                <p>Si te identificas con lo que has leído y sientes que necesitas apoyo profesional, estamos aquí para escucharte.</p>
-                <Link to="/contacto" className="btn btn-primary">Solicitar Primera Cita</Link>
-            </div>
-        </div>
         </div >
     );
 };
