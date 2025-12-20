@@ -84,12 +84,6 @@ const AdminDashboard = () => {
     navigate('/admin');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/admin');
-  };
-
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setPwdMsg({ type: '', text: '' });
@@ -293,9 +287,8 @@ const AdminDashboard = () => {
           {activeTab === 'billing' && <BillingTab user={user} calendarId={CALENDAR_ID} />}
         </div>
       </div>
+      {renderPasswordModal()}
     </div>
-      { renderPasswordModal() }
-    </div >
   );
 };
 

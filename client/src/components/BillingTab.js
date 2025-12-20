@@ -21,6 +21,7 @@ const BillingTab = ({ user }) => {
     const [showCalendar, setShowCalendar] = useState(false);
     const [filterTherapist, setFilterTherapist] = useState('all'); // 'all' or therapist name
     const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'pending' | 'paid'
+    const [transferDateSessionId, setTransferDateSessionId] = useState(null);
     const [transferDateValue, setTransferDateValue] = useState('');
 
 
