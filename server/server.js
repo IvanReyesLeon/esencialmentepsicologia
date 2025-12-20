@@ -33,11 +33,15 @@ const allowed = (process.env.CLIENT_ORIGINS || '')
   .concat(defaultOrigins);
 
 app.use(cors({
+  origin: true, // Refleja el origen de la petición (permite cualquiera, útil para evitar errores en deploy)
+  /*
   origin(origin, cb) {
-    // Permite peticiones sin origin (curl/healthchecks) o si está en la lista
+    // Debug: Loguear origen si falla
     if (!origin || allowed.length === 0 || allowed.includes(origin)) return cb(null, true);
-    cb(new Error('Not allowed by CORS'));
-  },
+    console.error('❌ Blocked by CORS:', origin);
+    cb(new Error(`Not allowed by CORS: ${origin}`));
+  }, 
+  */
   credentials: true
 }));
 
