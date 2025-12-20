@@ -21,8 +21,8 @@ const BillingTab = ({ user }) => {
     const [showCalendar, setShowCalendar] = useState(false);
     const [filterTherapist, setFilterTherapist] = useState('all'); // 'all' or therapist name
     const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'pending' | 'paid'
-    const [transferDateSessionId, setTransferDateSessionId] = useState(null);
     const [transferDateValue, setTransferDateValue] = useState('');
+
 
     const months = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -211,6 +211,7 @@ const BillingTab = ({ user }) => {
 
         setGlobalStartDate(s);
         setGlobalEndDate(e);
+        setBillingMode('payments');
         setBillingMode('payments');
     };
 

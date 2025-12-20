@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Vista Previa Recordatorio</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
+        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header { background-color: #ffffff; padding: 20px; text-align: center; border-bottom: 2px solid #f0f0f0; }
+        .logo { max-width: 200px; height: auto; display: block; margin: 0 auto; }
+        .content { padding: 40px 30px; color: #333; line-height: 1.6; }
+        .title { color: #8c7ae6; font-size: 22px; font-weight: bold; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .card { background-color: #2f3640; color: #ffffff; padding: 20px; border-radius: 6px; border-left: 5px solid #8c7ae6; margin: 25px 0; }
+        .row { display: flex; align-items: center; margin-bottom: 12px; }
+        .row:last-child { margin-bottom: 0; }
+        .icon { margin-right: 12px; font-size: 20px; }
+        .label { font-weight: bold; margin-right: 5px; color: #dcdde1; }
+        .value { font-weight: 600; font-size: 16px; }
+        .alert-box { background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 6px; border: 1px solid #ffeeba; font-size: 14px; text-align: center; margin-top: 25px; }
+        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; }
+        
+        @media (prefers-color-scheme: dark) {
+            body { background-color: #1a1a1a !important; }
+            .email-container { background-color: #2d2d2d !important; }
+            .header { background-color: #ffffff !important; }
+            .content { color: #e0e0e0 !important; }
+            .footer { background-color: #333 !important; border-top-color: #444 !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <img src="https://www.esencialmentepsicologia.com/assets/images/Esencialmente_log.png" alt="Esencialmente Psicología" class="logo">
+        </div>
+        
+        <div class="content">
+            <div class="title">Recordatorio de Cita</div>
+            <p>Hola,</p>
+            <p>Te recordamos que tienes una próxima visita programada en <strong>Esencialmente Psicología</strong>.</p>
+            
+            <div class="card">
+                <div class="row">
+                    <span class="icon">📅</span>
+                    <span class="label">Fecha:</span>
+                    <span class="value">21/12/2025</span>
+                </div>
+                <div class="row">
+                    <span class="icon">⏰</span>
+                    <span class="label">Hora:</span>
+                    <span class="value">10:00</span>
+                </div>
+                <div class="row">
+                    <span class="icon">👩‍⚕️</span>
+                    <span class="label">Terapeuta:</span>
+                    <span class="value">Sara Ochoa</span>
+                </div>
+            </div>
+
+            <div class="alert-box">
+                ⚠️ Recuerda cancelarla con al menos 24 horas de antelación si no podrás asistir.
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Esencialmente Psicología</strong><br>
+            Carrer del Pintor Togores, 1, 08290 Cerdanyola del Vallès, Barcelona<br>
+            <a href="https://www.esencialmentepsicologia.com" style="color: #8c7ae6; text-decoration: none;">www.esencialmentepsicologia.com</a></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -800,7 +800,7 @@
   .workshop-form .form-row,
   .manual-form .form-row {
     flex-direction: column;
-    gap: 0;
+    gap: 15px;
   }
 
   .registrations-summary {

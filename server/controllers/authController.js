@@ -3,7 +3,8 @@ const {
   findUserByEmail,
   findUserById,
   createUser,
-  verifyPassword
+  verifyPassword,
+  updateUser
 } = require('../models/userQueries');
 
 // @desc    Register a new admin user (only for initial setup)
@@ -106,5 +107,35 @@ exports.getMe = async (req, res) => {
   } catch (error) {
     console.error('Get me error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Change password
+// @route   POST /api/auth/change-password
+// @access  Private
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    // Get user
+    const user = await findUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify current password
+    const isMatch = await verifyPassword(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Contraseña actual incorrecta' });
+    }
+
+    // Update password
+    await updateUser(userId, { password: newPassword });
+
+    res.json({ message: 'Contraseña actualizada correctamente' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ message: 'Error al cambiar la contraseña' });
   }
 };

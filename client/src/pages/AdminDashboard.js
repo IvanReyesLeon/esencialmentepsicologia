@@ -9,9 +9,16 @@ import BillingTab from '../components/BillingTab';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('hub'); // Start at 'hub'
+
+  // Password Change State
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [pwdCurrent, setPwdCurrent] = useState('');
+  const [pwdNew, setPwdNew] = useState('');
+  const [pwdMsg, setPwdMsg] = useState({ type: '', text: '' });
   const [therapists, setTherapists] = useState([]);
   const [pricing, setPricing] = useState([]);
   const [workshops, setWorkshops] = useState([]);
@@ -75,6 +82,77 @@ const AdminDashboard = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/admin');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/admin');
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPwdMsg({ type: '', text: '' });
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ currentPassword: pwdCurrent, newPassword: pwdNew })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setPwdMsg({ type: 'success', text: 'Contraseña actualizada correctamente' });
+        setPwdCurrent('');
+        setPwdNew('');
+        setTimeout(() => setShowPasswordModal(false), 2000);
+      } else {
+        setPwdMsg({ type: 'error', text: data.message || 'Error al cambiar la contraseña' });
+      }
+    } catch (error) {
+      setPwdMsg({ type: 'error', text: 'Error de conexión' });
+    }
+  };
+
+  const renderPasswordModal = () => {
+    if (!showPasswordModal) return null;
+    return (
+      <div className="modal-overlay">
+        <div className="modal-content password-modal">
+          <h3>🔐 Cambiar Contraseña</h3>
+          <form onSubmit={handleChangePassword}>
+            <div className="form-group">
+              <label>Contraseña Actual:</label>
+              <input
+                type="password"
+                value={pwdCurrent}
+                onChange={(e) => setPwdCurrent(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Nueva Contraseña:</label>
+              <input
+                type="password"
+                value={pwdNew}
+                onChange={(e) => setPwdNew(e.target.value)}
+                required
+              />
+            </div>
+            {pwdMsg.text && <p className={`msg ${pwdMsg.type}`}>{pwdMsg.text}</p>}
+            <div className="modal-actions">
+              <button type="submit" className="btn-confirm">Actualizar</button>
+              <button type="button" className="btn-cancel" onClick={() => setShowPasswordModal(false)}>Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
   };
 
   const HubCard = ({ title, icon, color, onClick, description }) => (
@@ -192,6 +270,9 @@ const AdminDashboard = () => {
               <span className="user-role">{user.role === 'admin' ? 'Administrador' : 'Terapeuta'}</span>
               <span className="user-email">{user.email}</span>
             </div>
+            <button onClick={() => setShowPasswordModal(true)} className="btn btn-secondary btn-sm">
+              🔐 Contraseña
+            </button>
             <button onClick={handleLogout} className="btn btn-secondary btn-sm">
               Salir
             </button>
@@ -213,6 +294,8 @@ const AdminDashboard = () => {
         </div>
       </div>
     </div>
+      { renderPasswordModal() }
+    </div >
   );
 };
 

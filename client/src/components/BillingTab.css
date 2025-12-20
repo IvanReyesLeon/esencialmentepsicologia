@@ -1303,6 +1303,105 @@
     transition: background 0.2s;
 }
 
-.btn-history:hover {
-    background-color: #1a9c58;
+/* Password Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.password-modal {
+    background-color: white;
+    padding: 25px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.password-modal h3 {
+    margin-top: 0;
+    color: #2f3640;
+    text-align: center;
+}
+
+.password-modal .form-group {
+    margin-bottom: 15px;
+}
+
+.password-modal label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+}
+
+.password-modal input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.password-modal .modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.password-modal .btn-confirm {
+    background-color: #20bf6b;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.password-modal .btn-cancel {
+    background-color: #f5f6fa;
+    color: #7f8fa6;
+    border: 1px solid #dcdde1;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.password-modal .msg {
+    text-align: center;
+    margin: 10px 0;
+    font-size: 0.9rem;
+}
+
+.password-modal .msg.success {
+    color: #20bf6b;
+}
+
+.password-modal .msg.error {
+    color: #eb3b5a;
+}
+
+.btn-change-password {
+    background-color: #f7b731;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-weight: 600;
+    margin-right: 15px;
+}
+
+.btn-change-password:hover {
+    background-color: #e1a32a;
 }

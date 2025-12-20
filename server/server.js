@@ -16,6 +16,10 @@ const postRoutes = require('./routes/posts');
 const contactController = require('./controllers/contactController');
 const { getSitemap } = require('./controllers/sitemapController');
 const adminRoutes = require('./routes/admin');
+const { startReminderJob } = require('./services/reminderService');
+
+// Start Cron Jobs
+startReminderJob();
 
 const app = express();
 
