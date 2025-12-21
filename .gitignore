@@ -98,3 +98,4 @@ jspm_packages/
 # Credentials
 credentials.json
 server/credentials.json
+.vercel
