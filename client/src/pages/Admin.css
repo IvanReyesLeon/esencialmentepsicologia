@@ -333,3 +333,298 @@
     padding: 1rem;
   }
 }
+
+/* ===== Tab Navigation ===== */
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.tab-btn:hover {
+  background: #f8f9fa;
+  color: #E91E63;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #B19CD9 0%, #E91E63 100%);
+  color: white;
+}
+
+.tab-badge {
+  background: #fff;
+  color: #E91E63;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.tab-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+/* ===== Reminders Section ===== */
+.reminders-section {
+  width: 100%;
+}
+
+.reminders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.reminders-header h2 {
+  color: #E91E63;
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+/* Stats Cards */
+.reminder-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  padding: 1.25rem;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.stat-pending {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+  color: #856404;
+}
+
+.stat-sent {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+}
+
+.stat-failed {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #721c24;
+}
+
+.stat-all {
+  background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+  color: #383d41;
+}
+
+/* Filter Pills */
+.filter-pills {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.pill {
+  padding: 0.5rem 1rem;
+  border: 2px solid #e9ecef;
+  background: white;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pill:hover {
+  border-color: #E91E63;
+  color: #E91E63;
+}
+
+.pill.active {
+  background: #E91E63;
+  border-color: #E91E63;
+  color: white;
+}
+
+/* Reminders Table */
+.reminders-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.reminders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.reminders-table th,
+.reminders-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.reminders-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.reminders-table tr:hover {
+  background: #fafafa;
+}
+
+.reminders-table tr.row-pending {
+  background: #fffbe6;
+}
+
+.reminders-table tr.row-failed {
+  background: #fff1f0;
+}
+
+.email-cell {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge-danger {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.badge-secondary {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+/* Loading and Empty States */
+.loading-spinner {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+  font-size: 1rem;
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Responsive for Reminders */
+@media screen and (max-width: 768px) {
+  .reminder-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-tabs {
+    flex-direction: column;
+  }
+
+  .tab-btn {
+    justify-content: flex-start;
+  }
+
+  .reminders-table {
+    font-size: 0.8rem;
+  }
+
+  .reminders-table th,
+  .reminders-table td {
+    padding: 0.5rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .reminder-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .filter-pills {
+    justify-content: center;
+  }
+}

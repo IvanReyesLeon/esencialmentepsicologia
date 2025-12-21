@@ -6,6 +6,7 @@ import PricingTab from '../components/PricingTab';
 import WorkshopsTab from '../components/WorkshopsTab';
 import BlogTab from '../components/BlogTab';
 import BillingTab from '../components/BillingTab';
+import RemindersTab from '../components/RemindersTab';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -201,6 +202,13 @@ const AdminDashboard = () => {
             description="Escribir artículos y noticias"
             onClick={() => setActiveTab('blog')}
           />
+          <HubCard
+            title="Recordatorios"
+            icon="📬"
+            color="#E91E63"
+            description="Cola de emails recordatorios"
+            onClick={() => setActiveTab('reminders')}
+          />
         </>
       )}
     </div>
@@ -285,6 +293,7 @@ const AdminDashboard = () => {
           {activeTab === 'workshops' && <WorkshopsTab workshops={workshops} onRefresh={fetchData} />}
           {activeTab === 'blog' && <BlogTab />}
           {activeTab === 'billing' && <BillingTab user={user} calendarId={CALENDAR_ID} />}
+          {activeTab === 'reminders' && <RemindersTab />}
         </div>
       </div>
       {renderPasswordModal()}
@@ -301,6 +310,7 @@ const getTitle = (tab) => {
     case 'blog': return 'Blog y Noticias';
     case 'billing-hub': return 'Facturación y Horas';
     case 'billing': return 'Calendario y Horas';
+    case 'reminders': return 'Cola de Recordatorios';
     default: return 'Panel';
   }
 };

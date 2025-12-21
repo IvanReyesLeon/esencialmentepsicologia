@@ -4,10 +4,27 @@ const path = require('path');
 // Configure Auth using GoogleAuth (works more reliably)
 const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
 
-const auth = new google.auth.GoogleAuth({
-    keyFile: path.join(__dirname, '..', 'credentials.json'), // credentials.json is in server/, not services/
-    scopes: SCOPES,
-});
+// Create auth configuration based on environment
+// In production (Render), use GOOGLE_CREDENTIALS env var
+// In development, use credentials.json file
+let authConfig;
+
+if (process.env.GOOGLE_CREDENTIALS) {
+    // Production: parse credentials from environment variable
+    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+    authConfig = {
+        credentials: credentials,
+        scopes: SCOPES,
+    };
+} else {
+    // Development: use credentials.json file
+    authConfig = {
+        keyFile: path.join(__dirname, '..', 'credentials.json'),
+        scopes: SCOPES,
+    };
+}
+
+const auth = new google.auth.GoogleAuth(authConfig);
 
 // Pricing based on duration
 const PRICING = {

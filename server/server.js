@@ -16,6 +16,7 @@ const postRoutes = require('./routes/posts');
 const contactController = require('./controllers/contactController');
 const { getSitemap } = require('./controllers/sitemapController');
 const adminRoutes = require('./routes/admin');
+const reminderRoutes = require('./routes/reminders');
 const { startReminderJob } = require('./services/reminderService');
 
 // Start Cron Jobs
@@ -78,6 +79,7 @@ pool.query('SELECT NOW()', (err, res) => {
 // --- Rutas ---
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes); // New Admin Routes (Billing, Users)
+app.use('/api/admin/reminders', reminderRoutes); // Reminder queue admin routes
 app.use('/api/therapists', therapistRoutes);
 app.use('/api/pricing', pricingRoutes);
 app.use('/api/contact', contactRoutes);
