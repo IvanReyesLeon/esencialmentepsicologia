@@ -17,6 +17,7 @@ const contactController = require('./controllers/contactController');
 const { getSitemap } = require('./controllers/sitemapController');
 const adminRoutes = require('./routes/admin');
 const reminderRoutes = require('./routes/reminders');
+const syncRoutes = require('./routes/sync');
 const { startReminderJob } = require('./services/reminderService');
 
 // Start Cron Jobs
@@ -88,6 +89,7 @@ app.use('/api/admin/contact-messages', contactMessagesRoutes);
 app.get('/sitemap.xml', getSitemap);
 app.use('/api', seoRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/admin/sync', syncRoutes);
 
 // Health & raíz
 app.get('/health', (req, res) => res.json({ ok: true, database: 'postgresql' }));
