@@ -1,4 +1,6 @@
 {
+  "outputDirectory": "build",
+  "buildCommand": "",
   "rewrites": [
     {
       "source": "/sitemap.xml",
