@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { API_ROOT } from '../services/api';
 import './RemindersTab.css';
-
-const API_ROOT = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 const RemindersTab = () => {
     const [reminders, setReminders] = useState([]);

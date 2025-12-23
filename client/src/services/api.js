@@ -1,7 +1,13 @@
 import axios from 'axios';
 
-// La env apunta a la raíz del backend (p.ej. https://esencialmentepsicologia.onrender.com) SIN /api
-export const API_ROOT = (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.replace(/\/$/, '')) || 'http://localhost:3001';
+// En producción, usar rutas relativas para que Vercel reescriba al backend via vercel.json
+// En desarrollo, usar localhost:3001
+const isProduction = process.env.NODE_ENV === 'production' ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost');
+
+export const API_ROOT = process.env.REACT_APP_API_URL
+  ? process.env.REACT_APP_API_URL.replace(/\/$/, '')
+  : (isProduction ? '' : 'http://localhost:3001');
 
 const api = axios.create({
   baseURL: `${API_ROOT}/api`,

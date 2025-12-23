@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
+import { API_ROOT } from '../services/api';
 import './Blog.css';
 
 const Blog = () => {
@@ -14,21 +15,7 @@ const Blog = () => {
 
     const fetchPosts = async () => {
         try {
-            // Assuming existing api service structure or using axios directly if simpler for now
-            // Let's use fetch for simplicity to avoid import issues if api.js is complex, 
-            // but ideally we should update api.js. I'll stick to a direct fetch here or check api.js first?
-            // Given I'm in "Execution" I'll just use the standard fetch relative to the configured base URL if possible or hardcode for now
-            // The other files use 'api.js'. I should probably emulate that pattern or import axios.
-            // Assuming proxy is set in package.json or using env vars. `Services.js` uses `pricingAPI`.
-            // Let's rely on standard fetch to the API we created.
-
-            let API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
-            // Ensure API_URL ends with /api
-            if (!API_URL.endsWith('/api')) {
-                API_URL = `${API_URL}/api`;
-            }
-
-            const response = await fetch(`${API_URL}/posts`);
+            const response = await fetch(`${API_ROOT}/api/posts`);
             if (!response.ok) {
                 throw new Error('Error al cargar los posts');
             }

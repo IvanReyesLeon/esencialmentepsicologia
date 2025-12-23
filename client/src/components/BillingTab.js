@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { API_ROOT } from '../services/api';
 import './BillingTab.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_URL = `${API_ROOT}/api`;
 const CALENDAR_ID = 'esencialmentepsicologia@gmail.com';
 
 const BillingTab = ({ user }) => {

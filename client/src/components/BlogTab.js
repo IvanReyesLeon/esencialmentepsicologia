@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { API_ROOT } from '../services/api';
+
+const API_URL = `${API_ROOT}/api`;
 
 const BlogTab = () => {
     const [posts, setPosts] = useState([]);
@@ -20,8 +23,6 @@ const BlogTab = () => {
         meta_description: '',
         published: false
     });
-
-    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
     useEffect(() => {
         fetchPosts();
