@@ -322,10 +322,12 @@ const BillingTab = ({ user }) => {
                 <div className="billing-summary-cards">
                     <div className="summary-card total">
                         <span className="summary-value">{formatCurrency(weekData.summary?.totalAmount || 0)}</span>
+                        <span className="summary-sessions">({weekData.summary?.totalSessions || 0} sesiones)</span>
                         <span className="summary-label">Total Esperado</span>
                     </div>
                     <div className="summary-card paid">
                         <span className="summary-value">{formatCurrency(weekData.summary?.paidAmount || 0)}</span>
+                        <span className="summary-sessions">({weekData.summary?.paidSessions || 0} sesiones)</span>
                         <span className="summary-label">✅ Pagado</span>
                     </div>
                     <div
@@ -334,11 +336,8 @@ const BillingTab = ({ user }) => {
                         title="Gestionar Pagos de esta semana"
                     >
                         <span className="summary-value">{formatCurrency(weekData.summary?.pendingAmount || 0)}</span>
+                        <span className="summary-sessions">({weekData.summary?.pendingSessions || 0} sesiones)</span>
                         <span className="summary-label">⏳ Pendiente</span>
-                    </div>
-                    <div className="summary-card sessions">
-                        <span className="summary-value">{weekData.summary?.totalSessions || 0}</span>
-                        <span className="summary-label">Sesiones</span>
                     </div>
                 </div>
 

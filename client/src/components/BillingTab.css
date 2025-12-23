@@ -249,6 +249,13 @@
     display: block;
 }
 
+.summary-sessions {
+    font-size: 0.8rem;
+    color: #888;
+    display: block;
+    margin-top: 2px;
+}
+
 /* === DAYS GRID (NEW) === */
 .days-grid {
     display: flex;

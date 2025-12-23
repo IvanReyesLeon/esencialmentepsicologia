@@ -110,6 +110,8 @@ exports.getWeeklySummaryAdmin = async (req, res) => {
         // Calculate totals
         summary.summary.paidAmount = summary.byTherapist.reduce((sum, t) => sum + t.paidAmount, 0);
         summary.summary.pendingAmount = summary.byTherapist.reduce((sum, t) => sum + t.pendingAmount, 0);
+        summary.summary.paidSessions = summary.byTherapist.reduce((sum, t) => sum + t.paidCount, 0);
+        summary.summary.pendingSessions = summary.byTherapist.reduce((sum, t) => sum + t.pendingCount, 0);
 
         res.json({
             week: {
