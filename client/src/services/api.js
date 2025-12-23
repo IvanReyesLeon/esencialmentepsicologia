@@ -1,13 +1,16 @@
 import axios from 'axios';
 
-// En producción, usar rutas relativas para que Vercel reescriba al backend via vercel.json
-// En desarrollo, usar localhost:3001
-const isProduction = process.env.NODE_ENV === 'production' ||
-  (typeof window !== 'undefined' && window.location.hostname !== 'localhost');
+// URL del backend en Render
+const RENDER_BACKEND_URL = 'https://esencialmentepsicologia.onrender.com';
 
-export const API_ROOT = process.env.REACT_APP_API_URL
-  ? process.env.REACT_APP_API_URL.replace(/\/$/, '')
-  : (isProduction ? '' : 'http://localhost:3001');
+// Detectar si estamos en producción (runtime check)
+const isProduction = typeof window !== 'undefined' &&
+  window.location.hostname !== 'localhost' &&
+  window.location.hostname !== '127.0.0.1';
+
+// En producción, usar la URL de Render directamente
+// En desarrollo, usar localhost:3001
+export const API_ROOT = isProduction ? RENDER_BACKEND_URL : 'http://localhost:3001';
 
 const api = axios.create({
   baseURL: `${API_ROOT}/api`,
