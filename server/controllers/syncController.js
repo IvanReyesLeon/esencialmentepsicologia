@@ -190,3 +190,94 @@ exports.getPatients = async (req, res) => {
         res.status(500).json({ message: 'Error obteniendo pacientes' });
     }
 };
+
+/**
+ * Obtener sesiones de un paciente específico
+ */
+exports.getPatientSessions = async (req, res) => {
+    try {
+        const { patientId } = req.params;
+
+        const result = await pool.query(`
+            SELECT 
+                s.*,
+                t.full_name as therapist_name,
+                sp.payment_type as payment_status
+            FROM sessions s
+            LEFT JOIN therapists t ON s.therapist_id = t.id
+            LEFT JOIN session_payments sp ON s.google_event_id = sp.event_id
+            WHERE s.patient_id = $1
+            ORDER BY s.session_date DESC, s.start_time DESC
+        `, [patientId]);
+
+        res.json({
+            sessions: result.rows
+        });
+    } catch (error) {
+        console.error('Get patient sessions error:', error);
+        res.status(500).json({ message: 'Error obteniendo sesiones del paciente' });
+    }
+};
+
+/**
+ * Obtener log de auditoría de pagos
+ */
+exports.getAuditLog = async (req, res) => {
+    try {
+        const { limit = 50, offset = 0 } = req.query;
+
+        const result = await pool.query(`
+            SELECT 
+                al.*,
+                u.username as user_username
+            FROM payment_audit_log al
+            LEFT JOIN users u ON al.user_id = u.id
+            ORDER BY al.created_at DESC
+            LIMIT $1 OFFSET $2
+        `, [limit, offset]);
+
+        const countResult = await pool.query('SELECT COUNT(*) FROM payment_audit_log');
+
+        res.json({
+            logs: result.rows,
+            total: parseInt(countResult.rows[0].count)
+        });
+    } catch (error) {
+        console.error('Get audit log error:', error);
+        res.status(500).json({ message: 'Error obteniendo log de auditoría' });
+    }
+};
+
+/**
+ * Actualizar datos de un paciente
+ */
+exports.updatePatient = async (req, res) => {
+    try {
+        const { patientId } = req.params;
+        const { email, phone, notes, preferred_payment_method } = req.body;
+
+        const result = await pool.query(`
+            UPDATE patients 
+            SET 
+                email = COALESCE($1, email),
+                phone = COALESCE($2, phone),
+                notes = COALESCE($3, notes),
+                preferred_payment_method = COALESCE($4, preferred_payment_method),
+                updated_at = NOW()
+            WHERE id = $5
+            RETURNING *
+        `, [email, phone, notes, preferred_payment_method, patientId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Paciente no encontrado' });
+        }
+
+        res.json({
+            success: true,
+            patient: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Update patient error:', error);
+        res.status(500).json({ message: 'Error actualizando paciente' });
+    }
+};

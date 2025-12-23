@@ -119,7 +119,9 @@ const syncEvents = async (startDate, endDate) => {
                 const therapistId = therapistInfo ? therapistInfo.id : null;
 
                 // Determinar si es facturable
-                const isBillable = !isNonBillable(title);
+                // Anna (id=1) es gestión, no terapeuta - sus sesiones no son facturables
+                const isAnna = therapistInfo && therapistInfo.id === 1;
+                const isBillable = !isNonBillable(title) && !isAnna;
 
                 // Parsear nombre del paciente
                 const patientName = parsePatientName(title);

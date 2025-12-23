@@ -1,0 +1,197 @@
+/* Billing Dashboard - Nuevo diseño */
+
+.bd-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.bd-loading {
+    text-align: center;
+    padding: 60px;
+    color: #888;
+}
+
+/* Header */
+.bd-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.bd-title h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #333;
+}
+
+.bd-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.bd-select {
+    padding: 8px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    font-size: 0.9rem;
+}
+
+.bd-sync-btn {
+    padding: 8px 16px;
+    background: #4285F4;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.bd-sync-btn:hover {
+    background: #3367D6;
+}
+
+.bd-sync-btn:disabled {
+    opacity: 0.6;
+}
+
+/* Quick Stats - SIMPLE ROW */
+.bd-quick-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.bd-stat {
+    flex: 1;
+    min-width: 120px;
+    background: white;
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.bd-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    line-height: 1;
+}
+
+.bd-stat-name {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 6px;
+    text-transform: uppercase;
+}
+
+/* Grid Layout */
+.bd-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Panel */
+.bd-panel {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.bd-panel h3 {
+    margin: 0 0 16px;
+    font-size: 1rem;
+    color: #333;
+}
+
+/* Table */
+.bd-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.bd-table th,
+.bd-table td {
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    font-size: 0.85rem;
+}
+
+.bd-table th {
+    color: #888;
+    font-weight: 500;
+}
+
+.bd-table td.green {
+    color: #0F9D58;
+}
+
+.bd-table tfoot td {
+    border-top: 2px solid #ddd;
+    background: #fafafa;
+}
+
+/* Therapist List */
+.bd-therapist-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bd-therapist-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.bd-t-name {
+    font-weight: 500;
+    color: #333;
+    flex: 1;
+}
+
+.bd-t-sessions {
+    color: #888;
+    font-size: 0.85rem;
+    margin: 0 12px;
+}
+
+.bd-t-revenue {
+    font-weight: 600;
+    color: #0F9D58;
+}
+
+.bd-empty {
+    color: #888;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bd-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .bd-quick-stats {
+        flex-direction: column;
+    }
+
+    .bd-grid {
+        grid-template-columns: 1fr;
+    }
+}

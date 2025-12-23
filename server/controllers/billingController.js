@@ -344,19 +344,16 @@ exports.markSessionPaid = async (req, res) => {
             return res.status(400).json({ message: 'Event ID required' });
         }
 
-        // Check permissions: Therapists cannot modify 'paid' sessions (unless they are cancelling/transferring FROM pending?)
-        // Requirement: "once the payment changes from pending to a paid status, the therapist is not allowed to modify the payment"
-        if (req.user.role !== 'admin') {
-            const existingPaymentResult = await pool.query(
-                `SELECT payment_type FROM session_payments WHERE event_id = $1`,
-                [eventId]
-            );
-            const existingPayment = existingPaymentResult.rows[0];
+        // Get existing payment status for audit log
+        const existingPaymentResult = await pool.query(
+            `SELECT payment_type FROM session_payments WHERE event_id = $1`,
+            [eventId]
+        );
+        const oldStatus = existingPaymentResult.rows[0]?.payment_type || 'pending';
 
-            if (existingPayment && existingPayment.payment_type !== 'pending' && existingPayment.payment_type !== 'cancelled') {
-                // Allowing 'cancelled' to be modified? User said "a estado pagado". Usually cancelled is final or treated as such.
-                // Let's be strict: if it's paid (transfer/cash) OR cancelled, they can't change it.
-                // Only 'pending' or no record can be changed.
+        // Check permissions: Therapists cannot modify 'paid' sessions
+        if (req.user.role !== 'admin') {
+            if (oldStatus !== 'pending' && oldStatus !== 'cancelled') {
                 return res.status(403).json({ message: 'No tienes permiso para modificar un pago ya procesado.' });
             }
         }
@@ -377,6 +374,24 @@ exports.markSessionPaid = async (req, res) => {
                 [eventId, therapist_id, paymentType, paymentDate || null]
             );
         }
+
+        // Log the change in audit table
+        const action = paymentType === 'pending' || paymentType === null ? 'reverted' :
+            oldStatus === 'pending' ? 'marked_paid' : 'changed';
+
+        await pool.query(`
+            INSERT INTO payment_audit_log 
+            (event_id, user_id, user_name, action, old_status, new_status, payment_date)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `, [
+            eventId,
+            req.user.id,
+            req.user.username || req.user.email,
+            action,
+            oldStatus,
+            paymentType || 'pending',
+            paymentDate || null
+        ]);
 
         res.json({ success: true, eventId, paymentType });
 

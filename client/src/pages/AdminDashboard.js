@@ -6,6 +6,8 @@ import PricingTab from '../components/PricingTab';
 import WorkshopsTab from '../components/WorkshopsTab';
 import BlogTab from '../components/BlogTab';
 import BillingTab from '../components/BillingTab';
+import BillingDashboard from '../components/BillingDashboard';
+import PatientsTab from '../components/PatientsTab';
 import RemindersTab from '../components/RemindersTab';
 import SyncTab from '../components/SyncTab';
 import './AdminDashboard.css';
@@ -176,6 +178,13 @@ const AdminDashboard = () => {
       {user.role === 'admin' && (
         <>
           <HubCard
+            title="Pacientes"
+            icon="👥"
+            color="#00BCD4"
+            description="Ver y gestionar pacientes"
+            onClick={() => setActiveTab('patients')}
+          />
+          <HubCard
             title="Terapeutas"
             icon="👨‍⚕️"
             color="#0F9D58"
@@ -210,52 +219,29 @@ const AdminDashboard = () => {
             description="Cola de emails recordatorios"
             onClick={() => setActiveTab('reminders')}
           />
-          <HubCard
-            title="Sincronización"
-            icon="🔄"
-            color="#00BCD4"
-            description="Sync calendario y pacientes"
-            onClick={() => setActiveTab('sync')}
-          />
         </>
       )}
     </div>
   );
 
-  // Billing Submenu Hub
+  // Billing Submenu Hub - Simplificado
   const renderBillingHub = () => (
     <div className="admin-hub-grid">
       <HubCard
-        title="Calendario y Horas"
+        title="Sesiones Semanales"
         icon="📊"
         color="#4285F4"
-        description="Ver horas trabajadas esta semana"
+        description="Ver y gestionar pagos por semana"
         onClick={() => setActiveTab('billing')}
       />
-      <HubCard
-        title="Registrar Pagos"
-        icon="💳"
-        color="#00C853"
-        description="Marcar sesiones como pagadas"
-        onClick={() => setActiveTab('billing')} // Same view for now
-      />
       {user.role === 'admin' && (
-        <>
-          <HubCard
-            title="Historial de Pagos"
-            icon="📋"
-            color="#FF6D00"
-            description="Ver historial de facturación"
-            onClick={() => setActiveTab('billing')} // Same view for now
-          />
-          <HubCard
-            title="Resumen Mensual"
-            icon="📈"
-            color="#AA00FF"
-            description="Estadísticas del mes"
-            onClick={() => setActiveTab('billing')} // Same view for now
-          />
-        </>
+        <HubCard
+          title="Reportes y Estadísticas"
+          icon="📈"
+          color="#AA00FF"
+          description="Dashboard con totales y tendencias"
+          onClick={() => setActiveTab('billing-dashboard')}
+        />
       )}
     </div>
   );
@@ -301,8 +287,9 @@ const AdminDashboard = () => {
           {activeTab === 'workshops' && <WorkshopsTab workshops={workshops} onRefresh={fetchData} />}
           {activeTab === 'blog' && <BlogTab />}
           {activeTab === 'billing' && <BillingTab user={user} calendarId={CALENDAR_ID} />}
+          {activeTab === 'billing-dashboard' && <BillingDashboard user={user} />}
+          {activeTab === 'patients' && <PatientsTab user={user} />}
           {activeTab === 'reminders' && <RemindersTab />}
-          {activeTab === 'sync' && <SyncTab user={user} />}
         </div>
       </div>
       {renderPasswordModal()}
@@ -318,9 +305,10 @@ const getTitle = (tab) => {
     case 'workshops': return 'Gestión de Talleres';
     case 'blog': return 'Blog y Noticias';
     case 'billing-hub': return 'Facturación y Horas';
-    case 'billing': return 'Calendario y Horas';
+    case 'billing': return 'Sesiones Semanales';
+    case 'billing-dashboard': return 'Reportes y Estadísticas';
+    case 'patients': return 'Gestión de Pacientes';
     case 'reminders': return 'Cola de Recordatorios';
-    case 'sync': return 'Sincronización de Datos';
     default: return 'Panel';
   }
 };

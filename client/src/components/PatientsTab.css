@@ -1,0 +1,394 @@
+/* Patients Tab Styles */
+
+.patients-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.patients-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.patients-header h2 {
+    margin: 0;
+    color: #333;
+}
+
+.patient-count {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.patients-loading {
+    text-align: center;
+    padding: 60px;
+    color: #666;
+}
+
+/* Search */
+.patient-search-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.patient-search-form input {
+    flex: 1;
+    padding: 12px 18px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.patient-search-form input:focus {
+    outline: none;
+    border-color: #4285F4;
+}
+
+.patient-search-form button {
+    padding: 12px 24px;
+    background: #4285F4;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.patient-search-form button:hover {
+    background: #3367D6;
+}
+
+.patient-search-form .clear-btn {
+    background: #f44336;
+    padding: 12px 16px;
+}
+
+/* Layout */
+.patients-layout {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 25px;
+    min-height: 600px;
+}
+
+/* List */
+.patients-list {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    overflow-y: auto;
+    max-height: 700px;
+}
+
+.patient-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.patient-row:hover {
+    background: #f8f9fa;
+}
+
+.patient-row.selected {
+    background: #e3f2fd;
+    border-left: 4px solid #4285F4;
+}
+
+.patient-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4285F4, #9C27B0);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.patient-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.patient-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.patient-meta {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.no-patients {
+    text-align: center;
+    padding: 40px;
+    color: #888;
+}
+
+/* Detail */
+.patient-detail {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+}
+
+.no-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #aaa;
+}
+
+.no-selection .icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.detail-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4285F4, #9C27B0);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+.detail-info h3 {
+    margin: 0 0 8px;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.detail-info p {
+    margin: 0;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.detail-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.detail-notes {
+    background: #fffde7;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    border-left: 4px solid #F4B400;
+}
+
+.detail-notes h4 {
+    margin: 0 0 10px;
+    color: #333;
+}
+
+.detail-notes p {
+    margin: 0;
+    color: #666;
+}
+
+.detail-sessions h4 {
+    margin: 0 0 15px;
+    color: #333;
+}
+
+.sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.session-row {
+    display: grid;
+    grid-template-columns: 100px 60px 1fr 40px;
+    gap: 15px;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.session-row.cancelled {
+    opacity: 0.5;
+}
+
+.session-date {
+    font-weight: 500;
+}
+
+.session-time {
+    color: #666;
+}
+
+.session-therapist {
+    color: #4285F4;
+}
+
+.more-sessions {
+    text-align: center;
+    color: #888;
+    margin-top: 10px;
+}
+
+.no-sessions {
+    color: #888;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .patients-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .patients-list {
+        max-height: 300px;
+    }
+}
+
+/* Edit Button */
+.edit-btn {
+    padding: 10px 20px;
+    background: #4285F4;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.edit-btn:hover {
+    background: #3367D6;
+}
+
+.edit-btn.cancel {
+    background: #f44336;
+}
+
+.edit-btn.cancel:hover {
+    background: #d32f2f;
+}
+
+/* Edit Form */
+.edit-form {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 12px;
+    margin-top: 15px;
+}
+
+.form-row {
+    margin-bottom: 20px;
+}
+
+.form-row label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-row input,
+.form-row select,
+.form-row textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    font-family: inherit;
+}
+
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+    outline: none;
+    border-color: #4285F4;
+}
+
+.form-row textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.save-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #0F9D58, #0B8043);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.save-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(15, 157, 88, 0.3);
+}
+
+.save-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}

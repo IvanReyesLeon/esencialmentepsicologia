@@ -24,5 +24,10 @@ router.get('/monthly-billing', syncController.getMonthlyBilling);
 
 // Pacientes
 router.get('/patients', syncController.getPatients);
+router.get('/patients/:patientId/sessions', syncController.getPatientSessions);
+router.put('/patients/:patientId', syncController.updatePatient);
+
+// Auditoría
+router.get('/audit-log', syncController.getAuditLog);
 
 module.exports = router;
