@@ -9,6 +9,10 @@
     {
       "source": "/api/(.*)",
       "destination": "https://esencialmentepsicologia.onrender.com/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
