@@ -7,6 +7,7 @@ import WorkshopsTab from '../components/WorkshopsTab';
 import BlogTab from '../components/BlogTab';
 import BillingTab from '../components/BillingTab';
 import RemindersTab from '../components/RemindersTab';
+import SyncTab from '../components/SyncTab';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -209,6 +210,13 @@ const AdminDashboard = () => {
             description="Cola de emails recordatorios"
             onClick={() => setActiveTab('reminders')}
           />
+          <HubCard
+            title="Sincronización"
+            icon="🔄"
+            color="#00BCD4"
+            description="Sync calendario y pacientes"
+            onClick={() => setActiveTab('sync')}
+          />
         </>
       )}
     </div>
@@ -294,6 +302,7 @@ const AdminDashboard = () => {
           {activeTab === 'blog' && <BlogTab />}
           {activeTab === 'billing' && <BillingTab user={user} calendarId={CALENDAR_ID} />}
           {activeTab === 'reminders' && <RemindersTab />}
+          {activeTab === 'sync' && <SyncTab user={user} />}
         </div>
       </div>
       {renderPasswordModal()}
@@ -311,6 +320,7 @@ const getTitle = (tab) => {
     case 'billing-hub': return 'Facturación y Horas';
     case 'billing': return 'Calendario y Horas';
     case 'reminders': return 'Cola de Recordatorios';
+    case 'sync': return 'Sincronización de Datos';
     default: return 'Panel';
   }
 };
