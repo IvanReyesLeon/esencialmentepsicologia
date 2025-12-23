@@ -187,18 +187,26 @@ exports.getTherapistSessions = async (req, res) => {
 
         let paidAmount = 0;
         let pendingAmount = 0;
+        let paidSessions = 0;
+        let pendingSessions = 0;
+        let billableSessions = 0;
 
         sessions.forEach(session => {
             const payment = paymentMap[session.id];
             session.paymentStatus = payment ? payment.payment_type : 'pending';
             session.markedAt = payment?.marked_at || null;
 
-            if (payment && payment.payment_type !== 'cancelled') {
-                paidAmount += session.price;
-            } else if (!payment || payment.payment_type === 'pending') {
-                pendingAmount += session.price;
+            // Solo contar sesiones facturables (precio > 0 y no canceladas)
+            if (session.price > 0 && session.paymentStatus !== 'cancelled') {
+                billableSessions++;
+                if (payment && payment.payment_type !== 'cancelled' && payment.payment_type !== 'pending') {
+                    paidAmount += session.price;
+                    paidSessions++;
+                } else {
+                    pendingAmount += session.price;
+                    pendingSessions++;
+                }
             }
-            // Cancelled sessions are neither paid nor pending for totals
         });
 
         res.json({
@@ -209,8 +217,10 @@ exports.getTherapistSessions = async (req, res) => {
             },
             sessions,
             summary: {
-                totalSessions: sessions.length,
-                totalAmount: sessions.reduce((sum, s) => sum + s.price, 0),
+                totalSessions: billableSessions, // Solo facturables
+                paidSessions,
+                pendingSessions,
+                totalAmount: sessions.filter(s => s.price > 0).reduce((sum, s) => sum + s.price, 0),
                 paidAmount,
                 pendingAmount
             }

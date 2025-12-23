@@ -444,55 +444,102 @@ const BillingTab = ({ user }) => {
                     </div>
                 </div>
 
-                {/* Summary */}
+                {/* Summary - Mostrar número de sesiones, no euros */}
                 <div className="billing-summary-cards">
                     <div className="summary-card total">
-                        <span className="summary-value">{formatCurrency(weekData.summary?.totalAmount || 0)}</span>
-                        <span className="summary-label">Total</span>
+                        <span className="summary-value">{weekData.summary?.totalSessions || 0}</span>
+                        <span className="summary-label">Sesiones Totales</span>
                     </div>
                     <div className="summary-card paid">
-                        <span className="summary-value">{formatCurrency(weekData.summary?.paidAmount || 0)}</span>
-                        <span className="summary-label">Cobrado</span>
+                        <span className="summary-value">{weekData.summary?.paidSessions || 0}</span>
+                        <span className="summary-label">✅ Revisadas</span>
                     </div>
                     <div
                         className="summary-card pending clickable"
                         onClick={handlePendingClick}
-                        title="Gestionar Pagos de esta semana"
+                        title="Ver sesiones pendientes de supervisar"
                     >
-                        <span className="summary-value">{formatCurrency(weekData.summary?.pendingAmount || 0)}</span>
-                        <span className="summary-label">Pendiente</span>
+                        <span className="summary-value">{weekData.summary?.pendingSessions || 0}</span>
+                        <span className="summary-label">⏳ Pendientes</span>
                     </div>
                 </div>
 
-                {/* Sessions as Cards */}
-                <div className="my-sessions-list">
-                    {weekData.sessions?.map((session) => (
-                        <div key={session.id} className={`my-session-card ${session.paymentStatus}`}>
-                            <div className="session-info">
-                                <div className="session-datetime">
-                                    <strong>{session.dayOfWeek}</strong> {formatDate(session.date)}
-                                    <span className="session-time">{session.startTime} - {session.endTime}</span>
+                {/* Tabs para sesiones facturables vs no facturables */}
+                {(() => {
+                    const billableSessions = weekData.sessions?.filter(s => s.price > 0 && s.paymentStatus !== 'cancelled') || [];
+                    const nonBillableSessions = weekData.sessions?.filter(s => s.price === 0 || s.paymentStatus === 'cancelled') || [];
+
+                    return (
+                        <>
+                            {nonBillableSessions.length > 0 && (
+                                <div className="session-tabs" style={{ marginBottom: '15px' }}>
+                                    <span style={{ fontSize: '0.9rem', color: '#666' }}>
+                                        📋 {billableSessions.length} sesiones facturables
+                                        {nonBillableSessions.length > 0 && (
+                                            <span style={{ marginLeft: '15px', color: '#999' }}>
+                                                | 🚫 {nonBillableSessions.length} no facturables (libres, anuladas)
+                                            </span>
+                                        )}
+                                    </span>
                                 </div>
-                                <div className="session-patient">{session.title}</div>
-                                <div className="session-price-tag">{formatCurrency(session.price)}</div>
-                            </div>
-                            <div className="payment-options read-only">
-                                <span className={`status-badge ${session.paymentStatus}`}>
-                                    {session.paymentStatus === 'bizum' && '🏦 Transferencia'}
-                                    {session.paymentStatus === 'transfer' && '🏦 Transferencia'}
-                                    {session.paymentStatus === 'cash' && '💵 Efectivo'}
-                                    {session.paymentStatus === 'pending' && '⏳ Pendiente'}
-                                    {session.paymentStatus === 'cancelled' && '❌ Cancelada'}
-                                </span>
+                            )}
+
+                            {/* Sessions as Cards - Solo las facturables */}
+                            <div className="my-sessions-list">
+                                {billableSessions.map((session) => (
+                                    <div key={session.id} className={`my-session-card ${session.paymentStatus}`}>
+                                        <div className="session-info">
+                                            <div className="session-datetime">
+                                                <strong>{session.dayOfWeek}</strong> {formatDate(session.date)}
+                                                <span className="session-time">{session.startTime} - {session.endTime}</span>
+                                            </div>
+                                            <div className="session-patient">{session.title}</div>
+                                        </div>
+                                        <div className="payment-options read-only">
+                                            <span className={`status-badge ${session.paymentStatus}`}>
+                                                {session.paymentStatus === 'bizum' && '✅ Revisada'}
+                                                {session.paymentStatus === 'transfer' && '✅ Revisada'}
+                                                {session.paymentStatus === 'cash' && '✅ Revisada'}
+                                                {session.paymentStatus === 'pending' && '⏳ Pendiente'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {billableSessions.length === 0 && (
+                                    <p className="no-sessions">No hay sesiones facturables esta semana</p>
+                                )}
                             </div>
 
-                        </div>
-                    ))}
-
-                    {(!weekData.sessions || weekData.sessions.length === 0) && (
-                        <p className="no-sessions">No hay sesiones para esta semana</p>
-                    )}
-                </div>
+                            {/* Sesiones no facturables en sección colapsada */}
+                            {nonBillableSessions.length > 0 && (
+                                <details style={{ marginTop: '20px' }}>
+                                    <summary style={{ cursor: 'pointer', padding: '10px', background: '#f5f5f5', borderRadius: '8px', fontWeight: '500' }}>
+                                        🚫 Ver sesiones no facturables ({nonBillableSessions.length})
+                                    </summary>
+                                    <div className="my-sessions-list" style={{ marginTop: '10px', opacity: 0.7 }}>
+                                        {nonBillableSessions.map((session) => (
+                                            <div key={session.id} className="my-session-card non-billable" style={{ background: '#f9f9f9' }}>
+                                                <div className="session-info">
+                                                    <div className="session-datetime">
+                                                        <strong>{session.dayOfWeek}</strong> {formatDate(session.date)}
+                                                        <span className="session-time">{session.startTime} - {session.endTime}</span>
+                                                    </div>
+                                                    <div className="session-patient">{session.title}</div>
+                                                </div>
+                                                <div className="payment-options read-only">
+                                                    <span className="status-badge non-billable">
+                                                        {session.paymentStatus === 'cancelled' ? '❌ Anulada' : '🆓 Libre'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </details>
+                            )}
+                        </>
+                    );
+                })()}
             </div>
         );
     };
