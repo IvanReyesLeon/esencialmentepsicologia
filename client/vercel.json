@@ -9,15 +9,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://esencialmentepsicologia.onrender.com/api/:path*"
-    }
-  ],
-  "routes": [
-    {
-      "handle": "filesystem"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!static|asset-manifest|favicon|logo|manifest|robots).*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
