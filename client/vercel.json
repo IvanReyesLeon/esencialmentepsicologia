@@ -1,6 +1,13 @@
 {
   "outputDirectory": "build",
   "buildCommand": "",
+  "redirects": [
+    {
+      "source": "/mireia-xicart",
+      "destination": "/terapeutas",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/sitemap.xml",
