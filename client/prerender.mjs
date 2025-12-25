@@ -12,6 +12,7 @@ const __dirname = path.dirname(__filename);
 const PORT = 3333;
 const BASE_URL = `http://localhost:${PORT}`;
 const BUILD_DIR = path.join(__dirname, 'build');
+const SITE_URL = 'https://www.esencialmentepsicologia.com';
 
 // Routes to prerender
 // Routes to prerender
@@ -207,9 +208,17 @@ async function prerender() {
                 await new Promise(r => setTimeout(r, 1000));
 
                 // 5. Extract HTML
-                const html = await page.evaluate(() => {
+                let html = await page.evaluate(() => {
                     return '<!DOCTYPE html>' + document.documentElement.outerHTML;
                 });
+
+                // 5.1 Inject canonical URL for SEO
+                const canonicalUrl = route === '/' ? SITE_URL : `${SITE_URL}${route}`;
+                const canonicalTag = `<link rel="canonical" href="${canonicalUrl}">`;
+
+                // Remove any existing canonical (from React Helmet) and add proper one
+                html = html.replace(/<link rel="canonical"[^>]*>/gi, '');
+                html = html.replace('</head>', `${canonicalTag}</head>`);
 
                 // 6. Save to file
                 let outputPath;
