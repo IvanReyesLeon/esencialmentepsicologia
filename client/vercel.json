@@ -6,6 +6,11 @@
       "source": "/mireia-xicart",
       "destination": "/terapeutas",
       "permanent": true
+    },
+    {
+      "source": "/que-es-un-ataque-de-ansiedad-y-como-evitarlo",
+      "destination": "/blog",
+      "permanent": true
     }
   ],
   "rewrites": [
