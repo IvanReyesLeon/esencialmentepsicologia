@@ -573,14 +573,23 @@ const BillingTab = ({ user }) => {
             return true;
         });
 
-        // Calculate Totals for VISIBLE sessions
+        // Calculate Totals for VISIBLE sessions (with cash/transfer breakdown)
         const summary = visibleSessions.reduce((acc, s) => {
             if (s.paymentStatus === 'cancelled') return acc; // Don't count cancelled in money
             acc.total += s.price;
-            if (s.paymentStatus === 'pending') acc.pending += s.price;
-            else acc.paid += s.price;
+            if (s.paymentStatus === 'pending') {
+                acc.pending += s.price;
+            } else {
+                acc.paid += s.price;
+                // Track payment method breakdown
+                if (s.paymentStatus === 'cash') {
+                    acc.cash += s.price;
+                } else if (s.paymentStatus === 'transfer' || s.paymentStatus === 'bizum') {
+                    acc.transfer += s.price;
+                }
+            }
             return acc;
-        }, { total: 0, pending: 0, paid: 0 });
+        }, { total: 0, pending: 0, paid: 0, cash: 0, transfer: 0 });
 
         // Get unique therapist names for filter dropdown
         const therapistNames = [...new Set(globalSessions.map(s => s.therapistName))].sort();
@@ -594,8 +603,16 @@ const BillingTab = ({ user }) => {
                         <span className="summary-value">{formatCurrency(summary.total)}</span>
                         <span className="summary-label">Total Visible</span>
                     </div>
-                    <div className="summary-card paid">
+                    <div
+                        className="summary-card paid clickable"
+                        onClick={() => setFilterStatus('paid')}
+                        title="Ver solo pagados"
+                    >
                         <span className="summary-value">{formatCurrency(summary.paid)}</span>
+                        <div className="payment-breakdown">
+                            <span className="breakdown-item cash">💵 {formatCurrency(summary.cash)}</span>
+                            <span className="breakdown-item transfer">🏦 {formatCurrency(summary.transfer)}</span>
+                        </div>
                         <span className="summary-label">✅ Pagado</span>
                     </div>
                     <div className="summary-card pending">

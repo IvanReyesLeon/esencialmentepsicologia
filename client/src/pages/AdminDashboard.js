@@ -254,11 +254,6 @@ const AdminDashboard = () => {
         <div className="header-content">
           <div className="logo-section">
             <h1>{activeTab === 'hub' ? 'Panel de Gestión' : getTitle(activeTab)}</h1>
-            {activeTab !== 'hub' && (
-              <button className="btn-back" onClick={() => setActiveTab(activeTab === 'billing' ? 'billing-hub' : 'hub')}>
-                ← {activeTab === 'billing' ? 'Volver a Facturación' : 'Volver al Menú'}
-              </button>
-            )}
           </div>
 
           <div className="header-actions">
@@ -277,6 +272,15 @@ const AdminDashboard = () => {
       </header>
 
       <div className="dashboard-content-wrapper">
+        {/* Back Button - Now in content area */}
+        {activeTab !== 'hub' && (
+          <div className="content-back-nav">
+            <button className="btn-back-content" onClick={() => setActiveTab(activeTab === 'billing' ? 'billing-hub' : 'hub')}>
+              ← {activeTab === 'billing' ? 'Volver a Facturación' : 'Volver al Menú'}
+            </button>
+          </div>
+        )}
+
         {activeTab === 'hub' && renderHub()}
         {activeTab === 'billing-hub' && renderBillingHub()}
 

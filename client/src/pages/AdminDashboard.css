@@ -84,6 +84,32 @@
   padding: 0 1rem;
 }
 
+/* Back Navigation in Content Area */
+.content-back-nav {
+  margin-bottom: 20px;
+}
+
+.btn-back-content {
+  background: none;
+  border: 1px solid #dee2e6;
+  color: #666;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-back-content:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+  color: #333;
+}
+
 /* Hub Grid System */
 .admin-hub-grid {
   display: grid;
@@ -777,14 +803,32 @@
     align-items: flex-start;
   }
 
+  .logo-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .logo-section h1 {
+    font-size: 1.3rem;
+  }
+
   .header-actions {
     width: 100%;
-    justify-content: space-between;
-    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .user-info {
     text-align: left;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-email {
+    font-size: 0.8rem;
+    word-break: break-all;
   }
 
   .admin-hub-grid {
@@ -810,6 +854,81 @@
   .registrations-table {
     display: block;
     overflow-x: auto;
+  }
+}
+
+/* Extra small screens (phones) */
+@media (max-width: 480px) {
+  .dashboard-header {
+    padding: 0.75rem;
+  }
+
+  .logo-section h1 {
+    font-size: 1.1rem;
+  }
+
+  .btn-back {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .user-role {
+    font-size: 0.65rem;
+  }
+
+  .user-email {
+    font-size: 0.75rem;
+  }
+
+  /* Stack buttons in a row */
+  .header-actions>.btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+
+  /* Button container for password and logout */
+  .header-actions .btn-secondary {
+    flex: 1;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 0.8rem;
+  }
+
+  .hub-card {
+    padding: 20px;
+  }
+
+  .hub-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+  }
+
+  .hub-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .hub-card p {
+    font-size: 0.85rem;
   }
 }
 

@@ -1412,3 +1412,175 @@
 .btn-change-password:hover {
     background-color: #e1a32a;
 }
+
+/* === PAYMENT BREAKDOWN (NEW) === */
+.payment-breakdown {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+}
+
+.breakdown-item {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.breakdown-item.cash {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.breakdown-item.transfer {
+    background: #E3F2FD;
+    color: #1976D2;
+}
+
+/* === ENHANCED MOBILE RESPONSIVENESS === */
+@media (max-width: 600px) {
+
+    /* Fix global card layout */
+    .global-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .pending-session-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .session-date-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .session-therapist-tag {
+        font-size: 0.75rem !important;
+        padding: 2px 6px !important;
+    }
+
+    .payment-actions {
+        width: 100%;
+        justify-content: flex-start;
+        padding-top: 8px;
+        border-top: 1px solid #eee;
+    }
+
+    /* Improve summary cards on mobile */
+    .billing-summary-cards {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .summary-card {
+        padding: 15px;
+    }
+
+    .summary-value {
+        font-size: 1.5rem;
+    }
+
+    .payment-breakdown {
+        gap: 8px;
+    }
+
+    .breakdown-item {
+        font-size: 0.8rem;
+        padding: 3px 8px;
+    }
+
+    /* Fix filters on mobile */
+    .global-payment-filters {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .date-range {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .date-range label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .date-range input {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .therapist-select {
+        width: 100%;
+        min-width: unset;
+    }
+
+    /* Fix header layout */
+    .billing-header {
+        flex-wrap: wrap;
+    }
+
+    .billing-header h2 {
+        font-size: 1.2rem;
+        order: 2;
+        width: 100%;
+    }
+
+    .btn-back-billing {
+        order: 1;
+    }
+
+    /* Fix transfer date input on mobile */
+    .transfer-date-input {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .date-input-mini {
+        width: 120px;
+        flex-shrink: 0;
+    }
+
+    /* Improve card info display */
+    .session-title {
+        word-break: break-word;
+    }
+
+    .session-price {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .summary-value {
+        font-size: 1.3rem;
+    }
+
+    .breakdown-item {
+        font-size: 0.75rem;
+        padding: 2px 6px;
+    }
+
+    .pending-session-card {
+        padding: 10px;
+    }
+
+    .btn-pay {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+}
