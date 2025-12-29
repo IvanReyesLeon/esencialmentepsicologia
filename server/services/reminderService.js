@@ -77,8 +77,14 @@ const syncCalendarToQueue = async () => {
  * Generate email HTML content for a reminder
  */
 const generateEmailHtml = (sessionDatetime, therapistName) => {
-    const dateStr = sessionDatetime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const timeStr = sessionDatetime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = sessionDatetime.toLocaleDateString('es-ES', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        timeZone: 'Europe/Madrid'
+    });
+    const timeStr = sessionDatetime.toLocaleTimeString('es-ES', {
+        hour: '2-digit', minute: '2-digit',
+        timeZone: 'Europe/Madrid'
+    });
     const displayTherapist = therapistName || 'Esencialmente Psicología';
 
     return `
@@ -227,10 +233,10 @@ const processPendingReminders = async () => {
 
                 console.log(`✅ Reminder sent to ${reminder.patient_email} for session on ${sessionDatetime.toISOString()}`);
 
-                // Update queue status
+                // Update queue status and save the email HTML
                 await pool.query(`
-                    UPDATE reminder_queue SET status = 'sent', sent_at = NOW() WHERE id = $1
-                `, [reminder.id]);
+                    UPDATE reminder_queue SET status = 'sent', sent_at = NOW(), sent_email_html = $2 WHERE id = $1
+                `, [reminder.id, htmlContent]);
 
                 // Also insert into legacy table for backwards compatibility
                 await pool.query(
@@ -305,6 +311,47 @@ const getReminders = async (status = null, limit = 50) => {
     return result.rows;
 };
 
+/**
+ * Get email preview for a specific reminder
+ * Returns saved HTML if available, otherwise regenerates it
+ */
+const getReminderEmailPreview = async (reminderId) => {
+    const result = await pool.query(`
+        SELECT id, patient_email, session_datetime, therapist_name, status, sent_email_html
+        FROM reminder_queue
+        WHERE id = $1
+    `, [reminderId]);
+
+    if (result.rows.length === 0) {
+        return null;
+    }
+
+    const reminder = result.rows[0];
+
+    // If we have saved HTML, return it
+    if (reminder.sent_email_html) {
+        return {
+            id: reminder.id,
+            email: reminder.patient_email,
+            status: reminder.status,
+            html: reminder.sent_email_html,
+            isRegenerated: false
+        };
+    }
+
+    // Otherwise, regenerate the email (for old emails without saved HTML)
+    const sessionDatetime = new Date(reminder.session_datetime);
+    const html = generateEmailHtml(sessionDatetime, reminder.therapist_name);
+
+    return {
+        id: reminder.id,
+        email: reminder.patient_email,
+        status: reminder.status,
+        html: html,
+        isRegenerated: true // Indicates this is regenerated, not the actual sent email
+    };
+};
+
 const startReminderJob = () => {
     // Run every hour at minute 0
     cron.schedule('0 * * * *', () => {
@@ -324,6 +371,7 @@ module.exports = {
     checkAndSendReminders,
     getReminderStats,
     getReminders,
+    getReminderEmailPreview,
     syncCalendarToQueue,
     processPendingReminders
 };
