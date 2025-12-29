@@ -129,17 +129,32 @@ async function prerender() {
 
 
     try {
-        // 3. Launch Puppeteer
+        // 3. Launch Puppeteer (with Vercel detection)
         try {
-            browser = await puppeteer.launch({
-                headless: true,
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-gpu'
-                ]
-            });
+            if (process.env.VERCEL) {
+                console.log('☁️  Running on Vercel - using @sparticuz/chromium');
+                const chromium = (await import('@sparticuz/chromium')).default;
+                const puppeteerCore = (await import('puppeteer-core')).default;
+
+                browser = await puppeteerCore.launch({
+                    args: chromium.args,
+                    defaultViewport: chromium.defaultViewport,
+                    executablePath: await chromium.executablePath(),
+                    headless: chromium.headless,
+                    ignoreHTTPSErrors: true,
+                });
+            } else {
+                console.log('💻 Running locally - using standard Puppeteer');
+                browser = await puppeteer.launch({
+                    headless: true,
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-gpu'
+                    ]
+                });
+            }
         } catch (launchError) {
             console.warn('⚠️ Unable to launch Puppeteer. This is common in CI environments (Vercel/Netlify) lacking shared libraries.');
             console.warn('⚠️ Error details:', launchError.message);
