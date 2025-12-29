@@ -1,6 +1,5 @@
 {
   "outputDirectory": "build",
-  "buildCommand": "",
   "redirects": [
     {
       "source": "/mireia-xicart",
