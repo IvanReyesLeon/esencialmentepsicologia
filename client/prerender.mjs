@@ -269,6 +269,18 @@ async function prerender() {
             console.warn('⚠️ Could not copy admin/index.html:', adminErr.message);
         }
 
+        // Copy vercel.json to build/ for Vercel config
+        try {
+            const vercelJsonSrc = path.join(__dirname, 'vercel.json');
+            const vercelJsonDest = path.join(BUILD_DIR, 'vercel.json');
+            if (fs.existsSync(vercelJsonSrc)) {
+                fs.copyFileSync(vercelJsonSrc, vercelJsonDest);
+                console.log('✅ Copied vercel.json to build/');
+            }
+        } catch (vercelErr) {
+            console.warn('⚠️ Could not copy vercel.json:', vercelErr.message);
+        }
+
         if (failures >= 3) {
             console.error('❌ Too many failures. Exiting with error.');
             process.exit(1);
