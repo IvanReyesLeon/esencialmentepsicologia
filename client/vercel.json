@@ -21,6 +21,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://esencialmentepsicologia.onrender.com/api/:path*"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/index.html"
     }
   ],
   "headers": [
