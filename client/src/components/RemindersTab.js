@@ -196,7 +196,7 @@ const RemindersTab = () => {
                                         srcDoc={emailPreview.html}
                                         title="Email Preview"
                                         className="email-iframe"
-                                        sandbox="allow-same-origin"
+                                        sandbox="allow-same-origin allow-scripts"
                                     />
                                 </>
                             ) : (

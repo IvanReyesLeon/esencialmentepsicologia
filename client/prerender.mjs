@@ -254,6 +254,21 @@ async function prerender() {
         server.close();
         console.log(`🏁 Prerender finished. Failures: ${failures}`);
 
+        // Copy index.html to admin/ for SPA routing (admin is not prerendered)
+        try {
+            const adminDir = path.join(BUILD_DIR, 'admin');
+            if (!fs.existsSync(adminDir)) {
+                fs.mkdirSync(adminDir, { recursive: true });
+            }
+            fs.copyFileSync(
+                path.join(BUILD_DIR, 'index.html'),
+                path.join(adminDir, 'index.html')
+            );
+            console.log('✅ Copied index.html to admin/ for SPA routing');
+        } catch (adminErr) {
+            console.warn('⚠️ Could not copy admin/index.html:', adminErr.message);
+        }
+
         if (failures >= 3) {
             console.error('❌ Too many failures. Exiting with error.');
             process.exit(1);
