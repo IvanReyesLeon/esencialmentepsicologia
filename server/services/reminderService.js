@@ -37,7 +37,13 @@ const syncCalendarToQueue = async () => {
             }
 
             const patientEmail = emailMatch[0];
-            const sessionDatetime = new Date(event.start.dateTime || event.start.date);
+
+            // Debug: Log the raw calendar datetime
+            const rawDatetime = event.start.dateTime || event.start.date;
+            console.log(`📅 Calendar event raw datetime: ${rawDatetime} for ${patientEmail}`);
+
+            const sessionDatetime = new Date(rawDatetime);
+            console.log(`📅 Parsed as Date object: ${sessionDatetime.toISOString()}`);
 
             // Calculate when to send (48h before session)
             const scheduledSendAt = new Date(sessionDatetime.getTime() - 48 * 60 * 60 * 1000);
@@ -77,14 +83,30 @@ const syncCalendarToQueue = async () => {
  * Generate email HTML content for a reminder
  */
 const generateEmailHtml = (sessionDatetime, therapistName) => {
-    const dateStr = sessionDatetime.toLocaleDateString('es-ES', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
+    // Debug: Log the input datetime
+    console.log(`📧 generateEmailHtml - Input datetime: ${sessionDatetime.toISOString()}`);
+    console.log(`📧 generateEmailHtml - Input datetime (local): ${sessionDatetime.toString()}`);
+
+    // Use Intl.DateTimeFormat for reliable timezone conversion
+    const dateFormatter = new Intl.DateTimeFormat('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
         timeZone: 'Europe/Madrid'
     });
-    const timeStr = sessionDatetime.toLocaleTimeString('es-ES', {
-        hour: '2-digit', minute: '2-digit',
+    const timeFormatter = new Intl.DateTimeFormat('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
         timeZone: 'Europe/Madrid'
     });
+
+    const dateStr = dateFormatter.format(sessionDatetime);
+    const timeStr = timeFormatter.format(sessionDatetime);
+
+    // Debug: Log the formatted output
+    console.log(`📧 generateEmailHtml - Output date: ${dateStr}, time: ${timeStr}`);
+
     const displayTherapist = therapistName || 'Esencialmente Psicología';
 
     return `
