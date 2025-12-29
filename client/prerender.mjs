@@ -254,8 +254,23 @@ async function prerender() {
         server.close();
         console.log(`🏁 Prerender finished. Failures: ${failures}`);
 
-        // NOTE: Admin SPA routing is handled by vercel.json rewrites
-        // We don't create admin/index.html because static files override rewrites in Vercel
+        // Copy index.html to admin routes for SPA routing (admin is not prerendered)
+        const adminRoutes = ['admin', 'admin/dashboard'];
+        for (const route of adminRoutes) {
+            try {
+                const routeDir = path.join(BUILD_DIR, route);
+                if (!fs.existsSync(routeDir)) {
+                    fs.mkdirSync(routeDir, { recursive: true });
+                }
+                fs.copyFileSync(
+                    path.join(BUILD_DIR, 'index.html'),
+                    path.join(routeDir, 'index.html')
+                );
+                console.log(`✅ Copied index.html to ${route}/ for SPA routing`);
+            } catch (adminErr) {
+                console.warn(`⚠️ Could not copy ${route}/index.html:`, adminErr.message);
+            }
+        }
 
         // Copy vercel.json to build/ for Vercel config
         try {
