@@ -205,7 +205,11 @@ const processPendingReminders = async () => {
         console.log(`📬 Found ${result.rows.length} reminders to process`);
 
         for (const reminder of result.rows) {
-            const sessionDatetime = new Date(reminder.session_datetime);
+            // pg driver returns Date objects for timestamps - use directly if it's already a Date
+            const sessionDatetime = reminder.session_datetime instanceof Date
+                ? reminder.session_datetime
+                : new Date(reminder.session_datetime);
+            console.log(`   🔍 Final sessionDatetime toString: ${sessionDatetime.toString()}`);
 
             // Skip if session has already passed
             if (sessionDatetime < now) {
@@ -362,7 +366,9 @@ const getReminderEmailPreview = async (reminderId) => {
     }
 
     // Otherwise, regenerate the email (for old emails without saved HTML)
-    const sessionDatetime = new Date(reminder.session_datetime);
+    const sessionDatetime = reminder.session_datetime instanceof Date
+        ? reminder.session_datetime
+        : new Date(reminder.session_datetime);
     const html = generateEmailHtml(sessionDatetime, reminder.therapist_name);
 
     return {
