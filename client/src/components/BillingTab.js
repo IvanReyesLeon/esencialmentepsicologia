@@ -573,14 +573,17 @@ const BillingTab = ({ user }) => {
             return true;
         });
 
-        // Calculate Totals for VISIBLE sessions (with cash/transfer breakdown)
+        // Calculate Totals for VISIBLE sessions (with cash/transfer breakdown and session counts)
         const summary = visibleSessions.reduce((acc, s) => {
             if (s.paymentStatus === 'cancelled') return acc; // Don't count cancelled in money
             acc.total += s.price;
+            acc.totalSessions += 1;
             if (s.paymentStatus === 'pending') {
                 acc.pending += s.price;
+                acc.pendingSessions += 1;
             } else {
                 acc.paid += s.price;
+                acc.paidSessions += 1;
                 // Track payment method breakdown
                 if (s.paymentStatus === 'cash') {
                     acc.cash += s.price;
@@ -589,7 +592,7 @@ const BillingTab = ({ user }) => {
                 }
             }
             return acc;
-        }, { total: 0, pending: 0, paid: 0, cash: 0, transfer: 0 });
+        }, { total: 0, pending: 0, paid: 0, cash: 0, transfer: 0, totalSessions: 0, pendingSessions: 0, paidSessions: 0 });
 
         // Get unique therapist names for filter dropdown
         const therapistNames = [...new Set(globalSessions.map(s => s.therapistName))].sort();
@@ -597,27 +600,41 @@ const BillingTab = ({ user }) => {
         return (
             <div className="billing-detail global-payment-view">
 
-                {/* Global Summary Dashboard */}
+                {/* Global Summary Dashboard - Admin ve euros, Terapeutas ven número de sesiones */}
                 <div className="billing-summary-cards" style={{ marginBottom: '20px' }}>
                     <div className="summary-card total">
-                        <span className="summary-value">{formatCurrency(summary.total)}</span>
-                        <span className="summary-label">Total Visible</span>
+                        <span className="summary-value">
+                            {user.role === 'admin' ? formatCurrency(summary.total) : summary.totalSessions}
+                        </span>
+                        <span className="summary-label">
+                            {user.role === 'admin' ? 'Total Visible' : 'Sesiones Totales'}
+                        </span>
                     </div>
                     <div
                         className="summary-card paid clickable"
                         onClick={() => setFilterStatus('paid')}
                         title="Ver solo pagados"
                     >
-                        <span className="summary-value">{formatCurrency(summary.paid)}</span>
-                        <div className="payment-breakdown">
-                            <span className="breakdown-item cash">💵 {formatCurrency(summary.cash)}</span>
-                            <span className="breakdown-item transfer">🏦 {formatCurrency(summary.transfer)}</span>
-                        </div>
-                        <span className="summary-label">✅ Pagado</span>
+                        <span className="summary-value">
+                            {user.role === 'admin' ? formatCurrency(summary.paid) : summary.paidSessions}
+                        </span>
+                        {user.role === 'admin' && (
+                            <div className="payment-breakdown">
+                                <span className="breakdown-item cash">💵 {formatCurrency(summary.cash)}</span>
+                                <span className="breakdown-item transfer">🏦 {formatCurrency(summary.transfer)}</span>
+                            </div>
+                        )}
+                        <span className="summary-label">
+                            {user.role === 'admin' ? '✅ Pagado' : '✅ Sesiones Revisadas'}
+                        </span>
                     </div>
                     <div className="summary-card pending">
-                        <span className="summary-value">{formatCurrency(summary.pending)}</span>
-                        <span className="summary-label">⏳ Pendiente</span>
+                        <span className="summary-value">
+                            {user.role === 'admin' ? formatCurrency(summary.pending) : summary.pendingSessions}
+                        </span>
+                        <span className="summary-label">
+                            {user.role === 'admin' ? '⏳ Pendiente' : '⏳ Sesiones Pendientes'}
+                        </span>
                     </div>
                 </div>
 
@@ -671,7 +688,9 @@ const BillingTab = ({ user }) => {
                                         </span>
                                     </div>
                                     <span className="session-title">{session.title}</span>
-                                    <span className="session-price">{formatCurrency(session.price)}</span>
+                                    {user.role === 'admin' && (
+                                        <span className="session-price">{formatCurrency(session.price)}</span>
+                                    )}
                                     {session.paymentStatus !== 'pending' && (
                                         <span className={`status-badge ${session.paymentStatus} mini-badge`}>
                                             {session.paymentStatus === 'transfer' || session.paymentStatus === 'bizum' ? '🏦 Transferencia' :

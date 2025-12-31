@@ -8,6 +8,65 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Regex for extracting email
 const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 
+// Location and event details for calendar events
+const EVENT_LOCATION = 'Carrer del Pintor Togores, 1, 08290 Cerdanyola del Vallès, Barcelona';
+const EVENT_DURATION_HOURS = 1;
+
+/**
+ * Generate calendar links for Google Calendar, Outlook, and ICS file
+ */
+const generateCalendarLinks = (sessionDatetime, therapistName) => {
+    const title = 'Sesión - Esencialmente Psicología';
+    const description = therapistName
+        ? `Sesión con ${therapistName} en Esencialmente Psicología`
+        : 'Sesión en Esencialmente Psicología';
+
+    // Calculate end time (1 hour duration)
+    const endDatetime = new Date(sessionDatetime.getTime() + EVENT_DURATION_HOURS * 60 * 60 * 1000);
+
+    // Format for Google Calendar (YYYYMMDDTHHmmssZ format in UTC)
+    const formatGoogleDate = (date) => {
+        return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    };
+
+    const googleStart = formatGoogleDate(sessionDatetime);
+    const googleEnd = formatGoogleDate(endDatetime);
+
+    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${googleStart}/${googleEnd}&location=${encodeURIComponent(EVENT_LOCATION)}&details=${encodeURIComponent(description)}`;
+
+    // Format for Outlook (ISO format)
+    const outlookUrl = `https://outlook.office.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&startdt=${sessionDatetime.toISOString()}&enddt=${endDatetime.toISOString()}&location=${encodeURIComponent(EVENT_LOCATION)}&body=${encodeURIComponent(description)}`;
+
+    // Generate ICS file content
+    const formatICSDate = (date) => {
+        return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    };
+
+    const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Esencialmente Psicología//Reminder//ES
+BEGIN:VEVENT
+UID:${sessionDatetime.getTime()}@esencialmentepsicologia.com
+DTSTAMP:${formatICSDate(new Date())}
+DTSTART:${formatICSDate(sessionDatetime)}
+DTEND:${formatICSDate(endDatetime)}
+SUMMARY:${title}
+DESCRIPTION:${description}
+LOCATION:${EVENT_LOCATION}
+END:VEVENT
+END:VCALENDAR`;
+
+    // Encode ICS as data URI
+    const icsDataUri = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+
+    return {
+        google: googleCalendarUrl,
+        outlook: outlookUrl,
+        ics: icsDataUri
+    };
+};
+
+
 /**
  * Sync calendar events to the reminder_queue table.
  * Scans next 7 days and ensures all events with emails are tracked.
@@ -109,11 +168,54 @@ const generateEmailHtml = (sessionDatetime, therapistName) => {
 
     const displayTherapist = therapistName || 'Esencialmente Psicología';
 
+    // Generate calendar links
+    const calendarLinks = generateCalendarLinks(sessionDatetime, therapistName);
+
+    // Calculate end time for JSON-LD
+    const endDatetime = new Date(sessionDatetime.getTime() + EVENT_DURATION_HOURS * 60 * 60 * 1000);
+
+    // JSON-LD structured data for Gmail automatic event detection
+    const jsonLd = {
+        "@context": "http://schema.org",
+        "@type": "EventReservation",
+        "reservationNumber": sessionDatetime.getTime().toString(),
+        "reservationStatus": "http://schema.org/Confirmed",
+        "underName": {
+            "@type": "Person",
+            "name": "Paciente"
+        },
+        "reservationFor": {
+            "@type": "Event",
+            "name": "Sesión - Esencialmente Psicología",
+            "startDate": sessionDatetime.toISOString(),
+            "endDate": endDatetime.toISOString(),
+            "location": {
+                "@type": "Place",
+                "name": "Esencialmente Psicología",
+                "address": {
+                    "@type": "PostalAddress",
+                    "streetAddress": "Carrer del Pintor Togores, 1",
+                    "addressLocality": "Cerdanyola del Vallès",
+                    "addressRegion": "Barcelona",
+                    "postalCode": "08290",
+                    "addressCountry": "ES"
+                }
+            },
+            "performer": {
+                "@type": "Person",
+                "name": displayTherapist
+            }
+        }
+    };
+
     return `
     <!DOCTYPE html>
     <html lang="es">
     <head>
         <meta charset="utf-8">
+        <script type="application/ld+json">
+        ${JSON.stringify(jsonLd)}
+        </script>
         <style>
             body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
             .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -129,6 +231,19 @@ const generateEmailHtml = (sessionDatetime, therapistName) => {
             .value { font-weight: 600; font-size: 16px; }
             .alert-box { background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 6px; border: 1px solid #ffeeba; font-size: 14px; text-align: center; margin-top: 25px; }
             .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; }
+            
+            /* Calendar button - Google style */
+            .calendar-section { margin-top: 25px; text-align: center; }
+            .calendar-btn { 
+                display: inline-block;
+                padding: 12px 24px; 
+                border-radius: 24px; 
+                text-decoration: none; 
+                font-size: 14px; 
+                font-weight: 500; 
+                background-color: #1a73e8;
+                color: #ffffff !important; 
+            }
             
             @media (prefers-color-scheme: dark) {
                 body { background-color: #1a1a1a !important; }
@@ -167,6 +282,12 @@ const generateEmailHtml = (sessionDatetime, therapistName) => {
                     </div>
                 </div>
 
+                <div class="calendar-section">
+                    <a href="${calendarLinks.google}" target="_blank" class="calendar-btn">
+                        📅 Añadir a mi calendario
+                    </a>
+                </div>
+
                 <div class="alert-box">
                     ⚠️ Recuerda cancelarla con al menos 24 horas de antelación si no podrás asistir.
                 </div>
@@ -182,6 +303,8 @@ const generateEmailHtml = (sessionDatetime, therapistName) => {
     </html>
     `;
 };
+
+
 
 /**
  * Process pending reminders from the queue.
