@@ -83,6 +83,31 @@ export const contactAPI = {
 export const billingAPI = {
   getGlobal: (calendarId) => api.get('/admin/billing/global', { params: { calendarId } }),
   getMe: (calendarId) => api.get('/admin/billing/me', { params: { calendarId } }),
+  // Invoice logic
+  submitInvoice: (data) => api.post('/admin/billing/submit-invoice', data),
+  checkInvoiceStatus: (params) => api.get('/admin/billing/invoice-status', { params }),
+  getSubmissions: (params) => api.get('/admin/billing/invoice-submissions', { params }),
+  validateInvoice: (data) => api.post('/admin/billing/validate-invoice', data),
+  revokeInvoice: (data) => api.post('/admin/billing/revoke-invoice', data),
+};
+
+export const notificationsAPI = {
+  getAll: () => api.get('/admin/notifications'),
+  markAsRead: (id) => api.put(`/admin/notifications/${id}/read`),
+  markAllAsRead: () => api.put('/admin/notifications/read-all'),
+};
+
+export const expensesAPI = {
+  getAll: (params) => api.get('/admin/expenses', { params }),
+  create: (data) => api.post('/admin/expenses', data),
+  delete: (id) => api.delete(`/admin/expenses/${id}`),
+  generateMonthly: (data) => api.post('/admin/expenses/generate-monthly', data),
+
+  // Recurring
+  getRecurring: () => api.get('/admin/expenses/recurring'),
+  createRecurring: (data) => api.post('/admin/expenses/recurring', data),
+  updateRecurring: (id, data) => api.put(`/admin/expenses/recurring/${id}`, data),
+  deleteRecurring: (id) => api.delete(`/admin/expenses/recurring/${id}`),
 };
 
 export default api;

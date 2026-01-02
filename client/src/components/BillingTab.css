@@ -2012,3 +2012,55 @@
         border-radius: 8px;
     }
 }
+
+
+/* Invoice action buttons */
+.invoice-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    justify-content: center;
+}
+
+.btn-submit-invoice {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-submit-invoice:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+    background: #45a049;
+}
+
+@media (max-width: 768px) {
+    .invoice-actions {
+        flex-direction: column;
+    }
+    
+    .btn-download-pdf,
+    .btn-submit-invoice {
+        width: 100%;
+    }
+}
+
+
+.btn-submit-invoice.submitted {
+    background: #e0e0e0;
+    color: #666;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-submit-invoice.submitted:hover {
+    transform: none;
+    background: #e0e0e0;
+}

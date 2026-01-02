@@ -14,6 +14,10 @@ const BillingTab = ({ user }) => {
     const [globalStartDate, setGlobalStartDate] = useState(`${new Date().getFullYear()}-01-01`);
     const [globalEndDate, setGlobalEndDate] = useState(`${new Date().getFullYear()}-12-31`);
 
+    // Invoice Submission State
+    const [invoiceSubmitted, setInvoiceSubmitted] = useState(false);
+    const [submissionData, setSubmissionData] = useState(null);
+
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [selectedMonth, setSelectedMonth] = useState(null);
     const [selectedWeek, setSelectedWeek] = useState(null);
@@ -34,6 +38,7 @@ const BillingTab = ({ user }) => {
     const [invoiceHasPending, setInvoiceHasPending] = useState(false);
     const [invoicePendingCount, setInvoicePendingCount] = useState(0);
     const [invoicePendingMessage, setInvoicePendingMessage] = useState('');
+    const [showConfirmModal, setShowConfirmModal] = useState(false); // State for custom modal
     const [therapistPercentage, setTherapistPercentage] = useState(60);
     const [irpf, setIrpf] = useState(15);
 
@@ -253,17 +258,95 @@ const BillingTab = ({ user }) => {
                 setInvoiceSessions([]);
             } else {
                 // All sessions are ready for invoice
-                setInvoiceHasPending(false);
-                setInvoicePendingCount(0);
                 setInvoicePendingMessage('');
                 setInvoiceSessions(data.sessions || []);
             }
+
+            // Check if already submitted
+            const statusRes = await fetch(
+                `${API_URL}/admin/billing/invoice-status?year=${invoiceYear}&month=${invoiceMonth}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const statusData = await statusRes.json();
+            if (statusData.submitted) {
+                setInvoiceSubmitted(true);
+                setSubmissionData(statusData.submission);
+            } else {
+                setInvoiceSubmitted(false);
+                setSubmissionData(null);
+            }
+
+            // Fetch Therapist Configuration (Percentage & IRPF)
+            const myDataRes = await fetch(`${API_URL}/admin/billing/my-data`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const myData = await myDataRes.json();
+            if (myData && myData.percentage) {
+                setTherapistPercentage(Number(myData.percentage));
+            }
+            // Assuming IRPF might also be configurable in the future, currently hardcoded or passed.
+            // For now, only percentage is dynamic based on user request.
+
         } catch (error) {
             console.error('Error fetching invoice data:', error);
         } finally {
             setLoading(false);
         }
     };
+
+    const submitInvoice = async () => {
+        setShowConfirmModal(true);
+    };
+
+    const confirmSubmission = async () => {
+        setShowConfirmModal(false);
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+
+            // Recalculate totals just to be safe
+            const subtotal = invoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
+            const centerPercentage = 100 - therapistPercentage;
+            const centerAmount = subtotal * (centerPercentage / 100);
+            const baseDisponible = subtotal * (therapistPercentage / 100);
+            const irpfAmount = baseDisponible * (irpf / 100);
+            const totalFactura = baseDisponible - irpfAmount;
+
+            const res = await fetch(`${API_URL}/admin/billing/submit-invoice`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    month: invoiceMonth,
+                    year: invoiceYear,
+                    subtotal,
+                    center_percentage: centerPercentage,
+                    center_amount: centerAmount,
+                    irpf_percentage: irpf,
+                    irpf_amount: irpfAmount,
+                    total_amount: totalFactura
+                })
+            });
+
+            if (res.ok) {
+                alert('✅ Factura presentada correctamente');
+                // Refresh data
+                fetchInvoiceData();
+            } else {
+                const error = await res.json();
+                alert('❌ Error al presentar factura: ' + error.message);
+            }
+        } catch (error) {
+            console.error('Error submitting invoice:', error);
+            alert('❌ Error de conexión al presentar factura');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
 
     const handleInvoiceClick = () => {
         setBillingMode('invoice');
@@ -1177,13 +1260,8 @@ const BillingTab = ({ user }) => {
         return (
             <div className="billing-detail invoice-view">
                 <div className="billing-header">
-                    <button className="btn-back-billing" onClick={() => setBillingMode('calendar')}>←  Volver</button>
+                    <button className="btn-back-billing" onClick={() => setBillingMode('calendar')}>← Volver</button>
                     <h2>📄 Generar Factura</h2>
-                    {!invoiceHasPending && invoiceSessions.length > 0 && (
-                        <button className="btn-download-pdf" onClick={downloadInvoicePDF} style={{ marginLeft: 'auto' }}>
-                            ⬇️ Descargar PDF
-                        </button>
-                    )}
                 </div>
 
                 {/* Month/Year Selector */}
@@ -1304,6 +1382,24 @@ const BillingTab = ({ user }) => {
                                 <span>{formatCurrency(totalFactura)}</span>
                             </div>
                         </div>
+
+                        {/* Action Buttons */}
+                        {/* Action Buttons */}
+                        <div className="invoice-actions">
+                            <button className="btn-download-pdf" onClick={downloadInvoicePDF}>
+                                Descargar PDF
+                            </button>
+
+                            {invoiceSubmitted ? (
+                                <button className="btn-submit-invoice submitted" disabled>
+                                    ✅ Factura Presentada
+                                </button>
+                            ) : (
+                                <button className="btn-submit-invoice" onClick={submitInvoice}>
+                                    Presentar Factura
+                                </button>
+                            )}
+                        </div>
                     </>
                 )}
             </div>
@@ -1364,7 +1460,23 @@ const BillingTab = ({ user }) => {
                     {view === 'weeks' && renderWeeks()}
                     {view === 'detail' && (user.role === 'admin' ? renderWeekDetailAdmin() : renderWeekDetailTherapist())}
                     {view === 'pending' && renderPendingView()}
+                    {view === 'pending' && renderPendingView()}
                 </>
+            )}
+
+            {/* Custom Confirmation Modal */}
+            {showConfirmModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content mobile-popup">
+                        <h3>📤 Presentar Factura</h3>
+                        <p>¿Estás seguro de que deseas presentar esta factura?</p>
+                        <p className="modal-warning">Una vez presentada, quedará registrada en el sistema y no podrás modificarla.</p>
+                        <div className="modal-actions">
+                            <button className="btn-cancel" onClick={() => setShowConfirmModal(false)}>Cancelar</button>
+                            <button className="btn-confirm" onClick={confirmSubmission}>Confirmar y Presentar</button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

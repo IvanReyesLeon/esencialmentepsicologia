@@ -11,6 +11,9 @@ import PatientsTab from '../components/PatientsTab';
 import RemindersTab from '../components/RemindersTab';
 import SyncTab from '../components/SyncTab';
 import ProfileTab from '../components/ProfileTab';
+
+import ExpensesTab from '../components/ExpensesTab';
+import NotificationBell from '../components/NotificationBell';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -176,13 +179,22 @@ const AdminDashboard = () => {
         onClick={() => setActiveTab('billing')}
       />
       {user.role === 'admin' && (
-        <HubCard
-          title="Reportes y Estadísticas"
-          icon="📈"
-          color="#AA00FF"
-          description="Dashboard con totales y tendencias"
-          onClick={() => setActiveTab('billing-dashboard')}
-        />
+        <>
+          <HubCard
+            title="Reportes y Estadísticas"
+            icon="📈"
+            color="#AA00FF"
+            description="Dashboard con totales y tendencias"
+            onClick={() => setActiveTab('billing-dashboard')}
+          />
+          <HubCard
+            title="Gastos y Facturas"
+            icon="💸"
+            color="#e03131"
+            description="Control de gastos y validación de facturas"
+            onClick={() => setActiveTab('expenses')}
+          />
+        </>
       )}
     </div>
   );
@@ -198,6 +210,7 @@ const AdminDashboard = () => {
           </div>
 
           <div className="header-actions">
+            <NotificationBell />
             <div className="user-info">
               <span className="user-role">{user.role === 'admin' ? 'Administrador' : 'Terapeuta'}</span>
               <span className="user-email">{user.email}</span>
@@ -227,6 +240,7 @@ const AdminDashboard = () => {
           {activeTab === 'blog' && <BlogTab />}
           {activeTab === 'billing' && <BillingTab user={user} calendarId={CALENDAR_ID} />}
           {activeTab === 'billing-dashboard' && <BillingDashboard user={user} />}
+          {activeTab === 'expenses' && <ExpensesTab />}
           {activeTab === 'patients' && <PatientsTab user={user} />}
           {activeTab === 'reminders' && <RemindersTab />}
           {activeTab === 'profile' && <ProfileTab user={user} onLogout={handleLogout} />}

@@ -1,0 +1,593 @@
+.expenses-container {
+    padding: 20px;
+}
+
+.expenses-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.expenses-header h2 {
+    margin: 0;
+    color: #333;
+}
+
+.expenses-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.month-selector {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    color: #333;
+}
+
+.expenses-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    color: #666;
+    cursor: pointer;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.tab-btn.active {
+    background-color: #e7f5ff;
+    color: #1971c2;
+}
+
+/* Dashboard Cards */
+.expenses-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.summary-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+}
+
+.summary-card h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.info-icon {
+    position: relative;
+    cursor: help;
+    font-size: 0.9rem;
+    color: #1971c2;
+    display: inline-block;
+}
+
+.info-icon .tooltip {
+    visibility: hidden;
+    width: 200px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 10;
+    bottom: 125%;
+    /* Position above */
+    left: 50%;
+    margin-left: -100px;
+    /* Center */
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.75rem;
+    font-weight: normal;
+    text-transform: none;
+    pointer-events: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.info-icon .tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+.info-icon:hover .tooltip,
+.info-icon:focus .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.summary-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.summary-card.income .summary-amount {
+    color: #2ecc71;
+}
+
+.summary-card.expense .summary-amount {
+    color: #e74c3c;
+}
+
+.summary-card.profit .summary-amount {
+    color: #3498db;
+}
+
+/* Tables */
+.expenses-table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.table-header {
+    padding: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.table-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.expenses-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.expenses-table th,
+.expenses-table td {
+    padding: 15px 20px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.expenses-table th {
+    background-color: #f8f9fa;
+    color: #666;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.expenses-table tr:last-child td {
+    border-bottom: none;
+}
+
+.category-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    background-color: #f1f3f5;
+    color: #495057;
+    font-weight: 500;
+}
+
+/* Specific Badge Colors */
+.cat-alquiler {
+    background-color: #e7f5ff;
+    color: #1971c2;
+}
+
+.cat-suministros {
+    background-color: #fff9db;
+    color: #e67700;
+}
+
+.cat-personal {
+    background-color: #e6fcf5;
+    color: #0ca678;
+}
+
+.cat-impuestos {
+    background-color: #ffe3e3;
+    color: #e03131;
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.badge-validated {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.amount-col {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.actions-cell {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    font-size: 1.1rem;
+}
+
+.btn-action:hover {
+    background-color: #f0f0f0;
+}
+
+.btn-action.delete:hover {
+    color: #e74c3c;
+    background-color: #fee;
+}
+
+.btn-action.edit:hover {
+    color: #3498db;
+    background-color: #eef;
+}
+
+.btn-validate {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border: 1px solid #1971c2;
+    background-color: white;
+    color: #1971c2;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-validate:hover {
+    background-color: #e7f5ff;
+}
+
+.btn-revoke {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border: 1px solid #e03131;
+    background-color: white;
+    color: #e03131;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-revoke:hover {
+    background-color: #ffe3e3;
+}
+
+/* Invoice Row Styles */
+.invoice-row.validated {
+    background-color: #f8fff9;
+}
+
+.invoice-row.pending {
+    background-color: #fffbf0;
+}
+
+/* Magic Button */
+.btn-magic {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-magic:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(139, 92, 246, 0.4);
+}
+
+.btn-primary {
+    background-color: #1971c2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #1864ab;
+}
+
+/* Modal Styles customization for this tab */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 500px;
+    max-width: 90%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content h3 {
+    margin-top: 0;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: inherit;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-cancel {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .expenses-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .expenses-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .expenses-controls select {
+        flex: 1;
+    }
+
+    .expenses-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 5px;
+        /* Scrollbar space */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-btn {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+        /* Prevent shrinking */
+    }
+
+    .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .table-header h3 {
+        margin-bottom: 5px;
+    }
+
+    .table-header div {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+    }
+
+    .table-header button {
+        flex: 1;
+        justify-content: center;
+    }
+
+    /* Force table scroll */
+    .expenses-table-container {
+        overflow-x: auto;
+    }
+
+    .expenses-table {
+        min-width: 600px;
+        /* Force minimum width to trigger scroll */
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+        margin: 10px;
+    }
+
+    /* Mobile Summary Cards: Just Font Adjustments */
+    .expenses-summary-cards {
+        gap: 5px;
+    }
+
+    .summary-card {
+        padding: 10px 4px;
+    }
+
+    .summary-card h3 {
+        font-size: 0.6rem;
+        min-height: 2em;
+    }
+
+    .summary-amount {
+        font-size: 1rem;
+    }
+
+    /* Hide subtitle on very small screens if necessary */
+    .summary-card div[style*="fontSize: 0.75rem"],
+    .summary-card div[style*="fontSize: 0.7rem"] {
+        font-size: 0.55rem !important;
+        line-height: 1.1;
+    }
+
+    /* Mobile Tooltip */
+    .summary-card .tooltip {
+        width: 200px;
+        bottom: 110%;
+        left: 50%;
+        margin-left: -100px;
+        font-size: 0.75rem;
+    }
+}
+
+
+/* Tooltip Logic - Desktop & Base */
+.summary-card {
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+    outline: none;
+    /* Remove focus outline */
+}
+
+.summary-card:hover,
+.summary-card:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    /* Bring to front */
+}
+
+.summary-card .tooltip {
+    visibility: hidden;
+    width: 250px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 10px;
+
+    /* Position */
+    position: absolute;
+    z-index: 100;
+    bottom: 110%;
+    /* Above card */
+    left: 50%;
+    margin-left: -125px;
+    /* Center */
+
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.85rem;
+    font-weight: normal;
+    text-transform: none;
+    line-height: 1.4;
+    pointer-events: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.summary-card .tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+/* Show tooltip on hover or focus (tap on mobile) */
+.summary-card:hover .tooltip,
+.summary-card:focus .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
