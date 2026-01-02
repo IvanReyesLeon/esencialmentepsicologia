@@ -402,6 +402,113 @@ exports.markSessionPaid = async (req, res) => {
 };
 
 /**
+ * Get monthly sessions for a therapist (for invoice generation)
+ */
+exports.getMonthlyTherapistSessions = async (req, res) => {
+    try {
+        const { therapist_id } = req.user;
+        const { year, month } = req.query;
+
+        if (!therapist_id) {
+            return res.status(400).json({ message: 'User is not linked to a therapist profile' });
+        }
+
+        // Get therapist info
+        const therapists = await getAllTherapists();
+        const me = therapists.find(t => t.id === therapist_id);
+
+        if (!me) {
+            return res.status(400).json({ message: 'Therapist profile not found' });
+        }
+
+        const y = parseInt(year) || new Date().getFullYear();
+        const m = parseInt(month) ?? new Date().getMonth();
+
+        // Calculate month range
+        const startDate = new Date(y, m, 1);
+        const endDate = new Date(y, m + 1, 0, 23, 59, 59); // Last day of month
+
+        // Get ALL sessions for the month (no colorId filter)
+        const allSessions = await getSessions(
+            CALENDAR_ID,
+            startDate,
+            endDate,
+            null // No filter - we'll filter by therapistId below
+        );
+
+        // Filter sessions by therapistId
+        const sessions = allSessions.filter(s => s.therapistId === therapist_id);
+
+        // Get payment status
+        const sessionIds = sessions.map(s => s.id);
+        let payments = [];
+        if (sessionIds.length > 0) {
+            const paymentResult = await pool.query(
+                `SELECT event_id, payment_type, marked_at 
+                 FROM session_payments 
+                 WHERE event_id = ANY($1) AND therapist_id = $2`,
+                [sessionIds, therapist_id]
+            );
+            payments = paymentResult.rows;
+        }
+
+        const paymentMap = {};
+        payments.forEach(p => {
+            paymentMap[p.event_id] = p;
+        });
+
+        let totalAmount = 0;
+        let pendingCount = 0;
+        const billableSessions = [];
+
+        sessions.forEach(session => {
+            const payment = paymentMap[session.id];
+            session.paymentStatus = payment ? payment.payment_type : 'pending';
+            session.markedAt = payment?.marked_at || null;
+
+            // Only count billable sessions (price > 0 and not cancelled/free)
+            if (session.price > 0 && session.paymentStatus !== 'cancelled' && !session.isLibre) {
+                billableSessions.push(session);
+                totalAmount += session.price;
+
+                // Check if pending
+                if (session.paymentStatus === 'pending') {
+                    pendingCount++;
+                }
+            }
+        });
+
+        // TODO: UNCOMMENT THIS AFTER TESTING - Pending sessions validation
+        // If there are pending sessions, return error
+        /* if (pendingCount > 0) {
+            return res.status(400).json({
+                error: true,
+                hasPending: true,
+                pendingCount,
+                message: `Tienes ${pendingCount} sesión${pendingCount > 1 ? 'es' : ''} pendiente${pendingCount > 1 ? 's' : ''} de revisar en este mes. Por favor, márcalas como revisadas antes de generar la factura.`
+            });
+        } */
+
+        // Return sessions for invoice
+        res.json({
+            therapist: me.full_name,
+            year: y,
+            month: m,
+            sessions: billableSessions,
+            hasPending: false,
+            summary: {
+                totalSessions: billableSessions.length,
+                subtotal: totalAmount
+            }
+        });
+
+    } catch (error) {
+        console.error('Monthly therapist sessions error:', error);
+        res.status(500).json({ message: 'Error getting monthly sessions' });
+    }
+};
+
+/**
  * Get all months with session counts (for navigation)
  */
 exports.getMonthsOverview = async (req, res) => {
@@ -421,5 +528,154 @@ exports.getMonthsOverview = async (req, res) => {
     } catch (error) {
         console.error('Months overview error:', error);
         res.status(500).json({ message: 'Error getting months' });
+    }
+};
+
+/**
+ * Get therapist's own billing data
+ */
+exports.getMyBillingData = async (req, res) => {
+    try {
+        const { therapist_id } = req.user;
+
+        if (!therapist_id) {
+            return res.status(400).json({ message: 'User is not linked to a therapist profile' });
+        }
+
+        const result = await pool.query(
+            'SELECT * FROM therapist_billing_data WHERE therapist_id = $1',
+            [therapist_id]
+        );
+
+        if (result.rows.length === 0) {
+            // Return empty data structure
+            return res.json({
+                full_name: '',
+                nif: '',
+                address_line1: '',
+                address_line2: '',
+                city: '',
+                postal_code: '',
+                iban: '',
+                phone: '',
+                email: ''
+            });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Get billing data error:', error);
+        res.status(500).json({ message: 'Error getting billing data' });
+    }
+};
+
+/**
+ * Update therapist's own billing data
+ */
+exports.updateMyBillingData = async (req, res) => {
+    try {
+        const { therapist_id } = req.user;
+        const { full_name, nif, address_line1, address_line2, city, postal_code, iban, phone, email } = req.body;
+
+        if (!therapist_id) {
+            return res.status(400).json({ message: 'User is not linked to a therapist profile' });
+        }
+
+        // Check if record exists
+        const existing = await pool.query(
+            'SELECT id FROM therapist_billing_data WHERE therapist_id = $1',
+            [therapist_id]
+        );
+
+        if (existing.rows.length === 0) {
+            // Insert new record
+            await pool.query(
+                `INSERT INTO therapist_billing_data 
+                (therapist_id, full_name, nif, address_line1, address_line2, city, postal_code, iban, phone, email)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+                [therapist_id, full_name, nif, address_line1, address_line2, city, postal_code, iban, phone, email]
+            );
+        } else {
+            // Update existing record
+            await pool.query(
+                `UPDATE therapist_billing_data 
+                SET full_name = $1, nif = $2, address_line1 = $3, address_line2 = $4,
+                    city = $5, postal_code = $6, iban = $7, phone = $8, email = $9, updated_at = NOW()
+                WHERE therapist_id = $10`,
+                [full_name, nif, address_line1, address_line2, city, postal_code, iban, phone, email, therapist_id]
+            );
+        }
+
+        res.json({ message: 'Billing data updated successfully' });
+    } catch (error) {
+        console.error('Update billing data error:', error);
+        res.status(500).json({ message: 'Error updating billing data' });
+    }
+};
+
+/**
+ * Get center billing data (all users can view)
+ */
+exports.getCenterBillingData = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM center_billing_data ORDER BY id LIMIT 1');
+
+        if (result.rows.length === 0) {
+            return res.json({
+                name: 'Esencialmente Psicología',
+                legal_name: '',
+                nif: '',
+                address_line1: '',
+                address_line2: '',
+                city: '',
+                postal_code: ''
+            });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Get center data error:', error);
+        res.status(500).json({ message: 'Error getting center data' });
+    }
+};
+
+/**
+ * Update center billing data (admin only)
+ */
+exports.updateCenterBillingData = async (req, res) => {
+    try {
+        // Check if user is admin
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Only admins can update center data' });
+        }
+
+        const { name, legal_name, nif, address_line1, address_line2, city, postal_code } = req.body;
+
+        // Check if record exists
+        const existing = await pool.query('SELECT id FROM center_billing_data LIMIT 1');
+
+        if (existing.rows.length === 0) {
+            // Insert new record
+            await pool.query(
+                `INSERT INTO center_billing_data 
+                (name, legal_name, nif, address_line1, address_line2, city, postal_code)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [name, legal_name, nif, address_line1, address_line2, city, postal_code]
+            );
+        } else {
+            // Update existing record
+            await pool.query(
+                `UPDATE center_billing_data 
+                SET name = $1, legal_name = $2, nif = $3, address_line1 = $4,
+                    address_line2 = $5, city = $6, postal_code = $7, updated_at = NOW()
+                WHERE id = (SELECT id FROM center_billing_data LIMIT 1)`,
+                [name, legal_name, nif, address_line1, address_line2, city, postal_code]
+            );
+        }
+
+        res.json({ message: 'Center data updated successfully' });
+    } catch (error) {
+        console.error('Update center data error:', error);
+        res.status(500).json({ message: 'Error updating center data' });
     }
 };

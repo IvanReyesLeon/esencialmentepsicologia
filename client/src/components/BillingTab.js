@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { API_ROOT } from '../services/api';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import './BillingTab.css';
 
 const API_URL = `${API_ROOT}/api`;
 const CALENDAR_ID = 'esencialmentepsicologia@gmail.com';
 
 const BillingTab = ({ user }) => {
-    const [view, setView] = useState('months'); // 'months' | 'weeks' | 'detail' | 'pending'
-    const [billingMode, setBillingMode] = useState('calendar'); // 'calendar' | 'payments'
+    const [view, setView] = useState('months'); // 'months' | 'weeks' | 'detail' | 'pending' | 'invoice'
+    const [billingMode, setBillingMode] = useState('calendar'); // 'calendar' | 'payments' | 'invoice'
     const [globalSessions, setGlobalSessions] = useState([]);
     const [globalStartDate, setGlobalStartDate] = useState(`${new Date().getFullYear()}-01-01`);
     const [globalEndDate, setGlobalEndDate] = useState(`${new Date().getFullYear()}-12-31`);
@@ -25,6 +27,15 @@ const BillingTab = ({ user }) => {
     const [transferDateSessionId, setTransferDateSessionId] = useState(null);
     const [transferDateValue, setTransferDateValue] = useState('');
 
+    // Invoice generation states
+    const [invoiceYear, setInvoiceYear] = useState(new Date().getFullYear());
+    const [invoiceMonth, setInvoiceMonth] = useState(new Date().getMonth());
+    const [invoiceSessions, setInvoiceSessions] = useState([]);
+    const [invoiceHasPending, setInvoiceHasPending] = useState(false);
+    const [invoicePendingCount, setInvoicePendingCount] = useState(0);
+    const [invoicePendingMessage, setInvoicePendingMessage] = useState('');
+    const [therapistPercentage, setTherapistPercentage] = useState(60);
+    const [irpf, setIrpf] = useState(15);
 
     const months = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -52,6 +63,13 @@ const BillingTab = ({ user }) => {
             fetchWeekDetail();
         }
     }, [selectedWeek, billingMode]);
+
+    // Fetch invoice data when year/month changes
+    useEffect(() => {
+        if (billingMode === 'invoice') {
+            fetchInvoiceData();
+        }
+    }, [invoiceYear, invoiceMonth, billingMode]);
 
     const fetchGlobalSessions = async () => {
         try {
@@ -215,6 +233,242 @@ const BillingTab = ({ user }) => {
         setGlobalEndDate(e);
         setBillingMode('payments');
         setBillingMode('payments');
+    };
+
+    const fetchInvoiceData = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch(
+                `${API_URL}/admin/billing/monthly-sessions?year=${invoiceYear}&month=${invoiceMonth}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const data = await res.json();
+
+            if (data.hasPending) {
+                // Has pending sessions - show warning
+                setInvoiceHasPending(true);
+                setInvoicePendingCount(data.pendingCount);
+                setInvoicePendingMessage(data.message);
+                setInvoiceSessions([]);
+            } else {
+                // All sessions are ready for invoice
+                setInvoiceHasPending(false);
+                setInvoicePendingCount(0);
+                setInvoicePendingMessage('');
+                setInvoiceSessions(data.sessions || []);
+            }
+        } catch (error) {
+            console.error('Error fetching invoice data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleInvoiceClick = () => {
+        setBillingMode('invoice');
+        setView('invoice');
+        fetchInvoiceData();
+    };
+
+    const downloadInvoicePDF = async () => {
+        try {
+            // Fetch billing data
+            const token = localStorage.getItem('token');
+            const [therapistRes, centerRes] = await Promise.all([
+                fetch(`${API_URL}/admin/billing/my-data`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                }),
+                fetch(`${API_URL}/admin/billing/center-data`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+            ]);
+
+            const therapistData = await therapistRes.json();
+            const centerData = await centerRes.json();
+
+            const doc = new jsPDF();
+
+            // Calculate all values
+            const subtotal = invoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
+            const centerPercentage = 100 - therapistPercentage;
+            const centerAmount = subtotal * (centerPercentage / 100);
+            const baseDisponible = subtotal * (therapistPercentage / 100);
+            const irpfAmount = baseDisponible * (irpf / 100);
+            const totalFactura = baseDisponible - irpfAmount;
+
+            // Header with orange background
+            doc.setFillColor(255, 140, 66);
+            doc.rect(0, 0, 210, 40, 'F');
+
+            // Title
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.text('FACTURA', 105, 20, { align: 'center' });
+
+            // Date info
+            doc.setFontSize(12);
+            const monthName = months[invoiceMonth];
+            doc.text(`${monthName} ${invoiceYear}`, 105, 30, { align: 'center' });
+
+            // Reset text color
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+
+            // Left column - "FACTURAR A" (Center Data)
+            doc.setFont(undefined, 'bold');
+            doc.text('FACTURAR A:', 14, 50);
+            doc.setFont(undefined, 'normal');
+
+            let yPos = 56;
+            if (centerData.name) {
+                doc.text(centerData.name, 14, yPos);
+                yPos += 5;
+            }
+            if (centerData.legal_name) {
+                doc.text(`(${centerData.legal_name})`, 14, yPos);
+                yPos += 5;
+            }
+            if (centerData.nif) {
+                doc.text(centerData.nif, 14, yPos);
+                yPos += 5;
+            }
+            if (centerData.address_line1) {
+                doc.text(centerData.address_line1, 14, yPos);
+                yPos += 5;
+            }
+            if (centerData.address_line2) {
+                doc.text(centerData.address_line2, 14, yPos);
+                yPos += 5;
+            }
+            const cityPostal = [centerData.postal_code, centerData.city].filter(Boolean).join(' ');
+            if (cityPostal) {
+                doc.text(cityPostal, 14, yPos);
+            }
+
+            // Right column - "DE" (Therapist Data)
+            doc.setFont(undefined, 'bold');
+            doc.text('DE:', 120, 50);
+            doc.setFont(undefined, 'normal');
+
+            yPos = 56;
+            if (therapistData.full_name) {
+                doc.text(therapistData.full_name, 120, yPos);
+                yPos += 5;
+            }
+            if (therapistData.nif) {
+                doc.text(therapistData.nif, 120, yPos);
+                yPos += 5;
+            }
+            if (therapistData.address_line1) {
+                doc.text(therapistData.address_line1, 120, yPos);
+                yPos += 5;
+            }
+            if (therapistData.address_line2) {
+                doc.text(therapistData.address_line2, 120, yPos);
+                yPos += 5;
+            }
+            const therapistCityPostal = [therapistData.postal_code, therapistData.city].filter(Boolean).join(' ');
+            if (therapistCityPostal) {
+                doc.text(therapistCityPostal, 120, yPos);
+                yPos += 5;
+            }
+            if (therapistData.iban) {
+                doc.text(therapistData.iban, 120, yPos);
+            }
+
+            // Group sessions by price
+            const sessionsByPrice = {};
+            invoiceSessions.forEach(session => {
+                const price = session.price || 0;
+                if (!sessionsByPrice[price]) {
+                    sessionsByPrice[price] = { count: 0, price: price };
+                }
+                sessionsByPrice[price].count++;
+            });
+
+            // Create table data with grouped sessions
+            const tableData = Object.values(sessionsByPrice).map(group => [
+                `${group.count} ${group.count === 1 ? 'sesión' : 'sesiones'}`,
+                formatCurrency(group.price),
+                `${group.count} x ${formatCurrency(group.price)}`,
+                formatCurrency(group.count * group.price)
+            ]);
+
+            autoTable(doc, {
+                startY: 90,
+                head: [['Descripción', 'Precio/Unidad', 'Cantidad', 'Total']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [255, 140, 66],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                styles: {
+                    fontSize: 10
+                }
+            });
+
+            // Summary section
+            let finalY = doc.lastAutoTable.finalY + 15;
+
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+
+            // Summary lines
+            doc.text('SUBTOTAL:', 120, finalY);
+            doc.text(formatCurrency(subtotal), 190, finalY, { align: 'right' });
+
+            finalY += 10;
+            doc.setFont(undefined, 'normal');
+            doc.text(`- Centro (${centerPercentage}%):`, 120, finalY);
+            doc.text(formatCurrency(centerAmount), 190, finalY, { align: 'right' });
+
+            finalY += 8;
+            doc.setFont(undefined, 'bold');
+            doc.text(`BASE DISPONIBLE (${therapistPercentage}%):`, 120, finalY);
+            doc.text(formatCurrency(baseDisponible), 190, finalY, { align: 'right' });
+
+            finalY += 8;
+            doc.setFont(undefined, 'normal');
+            doc.text(`- ${irpf}% IRPF:`, 120, finalY);
+            doc.text(formatCurrency(irpfAmount), 190, finalY, { align: 'right' });
+
+            // Total line
+            finalY += 10;
+            doc.setDrawColor(255, 140, 66);
+            doc.setLineWidth(0.5);
+            doc.line(120, finalY, 195, finalY);
+            finalY += 8;
+
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(255, 140, 66);
+            doc.text('TOTAL FACTURA:', 120, finalY);
+            doc.text(formatCurrency(totalFactura), 190, finalY, { align: 'right' });
+
+            // Legal text
+            doc.setFontSize(8);
+            doc.setTextColor(80, 80, 80);
+            doc.setFont(undefined, 'italic');
+            const legalText = 'Operación exenta según lo dispuesto en el art. 20. Uno. 3 de la Ley 37/1992 de 28 de diciembre. del Impuesto sobre el Valor Añadido.';
+            const legalLines = doc.splitTextToSize(legalText, 180);
+            doc.text(legalLines, 105, 270, { align: 'center' });
+
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.setFont(undefined, 'normal');
+            doc.text('Esencialmente Psicología - www.esencialmentepsicologia.com', 105, 285, { align: 'center' });
+
+            // Save the PDF
+            const fileName = `Factura_${monthName}_${invoiceYear}.pdf`;
+            doc.save(fileName);
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Error al generar el PDF. Verifica que tus datos estén completos.');
+        }
     };
 
     // === MONTH SELECTOR VIEW ===
@@ -599,6 +853,15 @@ const BillingTab = ({ user }) => {
 
         return (
             <div className="billing-detail global-payment-view">
+                {/* Header with Invoice Button for Therapists */}
+                {user.role !== 'admin' && (
+                    <div className="billing-header" style={{ marginBottom: '20px' }}>
+                        <h2>💰 Gestión de Pagos</h2>
+                        <button className="btn-invoice" onClick={handleInvoiceClick} style={{ marginLeft: 'auto' }}>
+                            📄 Generar Factura
+                        </button>
+                    </div>
+                )}
 
                 {/* Global Summary Dashboard - Admin ve euros, Terapeutas ven número de sesiones */}
                 <div className="billing-summary-cards" style={{ marginBottom: '20px' }}>
@@ -901,6 +1164,152 @@ const BillingTab = ({ user }) => {
         );
     };
 
+    // === INVOICE GENERATOR VIEW ===
+    const renderInvoiceGenerator = () => {
+        // Calculate totals
+        const subtotal = invoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
+        const centerPercentage = 100 - therapistPercentage;
+        const centerAmount = subtotal * (centerPercentage / 100);
+        const baseDisponible = subtotal * (therapistPercentage / 100);
+        const irpfAmount = baseDisponible * (irpf / 100);
+        const totalFactura = baseDisponible - irpfAmount;
+
+        return (
+            <div className="billing-detail invoice-view">
+                <div className="billing-header">
+                    <button className="btn-back-billing" onClick={() => setBillingMode('calendar')}>←  Volver</button>
+                    <h2>📄 Generar Factura</h2>
+                    {!invoiceHasPending && invoiceSessions.length > 0 && (
+                        <button className="btn-download-pdf" onClick={downloadInvoicePDF} style={{ marginLeft: 'auto' }}>
+                            ⬇️ Descargar PDF
+                        </button>
+                    )}
+                </div>
+
+                {/* Month/Year Selector */}
+                <div className="invoice-month-selector">
+                    <label>
+                        Mes:
+                        <select value={invoiceMonth} onChange={(e) => setInvoiceMonth(parseInt(e.target.value))}>
+                            {months.map((month, index) => (
+                                <option key={index} value={index}>{month}</option>
+                            ))}
+                        </select>
+                    </label>
+                    <label>
+                        Año:
+                        <select value={invoiceYear} onChange={(e) => setInvoiceYear(parseInt(e.target.value))}>
+                            {[2024, 2025, 2026].map(year => (
+                                <option key={year} value={year}>{year}</option>
+                            ))}
+                        </select>
+                    </label>
+                </div>
+
+                {/* Pending Sessions Warning */}
+                {invoiceHasPending ? (
+                    <div className="invoice-pending-warning">
+                        <p>⚠️ {invoicePendingMessage}</p>
+                        <button
+                            className="btn-go-to-payments"
+                            onClick={() => {
+                                setBillingMode('payments');
+                                const year = invoiceYear;
+                                const month = invoiceMonth;
+                                const startDate = new Date(year, month, 1);
+                                const endDate = new Date(year, month + 1, 0);
+                                setGlobalStartDate(startDate.toLocaleDateString('en-CA'));
+                                setGlobalEndDate(endDate.toLocaleDateString('en-CA'));
+                                setFilterStatus('pending');
+                            }}
+                        >
+                            Ir a Gestión de Pagos
+                        </button>
+                    </div>
+                ) : invoiceSessions.length === 0 ? (
+                    <div className="no-sessions">
+                        <p>No hay sesiones facturables en este mes.</p>
+                    </div>
+                ) : (
+                    <>
+                        {/* Configuration Inputs */}
+                        <div className="invoice-inputs">
+                            <label>
+                                % Terapeuta:
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={therapistPercentage}
+                                    onChange={(e) => setTherapistPercentage(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
+                                />
+                            </label>
+                            <label>
+                                IRPF:
+                                <select value={irpf} onChange={(e) => setIrpf(parseInt(e.target.value))}>
+                                    <option value={7}>7%</option>
+                                    <option value={15}>15%</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        {/* Sessions Table */}
+                        <div className="invoice-sessions-table">
+                            <div className="table-header-with-hint">
+                                <h3>Sesiones del Mes</h3>
+                                <span className="scroll-hint">← Desliza para ver más →</span>
+                            </div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Hora</th>
+                                        <th>Paciente</th>
+                                        <th>Precio</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {invoiceSessions.map((session, index) => (
+                                        <tr key={session.id || index}>
+                                            <td>{formatDate(session.date)}</td>
+                                            <td>{session.startTime}</td>
+                                            <td>{session.title}</td>
+                                            <td>{formatCurrency(session.price)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Invoice Summary */}
+                        <div className="invoice-summary">
+                            <div className="summary-row">
+                                <span>SUBTOTAL:</span>
+                                <span>{formatCurrency(subtotal)}</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>PORCENTAJE CENTRO ({centerPercentage}%):</span>
+                                <span>{formatCurrency(centerAmount)}</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>BASE DISPONIBLE ({therapistPercentage}%):</span>
+                                <span>{formatCurrency(baseDisponible)}</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>- {irpf}% IRPF:</span>
+                                <span>{formatCurrency(irpfAmount)}</span>
+                            </div>
+                            <div className="summary-row total">
+                                <span>TOTAL FACTURA:</span>
+                                <span>{formatCurrency(totalFactura)}</span>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+        );
+    };
+
 
     if (loading) {
         return <div className="billing-loading">Cargando...</div>;
@@ -926,6 +1335,8 @@ const BillingTab = ({ user }) => {
 
             {billingMode === 'payments' ? (
                 renderGlobalPayments()
+            ) : billingMode === 'invoice' ? (
+                renderInvoiceGenerator()
             ) : (
                 <>
                     {/* Calendar Toggle Button */}

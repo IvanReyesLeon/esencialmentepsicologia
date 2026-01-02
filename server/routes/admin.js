@@ -18,7 +18,18 @@ router.get('/billing/weekly', auth, admin, billingController.getWeeklySummaryAdm
 // Therapist: Get their own sessions for a week
 router.get('/billing/my-sessions', auth, billingController.getTherapistSessions);
 
+// Therapist: Get monthly sessions for invoice generation
+router.get('/billing/monthly-sessions', auth, billingController.getMonthlyTherapistSessions);
+
 // Therapist: Mark a session as paid
 router.post('/billing/sessions/:eventId/payment', auth, billingController.markSessionPaid);
+
+// Billing: Therapist billing data
+router.get('/billing/my-data', auth, billingController.getMyBillingData);
+router.put('/billing/my-data', auth, billingController.updateMyBillingData);
+
+// Billing: Center billing data
+router.get('/billing/center-data', auth, billingController.getCenterBillingData);
+router.put('/billing/center-data', auth, billingController.updateCenterBillingData);
 
 module.exports = router;

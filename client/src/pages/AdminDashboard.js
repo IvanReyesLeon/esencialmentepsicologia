@@ -10,6 +10,7 @@ import BillingDashboard from '../components/BillingDashboard';
 import PatientsTab from '../components/PatientsTab';
 import RemindersTab from '../components/RemindersTab';
 import SyncTab from '../components/SyncTab';
+import ProfileTab from '../components/ProfileTab';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -17,12 +18,6 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('hub'); // Start at 'hub'
-
-  // Password Change State
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [pwdCurrent, setPwdCurrent] = useState('');
-  const [pwdNew, setPwdNew] = useState('');
-  const [pwdMsg, setPwdMsg] = useState({ type: '', text: '' });
   const [therapists, setTherapists] = useState([]);
   const [pricing, setPricing] = useState([]);
   const [workshops, setWorkshops] = useState([]);
@@ -88,70 +83,7 @@ const AdminDashboard = () => {
     navigate('/admin');
   };
 
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    setPwdMsg({ type: '', text: '' });
 
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/auth/change-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ currentPassword: pwdCurrent, newPassword: pwdNew })
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        setPwdMsg({ type: 'success', text: 'Contraseña actualizada correctamente' });
-        setPwdCurrent('');
-        setPwdNew('');
-        setTimeout(() => setShowPasswordModal(false), 2000);
-      } else {
-        setPwdMsg({ type: 'error', text: data.message || 'Error al cambiar la contraseña' });
-      }
-    } catch (error) {
-      setPwdMsg({ type: 'error', text: 'Error de conexión' });
-    }
-  };
-
-  const renderPasswordModal = () => {
-    if (!showPasswordModal) return null;
-    return (
-      <div className="modal-overlay">
-        <div className="modal-content password-modal">
-          <h3>🔐 Cambiar Contraseña</h3>
-          <form onSubmit={handleChangePassword}>
-            <div className="form-group">
-              <label>Contraseña Actual:</label>
-              <input
-                type="password"
-                value={pwdCurrent}
-                onChange={(e) => setPwdCurrent(e.target.value)}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Nueva Contraseña:</label>
-              <input
-                type="password"
-                value={pwdNew}
-                onChange={(e) => setPwdNew(e.target.value)}
-                required
-              />
-            </div>
-            {pwdMsg.text && <p className={`msg ${pwdMsg.type}`}>{pwdMsg.text}</p>}
-            <div className="modal-actions">
-              <button type="submit" className="btn-confirm">Actualizar</button>
-              <button type="button" className="btn-cancel" onClick={() => setShowPasswordModal(false)}>Cancelar</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
 
   const HubCard = ({ title, icon, color, onClick, description }) => (
     <div className="hub-card" onClick={onClick} style={{ borderTopColor: color }}>
@@ -221,6 +153,15 @@ const AdminDashboard = () => {
           />
         </>
       )}
+
+      {/* Profile - Available for Everyone */}
+      <HubCard
+        title="Mi Cuenta"
+        icon="👤"
+        color="#607D8B"
+        description="Datos personales y configuración"
+        onClick={() => setActiveTab('profile')}
+      />
     </div>
   );
 
@@ -261,12 +202,6 @@ const AdminDashboard = () => {
               <span className="user-role">{user.role === 'admin' ? 'Administrador' : 'Terapeuta'}</span>
               <span className="user-email">{user.email}</span>
             </div>
-            <button onClick={() => setShowPasswordModal(true)} className="btn btn-secondary btn-sm">
-              🔐 Contraseña
-            </button>
-            <button onClick={handleLogout} className="btn btn-secondary btn-sm">
-              Salir
-            </button>
           </div>
         </div>
       </header>
@@ -294,9 +229,9 @@ const AdminDashboard = () => {
           {activeTab === 'billing-dashboard' && <BillingDashboard user={user} />}
           {activeTab === 'patients' && <PatientsTab user={user} />}
           {activeTab === 'reminders' && <RemindersTab />}
+          {activeTab === 'profile' && <ProfileTab user={user} onLogout={handleLogout} />}
         </div>
       </div>
-      {renderPasswordModal()}
     </div>
   );
 };
@@ -313,6 +248,7 @@ const getTitle = (tab) => {
     case 'billing-dashboard': return 'Reportes y Estadísticas';
     case 'patients': return 'Gestión de Pacientes';
     case 'reminders': return 'Cola de Recordatorios';
+    case 'profile': return 'Mi Cuenta';
     default: return 'Panel';
   }
 };
