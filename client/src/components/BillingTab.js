@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { API_ROOT } from '../services/api';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import ConfirmModal from './ConfirmModal';
 import './BillingTab.css';
 
 const API_URL = `${API_ROOT}/api`;
@@ -30,6 +31,16 @@ const BillingTab = ({ user }) => {
     const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'pending' | 'paid'
     const [transferDateSessionId, setTransferDateSessionId] = useState(null);
     const [transferDateValue, setTransferDateValue] = useState('');
+
+    // Price editing states
+    const [editingPriceSessionId, setEditingPriceSessionId] = useState(null);
+    const [editingPriceValue, setEditingPriceValue] = useState('');
+    const [sessionPrices, setSessionPrices] = useState({}); // Track modified prices locally
+
+    // Revoke modal states
+    const [showRevokeModal, setShowRevokeModal] = useState(false);
+    const [sessionToRevoke, setSessionToRevoke] = useState(null);
+    const [recentlyRevokedId, setRecentlyRevokedId] = useState(null); // To highlight revoked session
 
     // Invoice generation states
     const [invoiceYear, setInvoiceYear] = useState(new Date().getFullYear());
@@ -168,16 +179,26 @@ const BillingTab = ({ user }) => {
         return `${day}/${month}/${year}`;
     };
 
-    const markPayment = async (eventId, paymentType, paymentDate = null) => {
+    const markPayment = async (eventId, paymentType, paymentDate = null, session = null) => {
         try {
             const token = localStorage.getItem('token');
+            // Include session data for history
+            const bodyData = {
+                paymentType,
+                paymentDate,
+                sessionDate: session?.date || null,
+                sessionTitle: session?.title || null,
+                originalPrice: session?.price || 55,
+                modifiedPrice: sessionPrices[eventId] || null
+            };
+
             await fetch(`${API_URL}/admin/billing/sessions/${eventId}/payment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify({ paymentType, paymentDate })
+                body: JSON.stringify(bodyData)
             });
             // Refresh data
             if (billingMode === 'payments') {
@@ -189,6 +210,124 @@ const BillingTab = ({ user }) => {
             setTransferDateValue('');
         } catch (error) {
             console.error('Error marking payment:', error);
+        }
+    };
+
+    // Update session price (before assigning payment status)
+    const updateSessionPrice = async (eventId, newPrice, resetToOriginal = false, session = null) => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/billing/sessions/${eventId}/price`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    modifiedPrice: resetToOriginal ? null : parseFloat(newPrice),
+                    resetToOriginal,
+                    sessionDate: session?.date || null,
+                    sessionTitle: session?.title || null,
+                    originalPrice: session?.price || 55,
+                    targetTherapistId: session?.therapistId || null
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                // Update local state
+                if (resetToOriginal) {
+                    setSessionPrices(prev => {
+                        const updated = { ...prev };
+                        delete updated[eventId];
+                        return updated;
+                    });
+                } else {
+                    setSessionPrices(prev => ({ ...prev, [eventId]: parseFloat(newPrice) }));
+                }
+                // Refresh data
+                if (billingMode === 'payments') {
+                    fetchGlobalSessions();
+                } else {
+                    fetchWeekDetail();
+                }
+            } else {
+                const error = await res.json();
+                alert(error.message || 'Error al actualizar precio');
+            }
+
+            setEditingPriceSessionId(null);
+            setEditingPriceValue('');
+        } catch (error) {
+            console.error('Error updating price:', error);
+        }
+    };
+
+    // Admin: Revoke price change and reset to pending (for review)
+    const handleRevokeClick = (session) => {
+        setSessionToRevoke(session);
+        setShowRevokeModal(true);
+    };
+
+    const confirmRevokePriceChange = async () => {
+        const session = sessionToRevoke;
+        if (!session) return;
+
+        setShowRevokeModal(false);
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/billing/sessions/${session.id}/revoke-price`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    sessionDate: session.date,
+                    sessionTitle: session.title,
+                    originalPrice: session.originalPrice || 55,
+                    targetTherapistId: session.therapistId
+                })
+            });
+
+            if (res.ok) {
+                // 1. Update local state immediately to reflect changes without waiting for fetch
+                setGlobalSessions(prev => prev.map(s => {
+                    if (s.id === session.id) {
+                        return {
+                            ...s,
+                            price: session.originalPrice || 55, // Reset to original price
+                            modifiedPrice: null,
+                            paymentStatus: 'pending',
+                            paymentDate: null
+                        };
+                    }
+                    return s;
+                }));
+
+                // 2. Remove from local edited prices map
+                setSessionPrices(prev => {
+                    const updated = { ...prev };
+                    delete updated[session.id];
+                    return updated;
+                });
+
+                // 3. Highlight the revoked session
+                setRecentlyRevokedId(session.id);
+                // Clear highlight after 5 seconds
+                setTimeout(() => setRecentlyRevokedId(null), 5000);
+
+                // 4. Background refresh to ensure consistency
+                fetchGlobalSessions();
+            } else {
+                const error = await res.json();
+                alert(error.message || 'Error al revocar cambio');
+            }
+        } catch (error) {
+            console.error('Error revoking price change:', error);
+        } finally {
+            setSessionToRevoke(null);
         }
     };
 
@@ -250,14 +389,16 @@ const BillingTab = ({ user }) => {
             );
             const data = await res.json();
 
-            if (data.hasPending) {
+            // FIX: Check for error response (400) or hasPending flag
+            if (!res.ok || data.hasPending || data.error) {
                 // Has pending sessions - show warning
                 setInvoiceHasPending(true);
-                setInvoicePendingCount(data.pendingCount);
-                setInvoicePendingMessage(data.message);
+                setInvoicePendingCount(data.pendingCount || 0);
+                setInvoicePendingMessage(data.message || 'Tienes sesiones pendientes de revisar.');
                 setInvoiceSessions([]);
             } else {
                 // All sessions are ready for invoice
+                setInvoiceHasPending(false);
                 setInvoicePendingMessage('');
                 setInvoiceSessions(data.sessions || []);
             }
@@ -882,37 +1023,20 @@ const BillingTab = ({ user }) => {
 
     // === GLOBAL PAYMENT VIEW ===
     const renderGlobalPayments = () => {
-        // Filter by Therapist (Frontend name match) an STATUS
-        const visibleSessions = globalSessions.filter(session => {
-            // Exclude non-billable sessions (libre/anulada)
+        // First, calculate totals for ALL sessions (before status filter)
+        // This ensures counters are consistent regardless of filter
+        const allBillableSessions = globalSessions.filter(session => {
             if (session.isLibre) return false;
-
-            // 1. Filter by Therapist
-            if (filterTherapist !== 'all') {
-                // Admin sees names, Therapist has restricted view from backend anyway, but this checks frontend match just in case
-                if (user.role === 'admin' && session.therapistName !== filterTherapist) {
-                    return false;
-                }
+            // Apply therapist filter only (not status filter)
+            if (filterTherapist !== 'all' && user.role === 'admin') {
+                if (session.therapistName !== filterTherapist) return false;
             }
-
-            // 2. Filter by Status
-            if (filterStatus !== 'all') {
-                const isPaid = session.paymentStatus === 'transfer' || session.paymentStatus === 'cash' || session.paymentStatus === 'bizum';
-                const isPending = session.paymentStatus === 'pending';
-                // Note: Cancelled is hidden from totals usually, but let's include 'cancelled' in 'paid' bucket? Or separate? 
-                // User asked for "Pagados" and "Pendientes". Cancelled is neither, or "Finalized".
-                // Let's assume 'Paid' = Transfer/Cash/Bizum. 'Pending' = Pending. 
-
-                if (filterStatus === 'paid' && !isPaid) return false;
-                if (filterStatus === 'pending' && !isPending) return false;
-            }
-
             return true;
         });
 
-        // Calculate Totals for VISIBLE sessions (with cash/transfer breakdown and session counts)
-        const summary = visibleSessions.reduce((acc, s) => {
-            if (s.paymentStatus === 'cancelled') return acc; // Don't count cancelled in money
+        // Calculate totals from ALL billable sessions (consistent counters)
+        const summary = allBillableSessions.reduce((acc, s) => {
+            if (s.paymentStatus === 'cancelled') return acc;
             acc.total += s.price;
             acc.totalSessions += 1;
             if (s.paymentStatus === 'pending') {
@@ -921,7 +1045,6 @@ const BillingTab = ({ user }) => {
             } else {
                 acc.paid += s.price;
                 acc.paidSessions += 1;
-                // Track payment method breakdown
                 if (s.paymentStatus === 'cash') {
                     acc.cash += s.price;
                 } else if (s.paymentStatus === 'transfer' || s.paymentStatus === 'bizum') {
@@ -930,6 +1053,16 @@ const BillingTab = ({ user }) => {
             }
             return acc;
         }, { total: 0, pending: 0, paid: 0, cash: 0, transfer: 0, totalSessions: 0, pendingSessions: 0, paidSessions: 0 });
+
+        // Then apply status filter for display
+        const visibleSessions = allBillableSessions.filter(session => {
+            if (filterStatus === 'all') return true;
+            const isPaid = session.paymentStatus === 'transfer' || session.paymentStatus === 'cash' || session.paymentStatus === 'bizum';
+            const isPending = session.paymentStatus === 'pending';
+            if (filterStatus === 'paid' && !isPaid) return false;
+            if (filterStatus === 'pending' && !isPending) return false;
+            return true;
+        });
 
         // Get unique therapist names for filter dropdown
         const therapistNames = [...new Set(globalSessions.map(s => s.therapistName))].sort();
@@ -948,7 +1081,11 @@ const BillingTab = ({ user }) => {
 
                 {/* Global Summary Dashboard - Admin ve euros, Terapeutas ven número de sesiones */}
                 <div className="billing-summary-cards" style={{ marginBottom: '20px' }}>
-                    <div className="summary-card total">
+                    <div
+                        className="summary-card total clickable"
+                        onClick={() => setFilterStatus('all')}
+                        title="Ver todas las sesiones"
+                    >
                         <span className="summary-value">
                             {user.role === 'admin' ? formatCurrency(summary.total) : summary.totalSessions}
                         </span>
@@ -974,7 +1111,11 @@ const BillingTab = ({ user }) => {
                             {user.role === 'admin' ? '✅ Pagado' : '✅ Sesiones Revisadas'}
                         </span>
                     </div>
-                    <div className="summary-card pending">
+                    <div
+                        className="summary-card pending clickable"
+                        onClick={() => setFilterStatus('pending')}
+                        title="Ver solo pendientes"
+                    >
                         <span className="summary-value">
                             {user.role === 'admin' ? formatCurrency(summary.pending) : summary.pendingSessions}
                         </span>
@@ -1024,67 +1165,144 @@ const BillingTab = ({ user }) => {
                     {visibleSessions.length === 0 ? (
                         <p className="no-sessions">No hay sesiones en este periodo.</p>
                     ) : (
-                        visibleSessions.map(session => (
-                            <div key={session.id} className={`pending-session-card ${session.paymentStatus} global-card`}>
-                                <div className="pending-session-info">
-                                    <div className="session-date-row">
-                                        <span className="session-date">{formatDate(session.date)}</span>
-                                        <span className="session-therapist-tag" style={{ backgroundColor: session.therapistColor, color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '0.8rem', marginLeft: '8px' }}>
-                                            {session.therapistName}
-                                        </span>
-                                    </div>
-                                    <span className="session-title">{session.title}</span>
-                                    {user.role === 'admin' && (
-                                        <span className="session-price">{formatCurrency(session.price)}</span>
-                                    )}
-                                    {session.paymentStatus !== 'pending' && (
-                                        <span className={`status-badge ${session.paymentStatus} mini-badge`}>
-                                            {session.paymentStatus === 'transfer' || session.paymentStatus === 'bizum' ? '🏦 Transferencia' :
-                                                session.paymentStatus === 'cash' ? '💵 Efectivo' : '❌ Cancelada'}
-                                            {session.paymentDate && <span className="payment-date-small"> ({formatDate(session.paymentDate)})</span>}
-                                        </span>
-                                    )}
-                                </div>
+                        visibleSessions.map(session => {
+                            // Check both local state and server-side modified price
+                            const hasServerModifiedPrice = session.modifiedPrice !== null && session.modifiedPrice !== undefined;
+                            const hasLocalModifiedPrice = sessionPrices[session.id] !== undefined;
+                            const hasModifiedPrice = hasLocalModifiedPrice || hasServerModifiedPrice;
 
-                                <div className="payment-actions">
-                                    {/* Permission Check: If Therapist and Payment is Paid (not pending), show Read Only */}
-                                    {(user.role !== 'admin' && session.paymentStatus !== 'pending') ? (
-                                        <span className="read-only-msg">✅ Procesado</span>
-                                    ) : (
-                                        transferDateSessionId === session.id ? (
-                                            <div className="transfer-date-input">
-                                                <input
-                                                    type="date"
-                                                    value={transferDateValue}
-                                                    onChange={(e) => setTransferDateValue(e.target.value)}
-                                                    className="date-input-mini"
-                                                    autoFocus
-                                                />
-                                                <button className="btn-confirm-transfer" onClick={() => markPayment(session.id, 'transfer', transferDateValue)} disabled={!transferDateValue}>✅</button>
-                                                <button className="btn-cancel-transfer" onClick={() => setTransferDateSessionId(null)}>✖️</button>
+                            // Display price priority: local edit > server modified > server price
+                            const displayPrice = sessionPrices[session.id] || session.price;
+                            const originalPrice = session.originalPrice || 55;
+
+                            return (
+                                <div key={session.id} className={`pending-session-card ${session.paymentStatus} global-card ${recentlyRevokedId === session.id ? 'recently-revoked' : ''}`}>
+                                    <div className="pending-session-info">
+                                        <div className="session-date-row">
+                                            <span className="session-date">{formatDate(session.date)}</span>
+                                            <span className="session-therapist-tag" style={{ backgroundColor: session.therapistColor, color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '0.8rem', marginLeft: '8px' }}>
+                                                {session.therapistName}
+                                            </span>
+                                        </div>
+                                        <span className="session-title">{session.title}</span>
+
+                                        {/* Price display/edit section */}
+                                        {session.paymentStatus === 'pending' ? (
+                                            <div className="session-price-edit">
+                                                {editingPriceSessionId === session.id ? (
+                                                    <div className="price-input-row">
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            step="1"
+                                                            value={editingPriceValue}
+                                                            onChange={(e) => setEditingPriceValue(e.target.value)}
+                                                            className="price-input-mini"
+                                                            autoFocus
+                                                        />
+                                                        <button
+                                                            className="btn-confirm-price"
+                                                            onClick={() => updateSessionPrice(session.id, editingPriceValue, false, session)}
+                                                            disabled={!editingPriceValue}
+                                                            title="Guardar precio"
+                                                        >✅</button>
+                                                        <button
+                                                            className="btn-cancel-price"
+                                                            onClick={() => { setEditingPriceSessionId(null); setEditingPriceValue(''); }}
+                                                            title="Cancelar"
+                                                        >✖️</button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="price-display-row">
+                                                        <span
+                                                            className={`session-price editable ${hasModifiedPrice ? 'modified' : ''}`}
+                                                            onClick={() => {
+                                                                setEditingPriceSessionId(session.id);
+                                                                setEditingPriceValue(displayPrice.toString());
+                                                            }}
+                                                            title="Clic para editar precio"
+                                                        >
+                                                            {formatCurrency(displayPrice)}
+                                                            {!hasModifiedPrice && <span className="edit-icon">✏️</span>}
+                                                            {hasModifiedPrice && <span className="modified-indicator">(editado)</span>}
+                                                        </span>
+                                                        {hasModifiedPrice && (
+                                                            <button
+                                                                className="btn-reset-price"
+                                                                onClick={() => updateSessionPrice(session.id, null, true, session)}
+                                                                title="Restablecer precio original"
+                                                            >↩️</button>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         ) : (
-                                            <>
-                                                <button
-                                                    className={`btn-pay transfer ${session.paymentStatus === 'transfer' ? 'active' : ''}`}
-                                                    onClick={() => handleTransferClick(session.id)}
-                                                    title="Marcar como Transferencia"
-                                                >🏦</button>
-                                                <button
-                                                    className={`btn-pay cash ${session.paymentStatus === 'cash' ? 'active' : ''}`}
-                                                    onClick={() => markPayment(session.id, 'cash')}
-                                                    title="Marcar como Efectivo"
-                                                >💵</button>
-                                                <button
-                                                    className={`btn-pay cancel ${session.paymentStatus === 'cancelled' ? 'active' : ''}`}
-                                                    onClick={() => markPayment(session.id, 'cancelled')}
-                                                    title="Cancelar (No cobrar)"
-                                                >❌</button>
-                                            </>
-                                        ))}
+                                            /* For paid sessions, show price (admin) with revoke option if modified */
+                                            <div className="price-display-row">
+                                                <span className={`session-price ${hasModifiedPrice ? 'modified' : ''}`}>
+                                                    {formatCurrency(displayPrice)}
+                                                    {hasModifiedPrice && <span className="modified-indicator">(editado)</span>}
+                                                </span>
+                                                {/* Revoke only for admin */}
+                                                {user.role === 'admin' && hasModifiedPrice && (
+                                                    <button
+                                                        className="btn-revoke-price"
+                                                        onClick={() => handleRevokeClick(session)}
+                                                        title="Revocar cambio y devolver a pendiente"
+                                                    >🔄 Revocar</button>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {session.paymentStatus !== 'pending' && (
+                                            <span className={`status-badge ${session.paymentStatus} mini-badge`}>
+                                                {session.paymentStatus === 'transfer' || session.paymentStatus === 'bizum' ? '🏦 Transferencia' :
+                                                    session.paymentStatus === 'cash' ? '💵 Efectivo' : '❌ Cancelada'}
+                                                {session.paymentDate && <span className="payment-date-small"> ({formatDate(session.paymentDate)})</span>}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="payment-actions">
+                                        {/* Permission Check: If Therapist and Payment is Paid (not pending), show Read Only */}
+                                        {(user.role !== 'admin' && session.paymentStatus !== 'pending') ? (
+                                            <span className="read-only-msg">✅ Procesado</span>
+                                        ) : (
+                                            transferDateSessionId === session.id ? (
+                                                <div className="transfer-date-input">
+                                                    <input
+                                                        type="date"
+                                                        value={transferDateValue}
+                                                        onChange={(e) => setTransferDateValue(e.target.value)}
+                                                        className="date-input-mini"
+                                                        autoFocus
+                                                    />
+                                                    <button className="btn-confirm-transfer" onClick={() => markPayment(session.id, 'transfer', transferDateValue, session)} disabled={!transferDateValue}>✅</button>
+                                                    <button className="btn-cancel-transfer" onClick={() => setTransferDateSessionId(null)}>✖️</button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        className={`btn-pay transfer ${session.paymentStatus === 'transfer' ? 'active' : ''}`}
+                                                        onClick={() => handleTransferClick(session.id)}
+                                                        title="Marcar como Transferencia"
+                                                    >🏦</button>
+                                                    <button
+                                                        className={`btn-pay cash ${session.paymentStatus === 'cash' ? 'active' : ''}`}
+                                                        onClick={() => markPayment(session.id, 'cash', null, session)}
+                                                        title="Marcar como Efectivo"
+                                                    >💵</button>
+                                                    <button
+                                                        className={`btn-pay cancel ${session.paymentStatus === 'cancelled' ? 'active' : ''}`}
+                                                        onClick={() => markPayment(session.id, 'cancelled', null, session)}
+                                                        title="Cancelar (No cobrar)"
+                                                    >❌</button>
+                                                </>
+                                            ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            )
+                        })
                     )}
                 </div>
             </div>
@@ -1478,6 +1696,20 @@ const BillingTab = ({ user }) => {
                     </div>
                 </div>
             )}
+
+            {/* Revoke Price Modal */}
+            <ConfirmModal
+                isOpen={showRevokeModal}
+                onClose={() => { setShowRevokeModal(false); setSessionToRevoke(null); }}
+                onConfirm={confirmRevokePriceChange}
+                title="🔄 Revocar Cambio de Precio"
+                message={sessionToRevoke ?
+                    `La sesión volverá a pendiente con el precio original (${formatCurrency(sessionToRevoke.originalPrice || 55)}) y el terapeuta recibirá una notificación.`
+                    : ''}
+                confirmText="Revocar"
+                cancelText="Cancelar"
+                isDanger={true}
+            />
         </div>
     );
 };

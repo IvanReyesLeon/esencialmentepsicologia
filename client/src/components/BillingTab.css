@@ -1941,6 +1941,7 @@
 }
 
 @media (max-width: 480px) {
+
     .invoice-month-selector select,
     .invoice-inputs input,
     .invoice-inputs select {
@@ -1988,8 +1989,15 @@
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
 /* Center invoice inputs better */
@@ -2001,11 +2009,11 @@
     .scroll-hint {
         display: block;
     }
-    
+
     .invoice-inputs {
         justify-content: flex-start;
     }
-    
+
     .invoice-inputs label {
         background: #f8f9fa;
         padding: 12px 15px;
@@ -2045,7 +2053,7 @@
     .invoice-actions {
         flex-direction: column;
     }
-    
+
     .btn-download-pdf,
     .btn-submit-invoice {
         width: 100%;
@@ -2063,4 +2071,167 @@
 .btn-submit-invoice.submitted:hover {
     transform: none;
     background: #e0e0e0;
+}
+
+/* === PRICE EDITING STYLES === */
+.session-price-edit {
+    display: flex;
+    align-items: center;
+}
+
+.price-display-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.price-input-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.session-price.editable {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.session-price.editable:hover {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.session-price.editable.modified {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px dashed #ff9800;
+}
+
+.modified-badge {
+    font-size: 0.9rem;
+}
+
+.edit-icon {
+    font-size: 0.85rem;
+    margin-left: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.session-price.editable:hover .edit-icon {
+    opacity: 1;
+}
+
+.modified-indicator {
+    font-size: 0.75rem;
+    color: #e65100;
+    margin-left: 4px;
+    font-weight: 500;
+}
+
+.price-input-mini {
+    width: 80px;
+    padding: 6px 10px;
+    border: 2px solid #4285F4;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    text-align: right;
+    font-weight: 600;
+}
+
+.price-input-mini:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
+}
+
+.btn-confirm-price,
+.btn-cancel-price,
+.btn-reset-price {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.btn-confirm-price:hover {
+    background: #e8f5e9;
+}
+
+.btn-cancel-price:hover {
+    background: #ffebee;
+}
+
+.btn-reset-price {
+    color: #ff9800;
+    font-size: 0.9rem;
+}
+
+.btn-reset-price:hover {
+    background: #fff3e0;
+}
+
+.btn-confirm-price:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .session-price-edit {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .price-input-mini {
+        width: 70px;
+    }
+}
+
+/* Admin Revoke Button */
+.btn-revoke-price {
+    background: #fff3e0;
+    border: 1px solid #ff9800;
+    color: #e65100;
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+
+.btn-revoke-price:hover {
+    background: #ffe0b2;
+    border-color: #e65100;
+}
+
+.session-price.modified {
+    color: #e65100;
+}
+
+/* Highlight for recently revoked session */
+.recently-revoked {
+    animation: flashInfo 3s ease-out;
+    border-left: 5px solid #ff9800 !important;
+}
+
+@keyframes flashInfo {
+    0% {
+        background-color: #fff3e0;
+    }
+
+    100% {
+        background-color: white;
+    }
 }

@@ -274,6 +274,9 @@ exports.getGlobalSessions = async (req, res) => {
                 const detected = detectTherapist(event.summary || '');
                 if (!detected && !process.env.IncludeUnknown) return null; // Skip if strict
 
+                // Filter out "Anna"
+                if ((event.summary || '').toLowerCase().includes('anna')) return null;
+
                 const sessionTherapistId = detected ? detected.id : 'unknown';
                 const sessionTherapistName = detected ? detected.name : 'Desconocido';
                 const sessionColor = detected ? detected.color : event.colorId;
@@ -299,8 +302,9 @@ exports.getGlobalSessions = async (req, res) => {
                 // Skip 'Unknown' if we only want assigned
                 if (sessionTherapistId === 'unknown') return null;
 
-                // Check "Libre"
-                if (isNonBillable(session.title)) {
+                // Check non-billable (libre, anulada, no disponible)
+                const titleLower = (session.title || '').toLowerCase();
+                if (titleLower.includes('libre') || titleLower.includes('anulada') || titleLower.includes('no disponible')) {
                     session.isLibre = true;
                     session.price = 0;
                 } else {
@@ -310,11 +314,23 @@ exports.getGlobalSessions = async (req, res) => {
 
                 // Attach Payment Info
                 if (paymentsMap[session.id]) {
-                    session.paymentStatus = paymentsMap[session.id].payment_type;
-                    session.paidAt = paymentsMap[session.id].marked_at;
-                    session.paymentDate = paymentsMap[session.id].payment_date;
+                    const payment = paymentsMap[session.id];
+                    session.paymentStatus = payment.payment_type;
+                    session.paidAt = payment.marked_at;
+                    session.paymentDate = payment.payment_date;
+                    // Include price modification info
+                    session.originalPrice = payment.original_price || session.price;
+                    session.modifiedPrice = payment.modified_price || null;
+                    // Use modified price if available
+                    if (payment.modified_price !== null && payment.modified_price !== undefined) {
+                        session.price = parseFloat(payment.modified_price);
+                    } else if (payment.original_price !== null && payment.original_price !== undefined) {
+                        session.price = parseFloat(payment.original_price);
+                    }
                 } else {
                     session.paymentStatus = 'pending';
+                    session.originalPrice = session.price;
+                    session.modifiedPrice = null;
                 }
 
                 return session;
@@ -334,7 +350,15 @@ exports.markSessionPaid = async (req, res) => {
     try {
         const { therapist_id } = req.user;
         const { eventId } = req.params;
-        const { paymentType, paymentDate } = req.body; // 'transfer' | 'cash' | 'cancelled' | null
+        const {
+            paymentType,
+            paymentDate,
+            // New fields for session history
+            sessionDate,
+            sessionTitle,
+            originalPrice,
+            modifiedPrice
+        } = req.body; // 'transfer' | 'cash' | 'cancelled' | null
 
         if (!therapist_id) {
             return res.status(400).json({ message: 'User is not linked to a therapist profile' });
@@ -346,10 +370,11 @@ exports.markSessionPaid = async (req, res) => {
 
         // Get existing payment status for audit log
         const existingPaymentResult = await pool.query(
-            `SELECT payment_type FROM session_payments WHERE event_id = $1`,
+            `SELECT payment_type, original_price, modified_price FROM session_payments WHERE event_id = $1`,
             [eventId]
         );
-        const oldStatus = existingPaymentResult.rows[0]?.payment_type || 'pending';
+        const existingRecord = existingPaymentResult.rows[0];
+        const oldStatus = existingRecord?.payment_type || 'pending';
 
         // Check permissions: Therapists cannot modify 'paid' sessions
         if (req.user.role !== 'admin') {
@@ -365,13 +390,32 @@ exports.markSessionPaid = async (req, res) => {
                 [eventId, therapist_id]
             );
         } else {
-            // Upsert payment record with optional payment_date
+            // Upsert payment record with session history data
             await pool.query(
-                `INSERT INTO session_payments (event_id, therapist_id, payment_type, marked_at, payment_date)
-                 VALUES ($1, $2, $3, NOW(), $4)
+                `INSERT INTO session_payments (
+                    event_id, therapist_id, payment_type, marked_at, payment_date,
+                    session_date, session_title, original_price, modified_price
+                )
+                 VALUES ($1, $2, $3, NOW(), $4, $5, $6, $7, $8)
                  ON CONFLICT (event_id) 
-                 DO UPDATE SET payment_type = $3, marked_at = NOW(), payment_date = $4`,
-                [eventId, therapist_id, paymentType, paymentDate || null]
+                 DO UPDATE SET 
+                    payment_type = $3, 
+                    marked_at = NOW(), 
+                    payment_date = $4,
+                    session_date = COALESCE($5, session_payments.session_date),
+                    session_title = COALESCE($6, session_payments.session_title),
+                    original_price = COALESCE($7, session_payments.original_price),
+                    modified_price = COALESCE($8, session_payments.modified_price)`,
+                [
+                    eventId,
+                    therapist_id,
+                    paymentType,
+                    paymentDate || null,
+                    sessionDate || null,
+                    sessionTitle || null,
+                    originalPrice || 55.00,
+                    modifiedPrice || null
+                ]
             );
         }
 
@@ -381,8 +425,8 @@ exports.markSessionPaid = async (req, res) => {
 
         await pool.query(`
             INSERT INTO payment_audit_log 
-            (event_id, user_id, user_name, action, old_status, new_status, payment_date)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            (event_id, user_id, user_name, action, old_status, new_status, payment_date, session_date)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         `, [
             eventId,
             req.user.id,
@@ -390,7 +434,8 @@ exports.markSessionPaid = async (req, res) => {
             action,
             oldStatus,
             paymentType || 'pending',
-            paymentDate || null
+            paymentDate || null,
+            sessionDate || null
         ]);
 
         res.json({ success: true, eventId, paymentType });
@@ -398,6 +443,241 @@ exports.markSessionPaid = async (req, res) => {
     } catch (error) {
         console.error('Mark paid error:', error);
         res.status(500).json({ message: 'Error marking session' });
+    }
+};
+
+/**
+ * Update session price (before marking payment status)
+ * - Therapist can modify price of their own sessions
+ * - Admin can reset price of any session
+ * - Both actions create notifications
+ */
+exports.updateSessionPrice = async (req, res) => {
+    try {
+        const { therapist_id, role, id: userId } = req.user;
+        const { eventId } = req.params;
+        const {
+            modifiedPrice,
+            resetToOriginal,
+            sessionDate,
+            sessionTitle,
+            originalPrice,
+            targetTherapistId // For admin to specify which therapist's session
+        } = req.body;
+
+        if (!eventId) {
+            return res.status(400).json({ message: 'Event ID required' });
+        }
+
+        // Determine the therapist ID to use
+        const effectiveTherapistId = role === 'admin' && targetTherapistId
+            ? targetTherapistId
+            : therapist_id;
+
+        if (!effectiveTherapistId) {
+            return res.status(400).json({ message: 'Therapist ID required' });
+        }
+
+        // Get existing record
+        const existingResult = await pool.query(
+            `SELECT * FROM session_payments WHERE event_id = $1`,
+            [eventId]
+        );
+        const existingRecord = existingResult.rows[0];
+
+        // Check if session already has a payment status (not pending)
+        if (existingRecord && existingRecord.payment_type !== 'pending' && existingRecord.payment_type) {
+            return res.status(403).json({
+                message: 'No se puede modificar el precio de una sesión que ya tiene estado de pago asignado.'
+            });
+        }
+
+        const oldPrice = existingRecord?.modified_price || existingRecord?.original_price || 55.00;
+        const newPrice = resetToOriginal ? null : modifiedPrice;
+        const effectiveOriginalPrice = originalPrice || existingRecord?.original_price || 55.00;
+
+        // Upsert the session payment record with the new price
+        await pool.query(
+            `INSERT INTO session_payments (
+                event_id, therapist_id, payment_type, 
+                session_date, session_title, original_price, modified_price
+            )
+             VALUES ($1, $2, 'pending', $3, $4, $5, $6)
+             ON CONFLICT (event_id) 
+             DO UPDATE SET 
+                modified_price = $6,
+                session_date = COALESCE($3, session_payments.session_date),
+                session_title = COALESCE($4, session_payments.session_title),
+                original_price = COALESCE($5, session_payments.original_price),
+                updated_at = NOW()`,
+            [
+                eventId,
+                effectiveTherapistId,
+                sessionDate || null,
+                sessionTitle || null,
+                effectiveOriginalPrice,
+                newPrice
+            ]
+        );
+
+        // Get therapist name for notification
+        const therapistResult = await pool.query(
+            `SELECT full_name FROM therapists WHERE id = $1`,
+            [effectiveTherapistId]
+        );
+        const therapistName = therapistResult.rows[0]?.full_name || 'Terapeuta';
+
+        // Format date for notification
+        const formattedDate = sessionDate
+            ? new Date(sessionDate).toLocaleDateString('es-ES')
+            : 'fecha desconocida';
+
+        // Create notifications based on who made the change
+        if (role === 'admin') {
+            // Admin changed price → Notify the therapist
+            const userResult = await pool.query(
+                `SELECT id FROM users WHERE therapist_id = $1`,
+                [effectiveTherapistId]
+            );
+            const targetUserId = userResult.rows[0]?.id;
+
+            if (targetUserId) {
+                const message = resetToOriginal
+                    ? `El administrador ha restablecido el precio de tu sesión del ${formattedDate} al precio original (${effectiveOriginalPrice}€).`
+                    : `El administrador ha modificado el precio de tu sesión del ${formattedDate} de ${oldPrice}€ a ${modifiedPrice}€.`;
+
+                await pool.query(
+                    `INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, 'info')`,
+                    [targetUserId, message]
+                );
+            }
+        } else {
+            // Therapist changed price → Notify all admins
+            const adminResult = await pool.query(
+                `SELECT u.id FROM users u 
+                 JOIN roles r ON u.role_id = r.id 
+                 WHERE r.name = 'admin'`
+            );
+
+            const message = resetToOriginal
+                ? `${therapistName} ha restablecido el precio de su sesión del ${formattedDate} al precio original (${effectiveOriginalPrice}€).`
+                : `${therapistName} ha modificado el precio de su sesión del ${formattedDate} de ${effectiveOriginalPrice}€ a ${modifiedPrice}€.`;
+
+            for (const admin of adminResult.rows) {
+                await pool.query(
+                    `INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, 'warning')`,
+                    [admin.id, message]
+                );
+            }
+        }
+
+        res.json({
+            success: true,
+            eventId,
+            originalPrice: effectiveOriginalPrice,
+            modifiedPrice: newPrice,
+            resetToOriginal: !!resetToOriginal
+        });
+
+    } catch (error) {
+        console.error('Update session price error:', error);
+        res.status(500).json({ message: 'Error updating session price' });
+    }
+};
+
+/**
+ * Admin: Revoke price change and reset session to pending
+ * This resets modified_price to null and payment status to pending
+ */
+exports.revokePriceChange = async (req, res) => {
+    try {
+        const { role } = req.user;
+        const { eventId } = req.params;
+        const { sessionDate, sessionTitle, originalPrice, targetTherapistId } = req.body;
+
+        // Only admin can revoke
+        if (role !== 'admin') {
+            return res.status(403).json({ message: 'Solo el administrador puede revocar cambios de precio.' });
+        }
+
+        if (!eventId) {
+            return res.status(400).json({ message: 'Event ID required' });
+        }
+
+        // Check if session exists and has modified price
+        const existingResult = await pool.query(
+            `SELECT * FROM session_payments WHERE event_id = $1`,
+            [eventId]
+        );
+
+        if (existingResult.rows.length === 0) {
+            return res.status(404).json({ message: 'No se encontró la sesión en el registro de pagos.' });
+        }
+
+        const existingPayment = existingResult.rows[0];
+        const oldModifiedPrice = existingPayment.modified_price;
+        const therapistId = existingPayment.therapist_id || targetTherapistId;
+
+        // Reset: set modified_price to null, restore original_price (fix inconsistencies) and payment_type to pending
+        await pool.query(
+            `UPDATE session_payments 
+             SET modified_price = NULL, 
+                 original_price = $2,
+                 payment_type = 'pending',
+                 payment_date = NULL,
+                 marked_at = NOW()
+             WHERE event_id = $1`,
+            [eventId, originalPrice || 55] // Default to 55 if missing
+        );
+
+        // Notify the therapist
+        if (therapistId) {
+            // Get user linked to this therapist
+            const userResult = await pool.query(
+                `SELECT id FROM users WHERE therapist_id = $1`,
+                [therapistId]
+            );
+
+            // Format date for notification
+            const formattedDate = sessionDate
+                ? new Date(sessionDate).toLocaleDateString('es-ES')
+                : 'fecha desconocida';
+
+            const message = `El administrador ha revocado el cambio de precio de tu sesión del ${formattedDate}. La sesión ha vuelto a pendiente con el precio original (${originalPrice || 55}€). Por favor, revísala.`;
+
+            for (const user of userResult.rows) {
+                await pool.query(
+                    `INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, 'warning')`,
+                    [user.id, message]
+                );
+            }
+        }
+
+        // Log the action (simplified to avoid column issues)
+        try {
+            await pool.query(`
+                INSERT INTO payment_audit_log 
+                (event_id, user_id, action, old_status, new_status, session_date)
+                VALUES ($1, $2, 'price_revoked', $3, 'pending', $4)
+            `, [
+                eventId,
+                req.user.id,
+                existingPayment.payment_type || 'unknown',
+                sessionDate || null
+            ]);
+        } catch (logError) {
+            console.error('Audit log failed (non-blocking):', logError.message);
+        }
+
+        res.json({
+            success: true,
+            eventId,
+            message: 'Cambio de precio revocado. La sesión ha vuelto a pendiente.'
+        });
+
+    } catch (error) {
+        console.error('Revoke price change error:', error);
+        res.status(500).json({ message: 'Error al revocar cambio de precio' });
     }
 };
 
@@ -444,7 +724,7 @@ exports.getMonthlyTherapistSessions = async (req, res) => {
         let payments = [];
         if (sessionIds.length > 0) {
             const paymentResult = await pool.query(
-                `SELECT event_id, payment_type, marked_at 
+                `SELECT event_id, payment_type, marked_at, original_price, modified_price 
                  FROM session_payments 
                  WHERE event_id = ANY($1) AND therapist_id = $2`,
                 [sessionIds, therapist_id]
@@ -463,8 +743,25 @@ exports.getMonthlyTherapistSessions = async (req, res) => {
 
         sessions.forEach(session => {
             const payment = paymentMap[session.id];
-            session.paymentStatus = payment ? payment.payment_type : 'pending';
-            session.markedAt = payment?.marked_at || null;
+
+            if (payment) {
+                // If payment record exists, source of truth is DB
+                // Start with recorded original price
+                if (payment.original_price) {
+                    session.price = parseFloat(payment.original_price);
+                }
+
+                // Override if modified price exists
+                if (payment.modified_price) {
+                    session.price = parseFloat(payment.modified_price);
+                }
+
+                session.paymentStatus = payment.payment_type;
+                session.markedAt = payment.marked_at || null;
+            } else {
+                session.paymentStatus = 'pending';
+                session.markedAt = null;
+            }
 
             // Only count billable sessions (price > 0 and not cancelled/free)
             if (session.price > 0 && session.paymentStatus !== 'cancelled' && !session.isLibre) {
@@ -478,16 +775,15 @@ exports.getMonthlyTherapistSessions = async (req, res) => {
             }
         });
 
-        // TODO: UNCOMMENT THIS AFTER TESTING - Pending sessions validation
         // If there are pending sessions, return error
-        /* if (pendingCount > 0) {
+        if (pendingCount > 0) {
             return res.status(400).json({
                 error: true,
                 hasPending: true,
                 pendingCount,
                 message: `Tienes ${pendingCount} sesión${pendingCount > 1 ? 'es' : ''} pendiente${pendingCount > 1 ? 's' : ''} de revisar en este mes. Por favor, márcalas como revisadas antes de generar la factura.`
             });
-        } */
+        }
 
         // Return sessions for invoice
         res.json({
@@ -495,7 +791,7 @@ exports.getMonthlyTherapistSessions = async (req, res) => {
             year: y,
             month: m,
             sessions: billableSessions,
-            hasPending: false,
+            hasPending: pendingCount > 0,
             summary: {
                 totalSessions: billableSessions.length,
                 subtotal: totalAmount
@@ -677,5 +973,211 @@ exports.updateCenterBillingData = async (req, res) => {
     } catch (error) {
         console.error('Update center data error:', error);
         res.status(500).json({ message: 'Error updating center data' });
+    }
+};
+
+/**
+ * Submit invoice for a month
+ */
+exports.submitInvoice = async (req, res) => {
+    try {
+        const { therapist_id } = req.user;
+        const { month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount } = req.body;
+
+        if (!therapist_id) {
+            return res.status(400).json({ message: 'User is not linked to a therapist profile' });
+        }
+
+        // Check if invoice already submitted
+        const existing = await pool.query(
+            'SELECT id FROM invoice_submissions WHERE therapist_id = $1 AND month = $2 AND year = $3',
+            [therapist_id, month, year]
+        );
+
+        if (existing.rows.length > 0) {
+            // Update existing submission
+            await pool.query(
+                `UPDATE invoice_submissions 
+                SET subtotal = $1, center_percentage = $2, center_amount = $3, 
+                    irpf_percentage = $4, irpf_amount = $5, total_amount = $6, submitted_at = NOW()
+                WHERE therapist_id = $7 AND month = $8 AND year = $9`,
+                [subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, therapist_id, month, year]
+            );
+            return res.json({ message: 'Factura actualizada correctamente' });
+        }
+
+        // Insert new submission
+        await pool.query(
+            `INSERT INTO invoice_submissions 
+            (therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount]
+        );
+
+        res.json({ message: 'Factura presentada correctamente' });
+    } catch (error) {
+        console.error('Error submitting invoice:', error);
+        res.status(500).json({ message: 'Error presenting invoice' });
+    }
+};
+
+/**
+ * Check if invoice is submitted
+ */
+exports.checkInvoiceStatus = async (req, res) => {
+    try {
+        const { therapist_id } = req.user;
+        const { month, year } = req.query;
+
+        if (!therapist_id) {
+            return res.status(400).json({ message: 'User is not linked to a therapist profile' });
+        }
+
+        const result = await pool.query(
+            'SELECT * FROM invoice_submissions WHERE therapist_id = $1 AND month = $2 AND year = $3',
+            [therapist_id, month, year]
+        );
+
+        if (result.rows.length > 0) {
+            return res.json({ submitted: true, submission: result.rows[0] });
+        }
+
+        res.json({ submitted: false });
+    } catch (error) {
+        console.error('Error checking invoice status:', error);
+        res.status(500).json({ message: 'Error checking invoice status' });
+    }
+};
+
+/**
+ * Validate (approve) a submitted invoice
+ */
+exports.validateInvoiceSubmission = async (req, res) => {
+    try {
+        const { therapistId, month, year, validated, paymentDate } = req.body;
+
+        // Get user ID
+        const userRes = await pool.query('SELECT id FROM users WHERE therapist_id = $1', [therapistId]);
+        const targetUserId = userRes.rows[0]?.id;
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            await client.query(
+                `UPDATE invoice_submissions
+                 SET validated = $1, payment_date = $2
+                 WHERE therapist_id = $3 AND month = $4 AND year = $5`,
+                [validated, paymentDate || null, therapistId, month, year]
+            );
+
+            // Create notification
+            if (targetUserId && validated) {
+                const monthName = new Date(year, month).toLocaleDateString('es-ES', { month: 'long' });
+                const message = `Tu factura de ${monthName} ${year} ha sido validada y está en proceso de pago.`;
+
+                await client.query(
+                    `INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, 'success')`,
+                    [targetUserId, message]
+                );
+            }
+
+            await client.query('COMMIT');
+            res.json({ message: 'Estado de factura actualizado y terapeuta notificado' });
+
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        } finally {
+            client.release();
+        }
+
+    } catch (error) {
+        console.error('Error validating invoice:', error);
+        res.status(500).json({ message: 'Error validating invoice' });
+    }
+};
+
+/**
+ * Revoke (delete) a submitted invoice
+ */
+/**
+ * Revoke (delete) a submitted invoice
+ */
+exports.revokeInvoiceSubmission = async (req, res) => {
+    try {
+        const { therapistId, month, year } = req.body;
+
+        // Get therapist user_id first to send notification
+        // WE assume there is a mapping or we can get it from therapist table if it had user_id
+        // For now, let's assuming therapist_id IS the user_id or close enough in this specific app structure 
+        // (Wait, looking at auth middleware, req.user payload has { id, therapist_id, role })
+        // We need to find the user_id associated with this therapist_id. 
+        // If the 'users' table has 'therapist_id', we can find it.
+
+        // Let's first get the user ID associated with this therapist ID
+        const userRes = await pool.query('SELECT id FROM users WHERE therapist_id = $1', [therapistId]);
+        const targetUserId = userRes.rows[0]?.id;
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // 1. Delete submission
+            await client.query(
+                `DELETE FROM invoice_submissions
+                 WHERE therapist_id = $1 AND month = $2 AND year = $3`,
+                [therapistId, month, year]
+            );
+
+            // 2. Create notification if user exists
+            if (targetUserId) {
+                const monthName = new Date(year, month).toLocaleDateString('es-ES', { month: 'long' });
+                const message = `Tu factura de ${monthName} ${year} ha sido revocada por el administrador. Por favor, revísala y vuélvela a presentar.`;
+
+                await client.query(
+                    `INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, 'warning')`,
+                    [targetUserId, message]
+                );
+            }
+
+            await client.query('COMMIT');
+            res.json({ message: 'Factura revocada y terapeuta notificado' });
+
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        } finally {
+            client.release();
+        }
+
+    } catch (error) {
+        console.error('Error revoking invoice:', error);
+        res.status(500).json({ message: 'Error revoking invoice' });
+    }
+};
+
+/**
+ * Get all invoice submissions for a specific month (Admin)
+ */
+exports.getInvoiceSubmissions = async (req, res) => {
+    try {
+        const { month, year } = req.query;
+
+        const result = await pool.query(
+            `SELECT s.*, t.full_name as therapist_name, t.id as therapist_id
+             FROM invoice_submissions s
+             LEFT JOIN therapists t ON s.therapist_id = t.id
+             WHERE s.month = $1 AND s.year = $2
+             ORDER BY s.submitted_at DESC`,
+            [month, year]
+        );
+        console.log(`Found ${result.rows.length} submissions`);
+
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error getting invoice submissions:', error);
+        res.status(500).json({ message: 'Error getting invoice submissions' });
     }
 };

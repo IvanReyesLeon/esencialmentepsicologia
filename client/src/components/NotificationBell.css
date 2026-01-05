@@ -5,7 +5,13 @@
 }
 
 .notification-bell {
+    position: relative;
+    /* Added relative positioning context */
     font-size: 1.2rem;
+    width: fit-content;
+    /* Prevent stretching in flex containers */
+    margin: 0 auto;
+    /* Center if parent stretches */
     color: #666;
     transition: color 0.2s;
     padding: 6px;
@@ -29,12 +35,15 @@
     border-radius: 50%;
     width: 18px;
     height: 18px;
-    font-size: 11px;
+    font-size: 10px;
+    /* Slightly smaller font */
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
     border: 2px solid white;
+    transform: translate(25%, -10%);
+    /* Fine-tune position */
 }
 
 .notifications-dropdown {

@@ -25,6 +25,13 @@
     animation: scaleIn 0.2s ease-out;
 }
 
+@media (max-width: 480px) {
+    .custom-modal-content {
+        width: 85%;
+        padding: 20px;
+    }
+}
+
 .custom-modal-header h3 {
     margin: 0;
     font-size: 1.25rem;

@@ -193,10 +193,11 @@ const getSessions = async (calendarId, startDate, endDate, colorId = null) => {
             // Check if it's a non-billable event (free room slot or cancelled session)
             const isLibre = lowerTitle.includes('libre');
             const isAnulada = lowerTitle.includes('anulada');
-            const isNonBillable = isLibre || isAnulada;
+            const isNoDisponible = lowerTitle.includes('no disponible');
+            const isNonBillable = isLibre || isAnulada || isNoDisponible;
 
             // Skip Anna's sessions - she's the manager, billed separately
-            if (title.toLowerCase().includes('/anna/')) return;
+            if (title.toLowerCase().includes('anna')) return;
 
             const eventColorId = event.colorId || 'default';
 
@@ -290,7 +291,7 @@ const getWeeklySummary = async (calendarId, startDate, endDate, therapists) => {
  */
 const isNonBillable = (title) => {
     const lower = (title || '').toLowerCase();
-    return lower.includes('libre') || lower.includes('anulada');
+    return lower.includes('libre') || lower.includes('anulada') || lower.includes('no disponible');
 };
 
 /**
