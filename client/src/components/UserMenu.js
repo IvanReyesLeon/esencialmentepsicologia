@@ -21,6 +21,9 @@ const UserMenu = ({ user, onLogout, onProfileClick }) => {
         };
     }, [isOpen]);
 
+    // Extract name from email
+    const displayName = user.email ? user.email.split('@')[0] : '';
+
     const toggleMenu = () => setIsOpen(!isOpen);
 
     const handleOptionClick = (action) => {
@@ -33,7 +36,7 @@ const UserMenu = ({ user, onLogout, onProfileClick }) => {
             {/* Desktop Trigger */}
             <div className="menu-trigger desktop-only" onClick={toggleMenu} title="Menú de Usuario">
                 <div className="user-details">
-                    <span className="name">{user.role === 'admin' ? 'Admin' : 'Terapeuta'}</span>
+                    <span className="name">{displayName}</span>
                 </div>
                 <div className="user-avatar">
                     👤
@@ -50,10 +53,11 @@ const UserMenu = ({ user, onLogout, onProfileClick }) => {
             </div>
 
             {/* Dropdown Menu */}
+            {/* Dropdown Menu */}
             {isOpen && (
                 <div className="user-dropdown">
                     <div className="dropdown-header">
-                        <span className="user-email-header">{user.email}</span>
+                        <span className="user-email-header">{displayName}</span>
                         <span className="user-role-badge">{user.role === 'admin' ? 'Administrador' : 'Terapeuta'}</span>
                     </div>
 
