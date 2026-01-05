@@ -11,10 +11,11 @@ exports.getSitemap = async (req, res) => {
         const staticPages = [
             '',
             '/servicios',
-            '/equipo',
+            '/terapeutas',
             '/talleres',
             '/blog',
             '/contacto',
+            '/donde-estamos',
             '/politica-privacidad',
             '/politica-cookies'
         ];

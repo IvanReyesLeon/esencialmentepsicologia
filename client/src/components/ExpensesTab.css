@@ -383,6 +383,10 @@
     border-radius: 12px;
     width: 500px;
     max-width: 90%;
+    max-height: 90vh;
+    /* Ensure it fits on screen */
+    overflow-y: auto;
+    /* Enable scrolling if content is too tall */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
@@ -590,4 +594,122 @@
 .summary-card:focus .tooltip {
     visibility: visible;
     opacity: 1;
+}
+
+/* QUARTERLY VIEW STYLES */
+.filters-bar {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    border: 1px solid #f0f0f0;
+    flex-wrap: wrap;
+}
+
+.filters-bar label {
+    font-weight: 600;
+    color: #495057;
+    margin-right: -5px;
+}
+
+.quarter-selector {
+    display: flex;
+    gap: 8px;
+}
+
+.quarter-btn {
+    appearance: none;
+    border: 1px solid #e9ecef;
+    background: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #495057;
+    transition: all 0.2s;
+    min-width: 50px;
+}
+
+.quarter-btn:hover {
+    background: #f8f9fa;
+    border-color: #ced4da;
+}
+
+.quarter-btn.active {
+    background: #e7f5ff;
+    border-color: #1971c2;
+    color: #1864ab;
+    box-shadow: 0 0 0 1px #1971c2;
+}
+
+.status-banner {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.status-banner.closed {
+    background-color: #e6fcf5;
+    color: #0ca678;
+    border: 1px solid #c3fae8;
+}
+
+.status-banner.draft {
+    background-color: #fff9db;
+    color: #f08c00;
+    border: 1px solid #ffec99;
+}
+
+.card-subtitle {
+    font-size: 0.8rem;
+    color: #868e96;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.quarterly-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.main-card {
+    border: 2px solid #e7f5ff;
+    background: #f8f9fa;
+}
+
+.main-card h3 {
+    color: #1971c2;
+    font-weight: 700;
+}
+
+/* Mobile Tweaks */
+@media (max-width: 768px) {
+    .filters-bar {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 15px;
+    }
+
+    .quarter-selector {
+        justify-content: space-between;
+    }
+
+    .quarter-btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    .quarterly-grid {
+        grid-template-columns: 1fr 1fr;
+        /* 2 columns on mobile */
+    }
+
+    .net-profit.main-card {
+        grid-column: span 2;
+        /* Full width for main card */
+    }
 }

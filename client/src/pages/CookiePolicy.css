@@ -1,0 +1,135 @@
+.cookie-policy {
+    padding: 80px 0 40px;
+    min-height: 100vh;
+    background-color: #f9f9f9;
+}
+
+.cookie-policy .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.cookie-policy h1 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 2.5rem;
+}
+
+.cookie-policy .last-updated {
+    color: #666;
+    font-style: italic;
+    margin-bottom: 40px;
+    font-size: 14px;
+}
+
+.cookie-policy section {
+    background: white;
+    padding: 30px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cookie-policy h2 {
+    color: #2c5282;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.cookie-policy h3 {
+    color: #4a5568;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    margin-top: 20px;
+}
+
+.cookie-policy p {
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 15px;
+}
+
+.cookie-policy ul {
+    margin: 15px 0;
+    padding-left: 30px;
+}
+
+.cookie-policy li {
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 10px;
+}
+
+.cookie-policy table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 0.95rem;
+}
+
+.cookie-policy th,
+.cookie-policy td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.cookie-policy th {
+    background-color: #f7fafc;
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.cookie-policy .warning {
+    background-color: #fffaf0;
+    border-left: 4px solid #ed8936;
+    padding: 15px;
+    margin-top: 20px;
+    color: #c05621;
+}
+
+.cookie-settings-cta {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.btn-cookie-settings {
+    background-color: #2b6cb0;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-cookie-settings:hover {
+    background-color: #2c5282;
+}
+
+@media (max-width: 768px) {
+    .cookie-policy {
+        padding: 60px 0 30px;
+    }
+
+    .cookie-policy h1 {
+        font-size: 2rem;
+    }
+
+    .cookie-policy section {
+        padding: 20px;
+    }
+
+    .cookie-policy th,
+    .cookie-policy td {
+        padding: 8px;
+        font-size: 0.85rem;
+    }
+
+    .cookie-policy table {
+        display: block;
+        overflow-x: auto;
+    }
+}

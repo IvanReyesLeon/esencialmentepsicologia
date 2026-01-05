@@ -89,6 +89,9 @@ export const billingAPI = {
   getSubmissions: (params) => api.get('/admin/billing/invoice-submissions', { params }),
   validateInvoice: (data) => api.post('/admin/billing/validate-invoice', data),
   revokeInvoice: (data) => api.post('/admin/billing/revoke-invoice', data),
+  // Quarterly Reports
+  getQuarterlyReport: (params) => api.get('/admin/billing/quarterly', { params }),
+  saveQuarterlyReport: (data) => api.post('/admin/billing/quarterly', data),
 };
 
 export const notificationsAPI = {

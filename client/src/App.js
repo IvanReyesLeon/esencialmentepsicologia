@@ -14,6 +14,8 @@ import Workshops from './pages/Workshops';
 import WorkshopDetail from './pages/WorkshopDetail';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import CookiePolicy from './pages/CookiePolicy';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
@@ -56,6 +58,9 @@ function App() {
           <Route path="/talleres/:id" element={<WorkshopDetail />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+
+          <Route path="/politica-privacidad" element={<PrivacyPolicy />} />
+          <Route path="/politica-cookies" element={<CookiePolicy />} />
 
           {/* Admin Routes - No Navbar/Footer */}
           <Route path="/admin" element={<AdminLogin />} />

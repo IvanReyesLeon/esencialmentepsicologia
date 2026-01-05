@@ -3,7 +3,7 @@ import { expensesAPI, billingAPI } from '../services/api';
 import ConfirmModal from './ConfirmModal';
 import './ExpensesTab.css';
 
-const ExpensesTab = () => {
+const ExpensesTab = ({ user }) => {
     const [activeTab, setActiveTab] = useState('invoices'); // invoices, expenses, config, quarterly
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -14,6 +14,10 @@ const ExpensesTab = () => {
     const [recurringExpenses, setRecurringExpenses] = useState([]);
     const [loading, setLoading] = useState(false);
     const [therapists, setTherapists] = useState([]); // Needed for names in invoice list
+
+    // Quarterly State
+    const [selectedQuarter, setSelectedQuarter] = useState(1);
+    const [quarterlyData, setQuarterlyData] = useState(null);
 
     // Modals
     const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -75,6 +79,24 @@ const ExpensesTab = () => {
     useEffect(() => {
         fetchMonthlyData();
     }, [fetchMonthlyData]);
+
+    // Fetch Quarterly Data on change
+    useEffect(() => {
+        if (activeTab === 'quarterly' && user?.role === 'admin') {
+            const fetchQuarter = async () => {
+                setLoading(true);
+                try {
+                    const res = await billingAPI.getQuarterlyReport({ year: selectedYear, quarter: selectedQuarter });
+                    setQuarterlyData(res.data.data);
+                } catch (err) {
+                    console.error('Error fetching quarterly report', err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchQuarter();
+        }
+    }, [activeTab, selectedYear, selectedQuarter, user]);
 
     // Actions
     const handleCreateExpense = async (e) => {
@@ -189,6 +211,23 @@ const ExpensesTab = () => {
         });
     }
 
+    const handleSaveQuarter = () => {
+        if (!quarterlyData) return;
+        setModalConfig({
+            isOpen: true,
+            title: 'Cerrar Trimestre',
+            message: `¿Estás seguro de que deseas cerrar el T${selectedQuarter} de ${selectedYear}? Esto guardará los datos actuales y quedarán registrados en el histórico.`,
+            confirmText: 'Guardar y Cerrar',
+            onConfirm: async () => {
+                try {
+                    const res = await billingAPI.saveQuarterlyReport(quarterlyData);
+                    setQuarterlyData(prev => ({ ...prev, ...res.data, status: 'closed', is_preview: false }));
+                } catch (err) { console.error(err); }
+                setModalConfig(prev => ({ ...prev, isOpen: false }));
+            }
+        });
+    };
+
 
     // Summaries
     const summary = React.useMemo(() => {
@@ -209,27 +248,42 @@ const ExpensesTab = () => {
         };
     }, [expenses, invoices]);
 
+    // Helper for quarter labels
+    const getQuarterMonths = (q) => {
+        switch (q) {
+            case 1: return 'Enero - Marzo';
+            case 2: return 'Abril - Junio';
+            case 3: return 'Julio - Septiembre';
+            case 4: return 'Octubre - Diciembre';
+            default: return '';
+        }
+    };
+
     return (
         <div className="expenses-container">
             <div className="expenses-header">
                 <h2>Gestión Económica</h2>
                 <div className="expenses-controls">
-                    <select
-                        className="month-selector"
-                        value={selectedMonth}
-                        onChange={e => setSelectedMonth(Number(e.target.value))}
-                    >
-                        {months.map((m, i) => <option key={i} value={i}>{m}</option>)}
-                    </select>
-                    <select
-                        className="month-selector"
-                        value={selectedYear}
-                        onChange={e => setSelectedYear(Number(e.target.value))}
-                    >
-                        <option value={2024}>2024</option>
-                        <option value={2025}>2025</option>
-                        <option value={2026}>2026</option>
-                    </select>
+                    {activeTab !== 'quarterly' && (
+                        <>
+                            <select
+                                className="month-selector"
+                                value={selectedMonth}
+                                onChange={e => setSelectedMonth(Number(e.target.value))}
+                            >
+                                {months.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                            </select>
+                            <select
+                                className="month-selector"
+                                value={selectedYear}
+                                onChange={e => setSelectedYear(Number(e.target.value))}
+                            >
+                                <option value={2024}>2024</option>
+                                <option value={2025}>2025</option>
+                                <option value={2026}>2026</option>
+                            </select>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -252,12 +306,14 @@ const ExpensesTab = () => {
                 >
                     ⚙️ Configuración (Fijos)
                 </button>
-                <button
-                    className={`tab-btn ${activeTab === 'quarterly' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('quarterly')}
-                >
-                    📊 Trimestral
-                </button>
+                {user?.role === 'admin' && (
+                    <button
+                        className={`tab-btn ${activeTab === 'quarterly' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('quarterly')}
+                    >
+                        📊 Trimestral
+                    </button>
+                )}
             </div>
 
             <div className="tab-content" style={{ marginTop: '20px' }}>
@@ -396,35 +452,100 @@ const ExpensesTab = () => {
                     </div>
                 )}
 
-                {/* === TAB: QUARTERLY (REPORT) === */}
                 {activeTab === 'quarterly' && (
                     <div className="tab-pane">
-                        <div className="expenses-summary-cards">
-                            <div className="summary-card expense">
-                                <h3>Total Gastos + Facturas</h3>
-                                <div className="summary-amount">{summary.totalCombined.toFixed(2)} €</div>
-                                <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                                    (Gastos: {summary.totalExpenses.toFixed(2)}€ | Facturas: {summary.totalInvoices.toFixed(2)}€)
+                        <div className="filters-bar" style={{ marginBottom: '20px', display: 'flex', gap: '15px', alignItems: 'center' }}>
+                            <label>Año:</label>
+                            <select
+                                className="month-selector"
+                                value={selectedYear}
+                                onChange={e => setSelectedYear(Number(e.target.value))}
+                            >
+                                <option value={2024}>2024</option>
+                                <option value={2025}>2025</option>
+                                <option value={2026}>2026</option>
+                            </select>
+
+                            <label>Trimestre:</label>
+                            <div className="quarter-selector-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                <div className="quarter-selector">
+                                    {[1, 2, 3, 4].map(q => (
+                                        <button
+                                            key={q}
+                                            className={`quarter-btn ${selectedQuarter === q ? 'active' : ''}`}
+                                            onClick={() => setSelectedQuarter(q)}
+                                        >
+                                            T{q}
+                                        </button>
+                                    ))}
                                 </div>
-                            </div>
-                            <div className="summary-card income">
-                                <h3>Ingresos Centro</h3>
-                                <div className="summary-amount">{summary.centerIncome.toFixed(2)} €</div>
-                                <div style={{ fontSize: '0.7rem', color: '#666' }}>
-                                    (Comisiones de {invoices.length} facturas)
-                                </div>
-                            </div>
-                            <div className="summary-card profit">
-                                <h3>Beneficio Neto</h3>
-                                <div className={`summary-amount ${summary.netProfit >= 0 ? 'positive' : 'negative'}`} style={{ color: summary.netProfit >= 0 ? '#1971c2' : '#e03131' }}>
-                                    {summary.netProfit.toFixed(2)} €
-                                </div>
+                                <span style={{ fontSize: '0.8rem', color: '#666', fontStyle: 'italic', marginLeft: '2px' }}>
+                                    {getQuarterMonths(selectedQuarter)}
+                                </span>
                             </div>
                         </div>
-                        <div style={{ marginTop: '40px', textAlign: 'center', color: '#666' }}>
-                            <p>Aquí se generará el reporte trimestral para exportar a Excel.</p>
-                            <button className="btn-primary" disabled style={{ opacity: 0.5 }}>📄 Exportar Trimestre (Próximamente)</button>
-                        </div>
+
+                        {quarterlyData ? (
+                            <>
+                                {quarterlyData.status === 'closed' && (
+                                    <div className="status-banner closed">
+                                        🔒 Trimestre Cerrado (Guardado en Histórico)
+                                    </div>
+                                )}
+                                {quarterlyData.status === 'draft' && (
+                                    <div className="status-banner draft">
+                                        👁️ Vista Previa (Datos en Vivo)
+                                    </div>
+                                )}
+
+                                <div className="expenses-summary-cards quarterly-grid">
+                                    <div className="summary-card total-revenue">
+                                        <h3>Facturación Total</h3>
+                                        <div className="summary-amount">{Number(quarterlyData.total_revenue).toFixed(2)} €</div>
+                                        <div className="card-subtitle">Entrada Bruta</div>
+                                    </div>
+
+                                    <div className="summary-card therapists-payout">
+                                        <h3>Parte Terapeutas</h3>
+                                        <div className="summary-amount">{Number(quarterlyData.therapists_payout).toFixed(2)} €</div>
+                                        <div className="card-subtitle">Pagos Realizados</div>
+                                    </div>
+
+                                    <div className="summary-card center-revenue">
+                                        <h3>Parte del Centro</h3>
+                                        <div className="summary-amount">{Number(quarterlyData.center_revenue).toFixed(2)} €</div>
+                                        <div className="card-subtitle">Ingreso Bruto</div>
+                                    </div>
+
+                                    <div className="summary-card expenses">
+                                        <h3>Total Gastos</h3>
+                                        <div className="summary-amount" style={{ color: '#e03131' }}>-{Number(quarterlyData.expenses_total).toFixed(2)} €</div>
+                                        <div className="card-subtitle">Gastos Operativos</div>
+                                    </div>
+
+                                    <div className="summary-card net-profit main-card">
+                                        <h3>Beneficio Neto</h3>
+                                        <div className={`summary-amount ${quarterlyData.net_profit >= 0 ? 'positive' : 'negative'}`}>
+                                            {Number(quarterlyData.net_profit).toFixed(2)} €
+                                        </div>
+                                        <div className="card-subtitle">Resultado Final</div>
+                                    </div>
+                                </div>
+
+                                {quarterlyData.status === 'draft' && (
+                                    <div className="actions-footer" style={{ marginTop: '30px', textAlign: 'center' }}>
+                                        <button className="btn-primary" onClick={handleSaveQuarter}>
+                                            💾 Guardar y Cerrar Trimestre
+                                        </button>
+                                        <p style={{ marginTop: '10px', fontSize: '0.9rem', color: '#666' }}>
+                                            Al guardar, se registrarán estos importes en el histórico y no cambiarán aunque se modifiquen facturas posteriormente.
+                                        </p>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="loading-state">Cargando datos del trimestre...</div>
+                        )}
                     </div>
                 )}
             </div>

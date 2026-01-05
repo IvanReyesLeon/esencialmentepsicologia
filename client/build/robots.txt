@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://esencialmentepsicologia.com/api/sitemap.xml
+Sitemap: https://www.esencialmentepsicologia.com/sitemap.xml
 
 # Bloquear panel de administración
 Disallow: /admin

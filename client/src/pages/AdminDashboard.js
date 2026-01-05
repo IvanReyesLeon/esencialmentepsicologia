@@ -235,7 +235,7 @@ const AdminDashboard = () => {
           {activeTab === 'blog' && <BlogTab />}
           {activeTab === 'billing' && <BillingTab user={user} calendarId={CALENDAR_ID} />}
           {activeTab === 'billing-dashboard' && <BillingDashboard user={user} />}
-          {activeTab === 'expenses' && <ExpensesTab />}
+          {activeTab === 'expenses' && <ExpensesTab user={user} />}
           {activeTab === 'patients' && <PatientsTab user={user} />}
           {activeTab === 'reminders' && <RemindersTab />}
           {activeTab === 'profile' && <ProfileTab user={user} onLogout={handleLogout} />}

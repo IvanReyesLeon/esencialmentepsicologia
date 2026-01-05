@@ -12,6 +12,56 @@
       "source": "/que-es-un-ataque-de-ansiedad-y-como-evitarlo",
       "destination": "/blog",
       "permanent": true
+    },
+    {
+      "source": "/ghosting-desaparecer-sin-motivo",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/politica-privacidad/",
+      "destination": "/politica-privacidad",
+      "permanent": true
+    },
+    {
+      "source": "/politica-cookies/",
+      "destination": "/politica-cookies",
+      "permanent": true
+    },
+    {
+      "source": "/opiniones",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/cuerpo",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/psicologia",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/elisabet-vidal",
+      "destination": "/terapeutas",
+      "permanent": true
+    },
+    {
+      "source": "/patricia-miguel",
+      "destination": "/terapeutas",
+      "permanent": true
+    },
+    {
+      "source": "/celia-morales-garcia",
+      "destination": "/terapeutas",
+      "permanent": true
+    },
+    {
+      "source": "/sonia-montesinos",
+      "destination": "/terapeutas",
+      "permanent": true
     }
   ],
   "rewrites": [

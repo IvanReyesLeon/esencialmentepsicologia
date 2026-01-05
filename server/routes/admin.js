@@ -45,6 +45,12 @@ router.get('/billing/invoice-submissions', auth, admin, billingController.getInv
 router.post('/billing/validate-invoice', auth, admin, billingController.validateInvoiceSubmission);
 router.post('/billing/revoke-invoice', auth, admin, billingController.revokeInvoiceSubmission);
 
+// === Quarterly Reports Routes (Admin Only) ===
+const quarterlyController = require('../controllers/quarterlyController');
+
+router.get('/billing/quarterly', auth, admin, quarterlyController.getQuarterlyReport);
+router.post('/billing/quarterly', auth, admin, quarterlyController.saveQuarterlyReport);
+
 // === Expenses Routes (Admin Only) ===
 const expensesController = require('../controllers/expensesController');
 
