@@ -166,3 +166,20 @@
 .notifications-list::-webkit-scrollbar-thumb:hover {
     background: #bbb;
 }
+
+/* Mobile styles for notifications */
+@media (max-width: 480px) {
+    .notifications-dropdown {
+        width: 300px;
+        /* Reduced width */
+        right: -60px;
+        /* Shift right to use more screen space since bell is not at absolute edge */
+        max-width: 90vw;
+        /* Safety cap */
+    }
+
+    .notification-item {
+        padding: 12px 15px;
+        /* Compact padding */
+    }
+}

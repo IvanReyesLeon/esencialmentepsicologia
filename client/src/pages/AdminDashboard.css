@@ -58,25 +58,7 @@
   gap: 1.5rem;
 }
 
-.user-info {
-  display: flex;
-  flex-direction: column;
-  text-align: right;
-}
 
-.user-role {
-  font-size: 0.75rem;
-  color: #888;
-  text-transform: uppercase;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.user-email {
-  font-size: 0.9rem;
-  color: #333;
-  font-weight: 500;
-}
 
 .dashboard-content-wrapper {
   max-width: 1200px;
@@ -815,9 +797,9 @@
   }
 
   .header-actions {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 10px;
+    width: auto;
+    flex-wrap: nowrap;
+    gap: 15px;
   }
 
   .user-info {
@@ -863,6 +845,14 @@
     padding: 0.75rem;
   }
 
+  /* Fix forced column layout from tablet media query */
+  .header-content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
   .logo-section h1 {
     font-size: 1.1rem;
   }
@@ -873,45 +863,13 @@
   }
 
   .header-actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .user-info {
-    display: flex;
     flex-direction: row;
-    justify-content: space-between;
     align-items: center;
-    text-align: left;
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
+    gap: 15px;
+    width: auto;
   }
 
-  .user-role {
-    font-size: 0.65rem;
-  }
-
-  .user-email {
-    font-size: 0.75rem;
-  }
-
-  /* Stack buttons in a row */
-  .header-actions>.btn {
-    flex: 1;
-    justify-content: center;
-    font-size: 0.8rem;
-    padding: 8px 12px;
-  }
-
-  /* Button container for password and logout */
-  .header-actions .btn-secondary {
-    flex: 1;
-    text-align: center;
-    white-space: nowrap;
-    font-size: 0.8rem;
-  }
-
+  /* Remove obsolete user-info & btn styles */
   .hub-card {
     padding: 20px;
   }

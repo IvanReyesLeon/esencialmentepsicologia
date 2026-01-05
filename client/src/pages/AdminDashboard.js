@@ -14,6 +14,7 @@ import ProfileTab from '../components/ProfileTab';
 
 import ExpensesTab from '../components/ExpensesTab';
 import NotificationBell from '../components/NotificationBell';
+import UserMenu from '../components/UserMenu';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -157,14 +158,7 @@ const AdminDashboard = () => {
         </>
       )}
 
-      {/* Profile - Available for Everyone */}
-      <HubCard
-        title="Mi Cuenta"
-        icon="👤"
-        color="#607D8B"
-        description="Datos personales y configuración"
-        onClick={() => setActiveTab('profile')}
-      />
+
     </div>
   );
 
@@ -211,10 +205,11 @@ const AdminDashboard = () => {
 
           <div className="header-actions">
             <NotificationBell />
-            <div className="user-info">
-              <span className="user-role">{user.role === 'admin' ? 'Administrador' : 'Terapeuta'}</span>
-              <span className="user-email">{user.email}</span>
-            </div>
+            <UserMenu
+              user={user}
+              onLogout={handleLogout}
+              onProfileClick={() => setActiveTab('profile')}
+            />
           </div>
         </div>
       </header>
@@ -246,7 +241,7 @@ const AdminDashboard = () => {
           {activeTab === 'profile' && <ProfileTab user={user} onLogout={handleLogout} />}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
