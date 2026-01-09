@@ -1393,7 +1393,16 @@ const BillingTab = ({ user }) => {
 
                 <div className="global-payment-filters">
                     <div className="date-range">
-                        <label>Desde: <input type="date" value={globalStartDate} onChange={e => setGlobalStartDate(e.target.value)} /></label>
+                        <label>Desde: <input type="date" value={globalStartDate} onChange={e => {
+                            const newStart = e.target.value;
+                            setGlobalStartDate(newStart);
+                            // Auto-set end date to end of the month
+                            if (newStart) {
+                                const [y, m] = newStart.split('-');
+                                const lastDay = new Date(y, m, 0).getDate(); // Day 0 of next month is last day of current
+                                setGlobalEndDate(`${y}-${m}-${lastDay}`);
+                            }
+                        }} /></label>
                         <label>Hasta: <input type="date" value={globalEndDate} onChange={e => setGlobalEndDate(e.target.value)} /></label>
                     </div>
 

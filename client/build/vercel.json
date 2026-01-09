@@ -80,6 +80,10 @@
     {
       "source": "/admin/:path*",
       "destination": "/index.html"
+    },
+    {
+      "source": "/((?!static|.*\\..*|api).*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
