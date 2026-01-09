@@ -67,6 +67,203 @@ const BillingTab = ({ user }) => {
 
     const currentMonth = new Date().getMonth();
 
+    // State for review confirmation modal
+    const [reviewConfirm, setReviewConfirm] = useState({ isOpen: false, session: null, isReviewed: false });
+    // State for error messages (custom modal)
+    const [errorModal, setErrorModal] = useState({ isOpen: false, title: '', message: '' });
+
+    // Derived Summary Calculation
+    const getDerivedReviewSummary = () => {
+        if (filterTherapist === 'all') return null;
+
+        const sessionsToCheck = globalSessions.filter(s =>
+            s.therapistName === filterTherapist &&
+            ['cash', 'transfer'].includes(s.paymentStatus)
+        );
+
+        const cashSessions = sessionsToCheck.filter(s => s.paymentStatus === 'cash');
+        const transferSessions = sessionsToCheck.filter(s => s.paymentStatus === 'transfer');
+
+        const cashPending = cashSessions.filter(s => !s.reviewedAt);
+        const transferPending = transferSessions.filter(s => !s.reviewedAt);
+
+        return {
+            cash: {
+                totalCount: cashSessions.length,
+                pendingCount: cashPending.length,
+                pendingAmount: cashPending.reduce((sum, s) => sum + Number(s.modifiedPrice ?? s.originalPrice ?? s.price ?? 0), 0),
+                sessions: cashSessions,
+                pendingSessions: cashPending
+            },
+            transfer: {
+                totalCount: transferSessions.length,
+                pendingCount: transferPending.length,
+                pendingAmount: transferPending.reduce((sum, s) => sum + Number(s.modifiedPrice ?? s.originalPrice ?? s.price ?? 0), 0),
+                sessions: transferSessions,
+                pendingSessions: transferPending
+            }
+        };
+    };
+
+    // Toggle logic split for Modal
+    const handleToggleReview = (session, isReviewed) => {
+        if (isReviewed) {
+            // Unmarking -> Show modal
+            setReviewConfirm({ isOpen: true, session, isReviewed });
+        } else {
+            // Marking -> Do it directly
+            executeToggleReview(session, isReviewed);
+        }
+    };
+
+    const confirmCashPayments = async () => {
+        try {
+            const derivedSummary = getDerivedReviewSummary();
+            if (!derivedSummary || derivedSummary.cash.pendingSessions.length === 0) return;
+
+            // Handle comma as decimal separator and parse
+            const amountStr = cashConfirmAmount.replace(',', '.');
+            const numericAmount = parseFloat(amountStr);
+
+            if (isNaN(numericAmount)) {
+                setErrorModal({
+                    isOpen: true,
+                    title: 'Formato inválido',
+                    message: 'Por favor, introduce una cantidad válida.'
+                });
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/billing/review-payments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    therapistId: derivedSummary.cash.sessions[0].therapistId, // Take from first session
+                    paymentType: 'cash',
+                    confirmedAmount: numericAmount, // Send manual input
+                    eventIds: derivedSummary.cash.pendingSessions.map(s => s.id) // Send specific IDs
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setErrorModal({
+                    isOpen: true,
+                    title: 'Error de validación',
+                    message: data.message || 'Error al revisar pagos'
+                });
+                return;
+            }
+
+            // Success -> Update local state
+            const updatedSessions = globalSessions.map(s => {
+                if (derivedSummary.cash.pendingSessions.some(pending => pending.id === s.id)) {
+                    return { ...s, reviewedAt: new Date().toISOString() };
+                }
+                return s;
+            });
+            setGlobalSessions(updatedSessions);
+            setCashConfirmAmount('');
+
+            // Show success toast or small feedback if needed, but UI update is enough
+        } catch (error) {
+            console.error('Error confirming cash:', error);
+            setErrorModal({
+                isOpen: true,
+                title: 'Error del sistema',
+                message: 'Error de conexión al revisar pagos'
+            });
+        }
+    };
+
+    const confirmTransferPayments = async () => {
+        try {
+            const derivedSummary = getDerivedReviewSummary();
+            if (!derivedSummary || derivedSummary.transfer.pendingSessions.length === 0) return;
+
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/billing/review-payments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    therapistId: derivedSummary.transfer.sessions[0].therapistId,
+                    paymentType: 'transfer',
+                    eventIds: derivedSummary.transfer.pendingSessions.map(s => s.id)
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setErrorModal({
+                    isOpen: true,
+                    title: 'Error de validación',
+                    message: data.message || 'Error al confirmar transferencias'
+                });
+                return;
+            }
+
+            // Success -> Update local state
+            const updatedSessions = globalSessions.map(s => {
+                if (derivedSummary.transfer.pendingSessions.some(pending => pending.id === s.id)) {
+                    return { ...s, reviewedAt: new Date().toISOString() };
+                }
+                return s;
+            });
+            setGlobalSessions(updatedSessions);
+
+        } catch (error) {
+            console.error('Error confirming transfer:', error);
+            setErrorModal({
+                isOpen: true,
+                title: 'Error del sistema',
+                message: 'Error de conexión al revisar transferencias'
+            });
+        }
+    };
+
+    const executeToggleReview = async (session, isReviewed) => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/billing/review-toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    eventId: session.id,
+                    reviewed: !isReviewed // Reviewing if !isReviewed, Unreviewing if isReviewed
+                })
+            });
+
+            if (res.ok) {
+                // Update local state locally
+                const updatedSessions = globalSessions.map(s => {
+                    if (s.id === session.id) {
+                        return {
+                            ...s,
+                            reviewedAt: !isReviewed ? new Date().toISOString() : null
+                        };
+                    }
+                    return s;
+                });
+                setGlobalSessions(updatedSessions);
+            }
+        } catch (error) {
+            console.error('Error toggling review:', error);
+            alert('Error al actualizar el estado de revisión');
+        }
+    };
+
     useEffect(() => {
         if (billingMode === 'payments') {
             fetchGlobalSessions();
@@ -86,6 +283,34 @@ const BillingTab = ({ user }) => {
             fetchWeekDetail();
         }
     }, [selectedWeek, billingMode]);
+
+    // Poll for updates every 10 seconds
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            if (billingMode === 'payments') {
+                // Silent update for global list
+                const token = localStorage.getItem('token');
+                let url = `${API_URL}/admin/billing/global?startDate=${globalStartDate}&endDate=${globalEndDate}`;
+                fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+                    .then(res => res.json())
+                    .then(data => setGlobalSessions(data.sessions || []))
+                    .catch(err => console.error('Polling global error:', err));
+            } else if (billingMode === 'calendar' && view === 'detail' && weekData && selectedWeek) {
+                // Silent update for week detail
+                const token = localStorage.getItem('token');
+                const endpoint = user.role === 'admin'
+                    ? `${API_URL}/admin/billing/weekly?year=${selectedYear}&month=${selectedMonth}&week=${selectedWeek}`
+                    : `${API_URL}/admin/billing/my-sessions?year=${selectedYear}&month=${selectedMonth}&week=${selectedWeek}`;
+
+                fetch(endpoint, { headers: { Authorization: `Bearer ${token}` } })
+                    .then(res => res.json())
+                    .then(data => setWeekData(data))
+                    .catch(err => console.error('Polling detail error:', err));
+            }
+        }, 10000); // 10 seconds
+
+        return () => clearInterval(intervalId);
+    }, [billingMode, view, globalStartDate, globalEndDate, selectedWeek, selectedYear, selectedMonth, weekData, user.role]);
 
     // Fetch invoice data when year/month changes
     useEffect(() => {
@@ -394,74 +619,7 @@ const BillingTab = ({ user }) => {
         }
     };
 
-    // Confirm cash payments (admin)
-    const confirmCashPayments = async () => {
-        if (!selectedTherapistId) return;
-        try {
-            setReviewLoading(true);
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL}/admin/billing/review-payments`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    therapistId: selectedTherapistId,
-                    paymentType: 'cash',
-                    confirmedAmount: parseFloat(cashConfirmAmount),
-                    startDate: globalStartDate,
-                    endDate: globalEndDate
-                })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                alert(`✅ ${data.reviewedCount} sesiones en efectivo marcadas como revisadas (${data.reviewedAmount}€)`);
-                fetchGlobalSessions();
-                fetchReviewSummary(selectedTherapistId);
-            } else {
-                alert(`❌ ${data.message}`);
-            }
-        } catch (error) {
-            console.error('Error confirming cash payments:', error);
-        } finally {
-            setReviewLoading(false);
-        }
-    };
 
-    // Confirm transfer payments (admin) 
-    const confirmTransferPayments = async () => {
-        if (!selectedTherapistId) return;
-        try {
-            setReviewLoading(true);
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL}/admin/billing/review-payments`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    therapistId: selectedTherapistId,
-                    paymentType: 'transfer',
-                    startDate: globalStartDate,
-                    endDate: globalEndDate
-                })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                alert(`✅ ${data.reviewedCount} sesiones por transferencia marcadas como revisadas (${data.reviewedAmount}€)`);
-                fetchGlobalSessions();
-                fetchReviewSummary(selectedTherapistId);
-            } else {
-                alert(`❌ ${data.message}`);
-            }
-        } catch (error) {
-            console.error('Error confirming transfer payments:', error);
-        } finally {
-            setReviewLoading(false);
-        }
-    };
 
     const handleMonthPaymentsClick = () => {
         // Set date to full month
@@ -1080,11 +1238,12 @@ const BillingTab = ({ user }) => {
                                             <div className="session-patient">{session.title}</div>
                                         </div>
                                         <div className="payment-options read-only">
-                                            <span className={`status-badge ${session.paymentStatus}`}>
-                                                {session.paymentStatus === 'bizum' && '✅ Revisada'}
-                                                {session.paymentStatus === 'transfer' && '✅ Revisada'}
-                                                {session.paymentStatus === 'cash' && '✅ Revisada'}
-                                                {session.paymentStatus === 'pending' && '⏳ Pendiente'}
+                                            <span className={`status-badge ${(['cash', 'transfer', 'bizum'].includes(session.paymentStatus) && !session.reviewedAt) ? 'pending' : session.paymentStatus}`}>
+                                                {['cash', 'transfer', 'bizum'].includes(session.paymentStatus) ? (
+                                                    session.reviewedAt ? '✅ Procesado' : '⏳ En revisión'
+                                                ) : (
+                                                    session.paymentStatus === 'pending' ? '⏳ Pendiente' : ''
+                                                )}
                                             </span>
                                         </div>
                                     </div>
@@ -1281,106 +1440,138 @@ const BillingTab = ({ user }) => {
                 </div>
 
                 {/* Admin Review Panel - shows when therapist selected + viewing paid */}
-                {user.role === 'admin' && filterTherapist !== 'all' && filterStatus === 'paid' && reviewSummary && (
-                    <div className="admin-review-panel">
-                        <h4>📋 {filterTherapist} - Pendiente de Revisar</h4>
-                        {reviewLoading ? (
-                            <p>Cargando...</p>
-                        ) : (
-                            <div className="review-items">
-                                {/* Cash review */}
-                                {reviewSummary.cash.count > 0 && (
-                                    <div className="review-item-wrapper">
-                                        <div className="review-item cash">
-                                            <span className="review-label">
-                                                💵 Efectivo: {formatCurrency(reviewSummary.cash.amount)} ({reviewSummary.cash.count} sesiones)
-                                                <button
-                                                    className="btn-eye"
-                                                    onClick={() => setShowReviewDetails(showReviewDetails === 'cash' ? null : 'cash')}
-                                                    title="Ver sesiones"
-                                                >
-                                                    {showReviewDetails === 'cash' ? '👁️' : '👁️‍🗨️'}
-                                                </button>
-                                            </span>
-                                            <div className="review-action">
-                                                <input
-                                                    type="number"
-                                                    step="0.01"
-                                                    placeholder="Cantidad recogida"
-                                                    value={cashConfirmAmount}
-                                                    onChange={(e) => setCashConfirmAmount(e.target.value)}
-                                                    className="cash-confirm-input"
-                                                />
-                                                <span className="currency-symbol">€</span>
-                                                <button
-                                                    className="btn-review-confirm"
-                                                    onClick={confirmCashPayments}
-                                                    disabled={!cashConfirmAmount || reviewLoading}
-                                                >
-                                                    ✓ Revisar
-                                                </button>
+                {user.role === 'admin' && filterTherapist !== 'all' && filterStatus === 'paid' && (
+                    (() => {
+                        const derivedSummary = getDerivedReviewSummary();
+                        if (!derivedSummary || (derivedSummary.cash.totalCount === 0 && derivedSummary.transfer.totalCount === 0)) return null;
+
+                        return (
+                            <div className="admin-review-panel">
+                                <h4>📋 {filterTherapist} - Pendiente de Revisar</h4>
+
+                                <div className="review-items">
+                                    {/* Cash Review */}
+                                    {derivedSummary.cash.totalCount > 0 && (
+                                        <div className={`review-item-wrapper ${derivedSummary.cash.pendingCount === 0 ? 'fully-reviewed' : ''}`}>
+                                            <div className="review-item cash">
+                                                <span className="review-label">
+                                                    💵 Efectivo: <strong>{formatCurrency(derivedSummary.cash.pendingAmount)}</strong> ({derivedSummary.cash.pendingCount} pend / {derivedSummary.cash.totalCount} total)
+                                                    <button
+                                                        className="btn-eye"
+                                                        onClick={() => setShowReviewDetails(showReviewDetails === 'cash' ? null : 'cash')}
+                                                        title="Ver/Gestionar sesiones"
+                                                    >
+                                                        {showReviewDetails === 'cash' ? '👁️' : '👁️‍🗨️'}
+                                                    </button>
+                                                </span>
+                                                {/* Only show bulk review if there are pending items */}
+                                                {derivedSummary.cash.pendingCount > 0 && (
+                                                    <div className="review-action">
+                                                        <input
+                                                            type="number"
+                                                            step="0.01"
+                                                            placeholder="Cantidad..."
+                                                            value={cashConfirmAmount}
+                                                            onChange={(e) => setCashConfirmAmount(e.target.value)}
+                                                            className="cash-confirm-input"
+                                                        />
+                                                        <button
+                                                            className="btn-review-confirm"
+                                                            onClick={confirmCashPayments}
+                                                            disabled={!cashConfirmAmount}
+                                                        >
+                                                            ✓ Todo
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {derivedSummary.cash.pendingCount === 0 && <span className="reviewed-badge">✓ Al día</span>}
                                             </div>
+
+                                            {showReviewDetails === 'cash' && (
+                                                <div className="review-sessions-list">
+                                                    {derivedSummary.cash.sessions
+                                                        .sort((a, b) => new Date(b.date) - new Date(a.date)) // Newest first
+                                                        .map(s => {
+                                                            const isReviewed = !!s.reviewedAt;
+                                                            return (
+                                                                <div key={s.id} className={`review-session-item ${isReviewed ? 'reviewed' : 'pending'}`}>
+                                                                    <div className="session-check">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={isReviewed}
+                                                                            onChange={() => handleToggleReview(s, isReviewed)}
+                                                                        />
+                                                                    </div>
+                                                                    <div className="session-details-mini">
+                                                                        <span className="date">{formatDate(s.date)}</span>
+                                                                        <span className="title">{s.title}</span>
+                                                                        <span className="price">{formatCurrency(s.modifiedPrice || s.originalPrice || s.price)}</span>
+                                                                    </div>
+                                                                    {isReviewed && <span className="mini-badge">Revisado</span>}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                </div>
+                                            )}
                                         </div>
-                                        {showReviewDetails === 'cash' && (
-                                            <div className="review-sessions-list">
-                                                {visibleSessions
-                                                    .filter(s => s.paymentStatus === 'cash' && !s.reviewedAt)
-                                                    .map(s => (
-                                                        <div key={s.id} className="review-session-mini">
-                                                            <span>{formatDate(s.date)}</span>
-                                                            <span className="session-title-mini">{s.title}</span>
-                                                            <span>{formatCurrency(s.price)}</span>
-                                                        </div>
-                                                    ))
-                                                }
+                                    )}
+
+                                    {/* Transfer Review */}
+                                    {derivedSummary.transfer.totalCount > 0 && (
+                                        <div className={`review-item-wrapper ${derivedSummary.transfer.pendingCount === 0 ? 'fully-reviewed' : ''}`}>
+                                            <div className="review-item transfer">
+                                                <span className="review-label">
+                                                    🏦 Transferencia: <strong>{formatCurrency(derivedSummary.transfer.pendingAmount)}</strong> ({derivedSummary.transfer.pendingCount} pend / {derivedSummary.transfer.totalCount} total)
+                                                    <button
+                                                        className="btn-eye"
+                                                        onClick={() => setShowReviewDetails(showReviewDetails === 'transfer' ? null : 'transfer')}
+                                                        title="Ver/Gestionar sesiones"
+                                                    >
+                                                        {showReviewDetails === 'transfer' ? '👁️' : '👁️‍🗨️'}
+                                                    </button>
+                                                </span>
+                                                {derivedSummary.transfer.pendingCount > 0 && (
+                                                    <button
+                                                        className="btn-review-confirm"
+                                                        onClick={confirmTransferPayments}
+                                                    >
+                                                        ✓ Confirmar Todo
+                                                    </button>
+                                                )}
+                                                {derivedSummary.transfer.pendingCount === 0 && <span className="reviewed-badge">✓ Al día</span>}
                                             </div>
-                                        )}
-                                    </div>
-                                )}
-                                {/* Transfer review */}
-                                {reviewSummary.transfer.count > 0 && (
-                                    <div className="review-item-wrapper">
-                                        <div className="review-item transfer">
-                                            <span className="review-label">
-                                                🏦 Transferencia: {formatCurrency(reviewSummary.transfer.amount)} ({reviewSummary.transfer.count} sesiones)
-                                                <button
-                                                    className="btn-eye"
-                                                    onClick={() => setShowReviewDetails(showReviewDetails === 'transfer' ? null : 'transfer')}
-                                                    title="Ver sesiones"
-                                                >
-                                                    {showReviewDetails === 'transfer' ? '👁️' : '👁️‍🗨️'}
-                                                </button>
-                                            </span>
-                                            <button
-                                                className="btn-review-confirm"
-                                                onClick={confirmTransferPayments}
-                                                disabled={reviewLoading}
-                                            >
-                                                ✓ Confirmar
-                                            </button>
+
+                                            {showReviewDetails === 'transfer' && (
+                                                <div className="review-sessions-list">
+                                                    {derivedSummary.transfer.sessions
+                                                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                                                        .map(s => {
+                                                            const isReviewed = !!s.reviewedAt;
+                                                            return (
+                                                                <div key={s.id} className={`review-session-item ${isReviewed ? 'reviewed' : 'pending'}`}>
+                                                                    <div className="session-check">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={isReviewed}
+                                                                            onChange={() => handleToggleReview(s, isReviewed)}
+                                                                        />
+                                                                    </div>
+                                                                    <div className="session-details-mini">
+                                                                        <span className="date">{formatDate(s.date)}</span>
+                                                                        <span className="title">{s.title}</span>
+                                                                        <span className="price">{formatCurrency(s.modifiedPrice || s.originalPrice || s.price)}</span>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                </div>
+                                            )}
                                         </div>
-                                        {showReviewDetails === 'transfer' && (
-                                            <div className="review-sessions-list">
-                                                {visibleSessions
-                                                    .filter(s => s.paymentStatus === 'transfer' && !s.reviewedAt)
-                                                    .map(s => (
-                                                        <div key={s.id} className="review-session-mini">
-                                                            <span>{formatDate(s.date)}</span>
-                                                            <span className="session-title-mini">{s.title}</span>
-                                                            <span>{formatCurrency(s.price)}</span>
-                                                        </div>
-                                                    ))
-                                                }
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                                {reviewSummary.cash.count === 0 && reviewSummary.transfer.count === 0 && (
-                                    <p className="all-reviewed">✅ Todas las sesiones pagadas han sido revisadas</p>
-                                )}
+                                    )}
+                                </div>
                             </div>
-                        )}
-                    </div>
+                        );
+                    })()
                 )}
 
                 <div className="global-sessions-list">
@@ -1477,13 +1668,16 @@ const BillingTab = ({ user }) => {
                                         )}
 
                                         {session.paymentStatus !== 'pending' && (
-                                            <span className={`status-badge ${session.paymentStatus} mini-badge`}>
-                                                {session.paymentStatus === 'transfer' || session.paymentStatus === 'bizum' ? '🏦 Transferencia' :
-                                                    session.paymentStatus === 'cash' ? '💵 Efectivo' :
-                                                        session.paymentStatus === 'unpaid' ? '❌€ No Pagado' : '❌ Cancelada'}
-                                                {session.paymentDate && <span className="payment-date-small"> ({formatDate(session.paymentDate)})</span>}
-                                                {session.reviewedAt && <span className="reviewed-badge" title="Revisado por admin"> ✓</span>}
-                                            </span>
+                                            <>
+                                                {/* Badge 1: Payment Type */}
+                                                <span className={`status-badge ${session.paymentStatus} mini-badge badge-payment-type`}>
+                                                    {session.paymentStatus === 'transfer' || session.paymentStatus === 'bizum' ? '🏦 Transferencia' :
+                                                        session.paymentStatus === 'cash' ? '💵 Efectivo' :
+                                                            session.paymentStatus === 'unpaid' ? '❌€ No Pagado' : '❌ Cancelada'}
+                                                    {session.paymentDate && <span className="payment-date-small"> ({formatDate(session.paymentDate)})</span>}
+                                                </span>
+
+                                            </>
                                         )}
                                     </div>
 
@@ -1499,7 +1693,7 @@ const BillingTab = ({ user }) => {
                                             const canEdit = user.role === 'admin' || alwaysEditable || isWithin24Hours;
 
                                             if (!canEdit) {
-                                                return <span className="read-only-msg">✅ Procesado</span>;
+                                                return null; // Don't show redundant text, badges handle it
                                             }
 
                                             if (transferDateSessionId === session.id) {
@@ -1545,6 +1739,16 @@ const BillingTab = ({ user }) => {
                                             );
                                         })()}
                                     </div>
+
+                                    {/* Badge 2: Review Status (Only for paid forms) - MOVED TO END */}
+                                    {['cash', 'transfer', 'bizum'].includes(session.paymentStatus) && (
+                                        <span className={`status-badge mini-badge badge-review-status ${session.reviewedAt ? 'processed' : 'review-pending'}`} style={{ marginLeft: 'auto' }}>
+                                            {session.reviewedAt
+                                                ? <span title="Revisado por admin">✅ Procesado</span>
+                                                : <span title="Pendiente de revisar">⏳ En revisión</span>
+                                            }
+                                        </span>
+                                    )}
                                 </div>
                             )
                         })
@@ -1953,6 +2157,31 @@ const BillingTab = ({ user }) => {
                     : ''}
                 confirmText="Revocar"
                 cancelText="Cancelar"
+                isDanger={true}
+            />
+            {/* Review Toggle Confirmation Modal */}
+            <ConfirmModal
+                isOpen={reviewConfirm.isOpen}
+                onClose={() => setReviewConfirm({ ...reviewConfirm, isOpen: false })}
+                onConfirm={() => {
+                    executeToggleReview(reviewConfirm.session, reviewConfirm.isReviewed);
+                    setReviewConfirm({ ...reviewConfirm, isOpen: false });
+                }}
+                title="Desmarcar Revisión"
+                message={`¿Estás seguro de que quieres marcar esta sesión como NO revisada?\n\n${reviewConfirm.session ? `${formatDate(reviewConfirm.session.date)} - ${reviewConfirm.session.title}` : ''}`}
+                confirmText="Sí, desmarcar"
+                cancelText="Cancelar"
+                isDanger={true}
+            />
+            {/* Error Message Modal */}
+            <ConfirmModal
+                isOpen={errorModal.isOpen}
+                onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+                onConfirm={() => setErrorModal({ ...errorModal, isOpen: false })}
+                title={errorModal.title}
+                message={errorModal.message}
+                confirmText="Entendido"
+                cancelText="Cerrar"
                 isDanger={true}
             />
         </div>

@@ -178,7 +178,7 @@ exports.getTherapistSessions = async (req, res) => {
         let payments = [];
         if (sessionIds.length > 0) {
             const paymentResult = await pool.query(
-                `SELECT event_id, payment_type, marked_at 
+                `SELECT event_id, payment_type, marked_at, reviewed_at 
                  FROM session_payments 
                  WHERE event_id = ANY($1) AND therapist_id = $2`,
                 [sessionIds, therapist_id]
@@ -201,6 +201,7 @@ exports.getTherapistSessions = async (req, res) => {
             const payment = paymentMap[session.id];
             session.paymentStatus = payment ? payment.payment_type : 'pending';
             session.markedAt = payment?.marked_at || null;
+            session.reviewedAt = payment?.reviewed_at || null;
 
             // Solo contar sesiones facturables (precio > 0 y no canceladas)
             if (session.price > 0 && session.paymentStatus !== 'cancelled') {
@@ -1282,7 +1283,7 @@ exports.getReviewSummary = async (req, res) => {
 exports.reviewPayments = async (req, res) => {
     try {
         const { role, id: adminId } = req.user;
-        const { therapistId, paymentType, confirmedAmount, startDate, endDate } = req.body;
+        const { therapistId, paymentType, confirmedAmount, startDate, endDate, eventIds } = req.body;
 
         if (role !== 'admin') {
             return res.status(403).json({ message: 'Solo el administrador puede marcar revisiones.' });
@@ -1296,8 +1297,8 @@ exports.reviewPayments = async (req, res) => {
             return res.status(400).json({ message: 'paymentType debe ser "cash" o "transfer"' });
         }
 
-        // Get unreviewed sessions of this type
-        const unreviewedResult = await pool.query(`
+        // Build query conditions
+        let query = `
             SELECT 
                 sp.id, sp.event_id,
                 COALESCE(sp.modified_price, sp.original_price, 55) as price
@@ -1305,9 +1306,30 @@ exports.reviewPayments = async (req, res) => {
             WHERE sp.therapist_id = $1
               AND sp.payment_type = $2
               AND sp.reviewed_at IS NULL
-              AND ($3::date IS NULL OR sp.session_date >= $3)
-              AND ($4::date IS NULL OR sp.session_date <= $4)
-        `, [therapistId, paymentType, startDate || null, endDate || null]);
+        `;
+
+        const params = [therapistId, paymentType];
+        let paramIdx = 3;
+
+        if (eventIds && Array.isArray(eventIds) && eventIds.length > 0) {
+            query += ` AND sp.event_id = ANY($${paramIdx})`;
+            params.push(eventIds);
+            paramIdx++;
+        } else {
+            // Only use date filters if specific IDs are not provided (legacy behavior)
+            if (startDate) {
+                query += ` AND sp.session_date >= $${paramIdx}`;
+                params.push(startDate);
+                paramIdx++;
+            }
+            if (endDate) {
+                query += ` AND sp.session_date <= $${paramIdx}`;
+                params.push(endDate);
+                paramIdx++;
+            }
+        }
+
+        const unreviewedResult = await pool.query(query, params);
 
         const sessions = unreviewedResult.rows;
         const expectedTotal = sessions.reduce((sum, s) => sum + parseFloat(s.price), 0);
@@ -1351,5 +1373,41 @@ exports.reviewPayments = async (req, res) => {
     } catch (error) {
         console.error('Error reviewing payments:', error);
         res.status(500).json({ message: 'Error reviewing payments' });
+    }
+};
+
+/**
+ * Toggle review status for a single session
+ */
+exports.toggleReviewStatus = async (req, res) => {
+    try {
+        const { id } = req.user; // Admin ID
+        const { eventId, reviewed } = req.body;
+        console.log('Toggling review:', { eventId, reviewed, adminId: id });
+
+        if (!eventId) {
+            return res.status(400).json({ message: 'Event ID is required' });
+        }
+
+        if (reviewed) {
+            // Mark as reviewed
+            await pool.query(`
+                UPDATE session_payments 
+                SET reviewed_at = NOW(), reviewed_by = $1
+                WHERE event_id = $2
+            `, [id, eventId]);
+        } else {
+            // Unmark (remove review)
+            await pool.query(`
+                UPDATE session_payments 
+                SET reviewed_at = NULL, reviewed_by = NULL
+                WHERE event_id = $1
+            `, [eventId]);
+        }
+
+        res.json({ success: true, reviewed });
+    } catch (error) {
+        console.error('Toggle review error:', error);
+        res.status(500).json({ message: 'Error toggling review status' });
     }
 };

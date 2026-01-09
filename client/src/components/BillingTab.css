@@ -1591,6 +1591,13 @@
     margin: 0 auto;
 }
 
+/* Custom orange style for pending review */
+.badge-review-status.review-pending {
+    background: #FFF3E0;
+    color: #E65100;
+    border: 1px solid #FFCC80;
+}
+
 .invoice-month-selector {
     display: flex;
     gap: 20px;
@@ -2404,35 +2411,108 @@
     gap: 8px;
 }
 
+/* Expandable session list in review panel */
 .review-sessions-list {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 10px;
-    max-height: 200px;
+    margin-top: 10px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    max-height: 250px;
+    /* ~5 items approx */
     overflow-y: auto;
 }
 
-.review-session-mini {
+.review-session-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding: 8px 12px;
-    background: white;
-    border-radius: 6px;
-    margin-bottom: 6px;
-    font-size: 0.85rem;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9rem;
     gap: 10px;
+    transition: background-color 0.2s, opacity 0.2s;
+    cursor: pointer;
 }
 
-.review-session-mini:last-child {
-    margin-bottom: 0;
+.review-session-item:last-child {
+    border-bottom: none;
 }
 
-.session-title-mini {
+/* Reviewed state */
+.review-session-item.reviewed {
+    background-color: #f0f9f0;
+    border-left: 4px solid #4caf50;
+    opacity: 0.7;
+}
+
+.review-session-item.pending {
+    border-left: 4px solid transparent;
+}
+
+.review-session-item:hover {
+    background-color: #fafafa;
+}
+
+.review-session-item.reviewed:hover {
+    background-color: #e8f5e9;
+    opacity: 1;
+}
+
+.session-check {
+    display: flex;
+    align-items: center;
+}
+
+.session-check input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #2e7d32;
+}
+
+.session-details-mini {
     flex: 1;
-    color: #555;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.session-details-mini .date {
+    color: #666;
+    font-size: 0.85rem;
+    min-width: 80px;
+}
+
+.session-details-mini .title {
+    flex: 1;
+    font-weight: 500;
+    color: #333;
+}
+
+.session-details-mini .price {
+    font-weight: 600;
+    color: #2e7d32;
+}
+
+.mini-badge {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Wrapper state for fully reviewed sections */
+.review-item-wrapper.fully-reviewed .review-item {
+    opacity: 0.8;
+}
+
+.reviewed-badge {
+    color: #2e7d32;
+    font-weight: 600;
+    background: #e8f5e9;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    border: 1px solid #c8e6c9;
 }
