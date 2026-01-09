@@ -62,6 +62,11 @@
       "source": "/sonia-montesinos",
       "destination": "/terapeutas",
       "permanent": true
+    },
+    {
+      "source": "/sara-ochoa",
+      "destination": "/terapeutas/sara-ochoa",
+      "permanent": true
     }
   ],
   "rewrites": [
