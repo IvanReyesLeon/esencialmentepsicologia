@@ -19,9 +19,11 @@ const adminRoutes = require('./routes/admin');
 const reminderRoutes = require('./routes/reminders');
 const syncRoutes = require('./routes/sync');
 const { startReminderJob } = require('./services/reminderService');
+const { startWeeklyReminderJob } = require('./services/weeklyReminderService');
 
 // Start Cron Jobs
 startReminderJob();
+startWeeklyReminderJob();
 
 const app = express();
 

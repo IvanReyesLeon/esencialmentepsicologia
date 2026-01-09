@@ -300,59 +300,73 @@ exports.getGlobalSessions = async (req, res) => {
                     description: event.description
                 };
 
-                // Filter by Requested Therapist
-                if (queryTherapistId && session.therapistId !== queryTherapistId) {
-                    return null;
-                }
+            .filter(session => {
+                    if (!session) return false;
 
-                // Skip 'Unknown' if we only want assigned
-                if (sessionTherapistId === 'unknown') return null;
-
-                // Check non-billable (libre, anulada, no disponible)
-                const titleLower = (session.title || '').toLowerCase();
-                if (titleLower.includes('libre') || titleLower.includes('anulada') || titleLower.includes('no disponible')) {
-                    session.isLibre = true;
-                    session.price = 0;
-                } else {
-                    session.isLibre = false;
-                    session.price = 55; // Default price
-                }
-
-                // Attach Payment Info
-                if (paymentsMap[session.id]) {
-                    const payment = paymentsMap[session.id];
-                    session.paymentStatus = payment.payment_type;
-                    session.paidAt = payment.marked_at;
-                    session.markedAt = payment.marked_at; // For 24h window calculation
-                    session.paymentDate = payment.payment_date;
-                    session.reviewedAt = payment.reviewed_at || null; // Admin review status
-                    // Include price modification info
-                    session.originalPrice = payment.original_price || session.price;
-                    session.modifiedPrice = payment.modified_price || null;
-                    // Use modified price if available
-                    if (payment.modified_price !== null && payment.modified_price !== undefined) {
-                        session.price = parseFloat(payment.modified_price);
-                    } else if (payment.original_price !== null && payment.original_price !== undefined) {
-                        session.price = parseFloat(payment.original_price);
+                    // Filter by Requested Therapist
+                    if (queryTherapistId && session.therapistId !== String(queryTherapistId)) {
+                        return false;
                     }
-                } else {
-                    session.paymentStatus = 'pending';
-                    session.originalPrice = session.price;
-                    session.modifiedPrice = null;
-                    session.reviewedAt = null;
-                }
 
-                return session;
-            })
+                    // Skip 'Unknown' if we only want assigned
+                    if (sessionTherapistId === 'unknown') return false;
+
+                    // Strict date filtering (Admin view fix)
+                    const sDate = new Date(session.date);
+                    sDate.setHours(0, 0, 0, 0);
+                    const eDate = new Date(end);
+                    eDate.setHours(23, 59, 59, 999);
+                    const stDate = new Date(start);
+                    stDate.setHours(0, 0, 0, 0);
+
+                    return sDate >= stDate && sDate <= eDate;
+                });
+
+        // Check non-billable (libre, anulada, no disponible)
+        const titleLower = (session.title || '').toLowerCase();
+        if (titleLower.includes('libre') || titleLower.includes('anulada') || titleLower.includes('no disponible')) {
+            session.isLibre = true;
+            session.price = 0;
+        } else {
+            session.isLibre = false;
+            session.price = 55; // Default price
+        }
+
+        // Attach Payment Info
+        if (paymentsMap[session.id]) {
+            const payment = paymentsMap[session.id];
+            session.paymentStatus = payment.payment_type;
+            session.paidAt = payment.marked_at;
+            session.markedAt = payment.marked_at; // For 24h window calculation
+            session.paymentDate = payment.payment_date;
+            session.reviewedAt = payment.reviewed_at || null; // Admin review status
+            // Include price modification info
+            session.originalPrice = payment.original_price || session.price;
+            session.modifiedPrice = payment.modified_price || null;
+            // Use modified price if available
+            if (payment.modified_price !== null && payment.modified_price !== undefined) {
+                session.price = parseFloat(payment.modified_price);
+            } else if (payment.original_price !== null && payment.original_price !== undefined) {
+                session.price = parseFloat(payment.original_price);
+            }
+        } else {
+            session.paymentStatus = 'pending';
+            session.originalPrice = session.price;
+            session.modifiedPrice = null;
+            session.reviewedAt = null;
+        }
+
+        return session;
+    })
             .filter(Boolean) // Remove nulls
-            .sort((a, b) => new Date(b.date) - new Date(a.date)); // Newest first
+        .sort((a, b) => new Date(b.date) - new Date(a.date)); // Newest first
 
-        res.json({ sessions: processedSessions });
+    res.json({ sessions: processedSessions });
 
-    } catch (error) {
-        console.error('Error fetching global sessions:', error);
-        res.status(500).json({ message: 'Error fetching sessions' });
-    }
+} catch (error) {
+    console.error('Error fetching global sessions:', error);
+    res.status(500).json({ message: 'Error fetching sessions' });
+}
 };
 
 exports.markSessionPaid = async (req, res) => {
