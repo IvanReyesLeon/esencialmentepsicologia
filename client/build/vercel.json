@@ -1,17 +1,111 @@
 {
-    "rewrites": [
+  "buildCommand": "",
+  "installCommand": "",
+  "outputDirectory": "build",
+  "redirects": [
+    {
+      "source": "/mireia-xicart",
+      "destination": "/terapeutas",
+      "permanent": true
+    },
+    {
+      "source": "/que-es-un-ataque-de-ansiedad-y-como-evitarlo",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/ghosting-desaparecer-sin-motivo",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/politica-privacidad/",
+      "destination": "/politica-privacidad",
+      "permanent": true
+    },
+    {
+      "source": "/politica-cookies/",
+      "destination": "/politica-cookies",
+      "permanent": true
+    },
+    {
+      "source": "/opiniones",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/cuerpo",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/psicologia",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/elisabet-vidal",
+      "destination": "/terapeutas",
+      "permanent": true
+    },
+    {
+      "source": "/patricia-miguel",
+      "destination": "/terapeutas",
+      "permanent": true
+    },
+    {
+      "source": "/celia-morales-garcia",
+      "destination": "/terapeutas",
+      "permanent": true
+    },
+    {
+      "source": "/sonia-montesinos",
+      "destination": "/terapeutas",
+      "permanent": true
+    },
+    {
+      "source": "/sara-ochoa",
+      "destination": "/terapeutas/sara-ochoa",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://esencialmentepsicologia.onrender.com/sitemap.xml"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://esencialmentepsicologia.onrender.com/api/:path*"
+    },
+    {
+      "source": "/((?!api/.*|sitemap.xml).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/manifest.json",
+      "headers": [
         {
-            "source": "/sitemap.xml",
-            "destination": "https://esencialmentepsicologia.onrender.com/sitemap.xml"
+          "key": "Content-Type",
+          "value": "application/manifest+json"
         },
         {
-            "source": "/api/:path*",
-            "destination": "https://esencialmentepsicologia.onrender.com/api/:path*"
-        },
-        {
-            "source": "/((?!api/.*|sitemap.xml).*)",
-            "destination": "/index.html"
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
         }
-    ],
-    "trailingSlash": false
+      ]
+    },
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  "trailingSlash": false
 }

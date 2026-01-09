@@ -109,6 +109,16 @@ const THERAPIST_MAP = {
     'patri': { id: 6, name: 'Patri', colorId: '4', color: '#e67c73' },
 };
 
+// Reverse map: Color ID -> Therapist
+// Note: If multiple therapists share a color, this will pick the LAST one defined in THERAPIST_MAP.
+// Ideally colors should be unique per therapist.
+const COLOR_MAP = {};
+Object.values(THERAPIST_MAP).forEach(therapist => {
+    if (therapist.colorId) {
+        COLOR_MAP[therapist.colorId] = therapist;
+    }
+});
+
 /**
  * Normalize text by removing accents for comparison
  */
@@ -120,9 +130,10 @@ const normalizeText = (text) => {
  * Detect therapist from event title using /nombre/ format or plain name
  * Priority 1: "/nombre/" format (e.g., "/sara/", "/joan/")
  * Priority 2: Plain name in title (e.g., "Laura t moni", "Irene - Sara pag")
+ * Priority 3: Google Calendar Color ID
  * Handles accent variations: Cèlia or Celia
  */
-const detectTherapist = (title) => {
+const detectTherapist = (title, colorId = null) => {
     const normalizedTitle = normalizeText(title);
 
     // Priority 1: Extract text between slashes: /nombre/
@@ -151,6 +162,11 @@ const detectTherapist = (title) => {
         if (pattern.test(normalizedTitle)) {
             return therapist;
         }
+    }
+
+    // Priority 3: Fallback to Color ID
+    if (colorId && COLOR_MAP[colorId]) {
+        return COLOR_MAP[colorId];
     }
 
     // No therapist detected
@@ -211,8 +227,8 @@ const getSessions = async (calendarId, startDate, endDate, colorId = null) => {
             // Non-billable events (libre/anulada) have 0 price
             const price = isNonBillable ? 0 : calculatePrice(durationMinutes);
 
-            // Detect therapist from title using /nombre/ format
-            const therapist = detectTherapist(event.summary || '');
+            // Detect therapist from title using /nombre/ format or color fallback
+            const therapist = detectTherapist(event.summary || '', eventColorId);
 
             sessions.push({
                 id: event.id,

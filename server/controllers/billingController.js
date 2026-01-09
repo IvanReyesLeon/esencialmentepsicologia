@@ -277,7 +277,7 @@ exports.getGlobalSessions = async (req, res) => {
         const processedSessions = events
             .map(event => {
                 // Detect therapist
-                const detected = detectTherapist(event.summary || '');
+                const detected = detectTherapist(event.summary || '', event.colorId);
                 if (!detected && !process.env.IncludeUnknown) return null; // Skip if strict
 
                 // Filter out "Anna"
@@ -301,7 +301,7 @@ exports.getGlobalSessions = async (req, res) => {
                 };
 
                 // Filter by Requested Therapist
-                if (queryTherapistId && session.therapistId !== String(queryTherapistId)) {
+                if (queryTherapistId && String(session.therapistId) !== String(queryTherapistId)) {
                     return null;
                 }
 
