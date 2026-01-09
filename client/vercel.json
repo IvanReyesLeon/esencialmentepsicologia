@@ -79,15 +79,7 @@
       "destination": "https://esencialmentepsicologia.onrender.com/api/:path*"
     },
     {
-      "source": "/admin",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/admin/:path*",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/((?!static|.*\\..*|api).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
