@@ -9,7 +9,7 @@
             "destination": "https://esencialmentepsicologia.onrender.com/api/:path*"
         },
         {
-            "source": "/(.*)",
+            "source": "/((?!api/.*|sitemap.xml).*)",
             "destination": "/client/build/index.html"
         }
     ],
@@ -20,6 +20,5 @@
             "permanent": true
         }
     ],
-    "cleanUrls": true,
     "trailingSlash": false
 }

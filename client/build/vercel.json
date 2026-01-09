@@ -9,17 +9,9 @@
             "destination": "https://esencialmentepsicologia.onrender.com/api/:path*"
         },
         {
-            "source": "/(.*)",
+            "source": "/((?!api/.*|sitemap.xml).*)",
             "destination": "/index.html"
         }
     ],
-    "redirects": [
-        {
-            "source": "/sara-ochoa",
-            "destination": "/terapeutas/sara-ochoa",
-            "permanent": true
-        }
-    ],
-    "cleanUrls": true,
     "trailingSlash": false
 }
