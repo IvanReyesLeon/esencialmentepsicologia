@@ -2235,3 +2235,204 @@
         background-color: white;
     }
 }
+
+/* === UNPAID STATUS === */
+.btn-pay.unpaid {
+    color: #e65100;
+}
+
+.btn-pay.unpaid:hover {
+    background: #fff3e0;
+}
+
+.btn-pay.unpaid.active {
+    background: #ff9800;
+    color: white;
+}
+
+.status-badge.unpaid {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ff9800;
+}
+
+/* === REVIEWED BADGE === */
+.reviewed-badge {
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: 600;
+}
+
+/* === ADMIN REVIEW PANEL === */
+.admin-review-panel {
+    background: linear-gradient(135deg, #fff8e1, #fffde7);
+    border: 2px solid #ffc107;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.admin-review-panel h4 {
+    margin: 0 0 15px;
+    color: #f57c00;
+    font-size: 1.1rem;
+}
+
+.review-items {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.review-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.review-item.cash {
+    border-left: 4px solid #4285F4;
+}
+
+.review-item.transfer {
+    border-left: 4px solid #0F9D58;
+}
+
+.review-label {
+    font-weight: 500;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.review-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cash-confirm-input {
+    width: 100px;
+    padding: 8px 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    text-align: right;
+}
+
+.cash-confirm-input:focus {
+    outline: none;
+    border-color: #4285F4;
+}
+
+.currency-symbol {
+    color: #666;
+    font-weight: 500;
+}
+
+.btn-review-confirm {
+    background: #4caf50;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-review-confirm:hover {
+    background: #388e3c;
+}
+
+.btn-review-confirm:disabled {
+    background: #bdbdbd;
+    cursor: not-allowed;
+}
+
+.all-reviewed {
+    text-align: center;
+    color: #2e7d32;
+    font-weight: 500;
+    margin: 0;
+    padding: 10px;
+}
+
+/* Responsive for review panel */
+@media (max-width: 600px) {
+    .review-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .review-action {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* Eye button for session details */
+.btn-eye {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+    margin-left: 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.btn-eye:hover {
+    opacity: 1;
+}
+
+/* Expandable session list in review panel */
+.review-item-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.review-sessions-list {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.review-session-mini {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    gap: 10px;
+}
+
+.review-session-mini:last-child {
+    margin-bottom: 0;
+}
+
+.session-title-mini {
+    flex: 1;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}

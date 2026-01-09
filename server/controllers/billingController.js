@@ -91,12 +91,16 @@ exports.getWeeklySummaryAdmin = async (req, res) => {
                 session.paymentStatus = payment ? payment.payment_type : 'pending';
                 session.markedAt = payment?.marked_at || null;
 
-                if (payment && payment.payment_type !== 'cancelled') {
+                if (payment && ['cash', 'transfer', 'bizum'].includes(payment.payment_type)) {
                     paidAmount += session.price;
                     paidCount++;
-                } else if (!payment || payment.payment_type === 'pending') {
-                    pendingAmount += session.price;
-                    pendingCount++;
+                } else if (!payment || payment.payment_type === 'pending' || payment.payment_type === 'unpaid') {
+                    if (payment && payment.payment_type === 'cancelled') {
+                        // Do nothing for cancelled
+                    } else {
+                        pendingAmount += session.price;
+                        pendingCount++;
+                    }
                 }
                 // Cancelled sessions are neither paid nor pending for totals
             });
@@ -201,10 +205,11 @@ exports.getTherapistSessions = async (req, res) => {
             // Solo contar sesiones facturables (precio > 0 y no canceladas)
             if (session.price > 0 && session.paymentStatus !== 'cancelled') {
                 billableSessions++;
-                if (payment && payment.payment_type !== 'cancelled' && payment.payment_type !== 'pending') {
+                if (payment && ['cash', 'transfer', 'bizum'].includes(payment.payment_type)) {
                     paidAmount += session.price;
                     paidSessions++;
                 } else {
+                    // Pending or Unpaid
                     pendingAmount += session.price;
                     pendingSessions++;
                 }
@@ -317,7 +322,9 @@ exports.getGlobalSessions = async (req, res) => {
                     const payment = paymentsMap[session.id];
                     session.paymentStatus = payment.payment_type;
                     session.paidAt = payment.marked_at;
+                    session.markedAt = payment.marked_at; // For 24h window calculation
                     session.paymentDate = payment.payment_date;
+                    session.reviewedAt = payment.reviewed_at || null; // Admin review status
                     // Include price modification info
                     session.originalPrice = payment.original_price || session.price;
                     session.modifiedPrice = payment.modified_price || null;
@@ -331,6 +338,7 @@ exports.getGlobalSessions = async (req, res) => {
                     session.paymentStatus = 'pending';
                     session.originalPrice = session.price;
                     session.modifiedPrice = null;
+                    session.reviewedAt = null;
                 }
 
                 return session;
@@ -348,7 +356,7 @@ exports.getGlobalSessions = async (req, res) => {
 
 exports.markSessionPaid = async (req, res) => {
     try {
-        const { therapist_id } = req.user;
+        const { therapist_id, role } = req.user;
         const { eventId } = req.params;
         const {
             paymentType,
@@ -357,37 +365,67 @@ exports.markSessionPaid = async (req, res) => {
             sessionDate,
             sessionTitle,
             originalPrice,
-            modifiedPrice
-        } = req.body; // 'transfer' | 'cash' | 'cancelled' | null
-
-        if (!therapist_id) {
-            return res.status(400).json({ message: 'User is not linked to a therapist profile' });
-        }
+            modifiedPrice,
+            targetTherapistId // Admin can specify the therapist
+        } = req.body; // 'transfer' | 'cash' | 'cancelled' | 'unpaid' | null
 
         if (!eventId) {
             return res.status(400).json({ message: 'Event ID required' });
         }
 
-        // Get existing payment status for audit log
+        // Get existing payment status for audit log AND therapist_id
         const existingPaymentResult = await pool.query(
-            `SELECT payment_type, original_price, modified_price FROM session_payments WHERE event_id = $1`,
+            `SELECT payment_type, original_price, modified_price, marked_at, therapist_id FROM session_payments WHERE event_id = $1`,
             [eventId]
         );
         const existingRecord = existingPaymentResult.rows[0];
         const oldStatus = existingRecord?.payment_type || 'pending';
 
-        // Check permissions: Therapists cannot modify 'paid' sessions
+        // Determine therapist ID: from request, from user, or from existing record
+        let effectiveTherapistId = targetTherapistId || therapist_id || existingRecord?.therapist_id;
+
+        // For non-admin users, require therapist_id
+        if (!effectiveTherapistId && role !== 'admin') {
+            return res.status(400).json({ message: 'User is not linked to a therapist profile' });
+        }
+
+        // For admin creating new record without therapist info, require targetTherapistId
+        // But if modifying existing record, use its therapist_id
+        if (!effectiveTherapistId && role === 'admin') {
+            if (!existingRecord) {
+                return res.status(400).json({ message: 'Debes especificar el terapeuta para crear un nuevo registro de pago.' });
+            }
+            // If here, we have existingRecord but its therapist_id is null - use first one from session_payments as fallback
+            effectiveTherapistId = existingRecord.therapist_id || 1; // Fallback to 1 if somehow null
+        }
+
+        // Check permissions: Therapists have limited edit rights
         if (req.user.role !== 'admin') {
-            if (oldStatus !== 'pending' && oldStatus !== 'cancelled') {
-                return res.status(403).json({ message: 'No tienes permiso para modificar un pago ya procesado.' });
+            // Therapists can always edit: pending, cancelled, unpaid
+            const alwaysEditableStatuses = ['pending', 'cancelled', 'unpaid'];
+
+            if (!alwaysEditableStatuses.includes(oldStatus)) {
+                // For paid statuses (transfer, cash), check 24h window
+                const markedAt = existingRecord?.marked_at;
+                if (markedAt) {
+                    const hoursElapsed = (Date.now() - new Date(markedAt).getTime()) / (1000 * 60 * 60);
+                    if (hoursElapsed > 24) {
+                        return res.status(403).json({
+                            message: 'Han pasado más de 24 horas desde que marcaste esta sesión. Contacta con el administrador para cambiarla.'
+                        });
+                    }
+                } else {
+                    // No marked_at means it was never marked as paid, should be pending
+                    return res.status(403).json({ message: 'No tienes permiso para modificar esta sesión.' });
+                }
             }
         }
 
         if (paymentType === null || paymentType === 'pending') {
             // Remove payment record
             await pool.query(
-                `DELETE FROM session_payments WHERE event_id = $1 AND therapist_id = $2`,
-                [eventId, therapist_id]
+                `DELETE FROM session_payments WHERE event_id = $1`,
+                [eventId]
             );
         } else {
             // Upsert payment record with session history data
@@ -408,7 +446,7 @@ exports.markSessionPaid = async (req, res) => {
                     modified_price = COALESCE($8, session_payments.modified_price)`,
                 [
                     eventId,
-                    therapist_id,
+                    effectiveTherapistId,
                     paymentType,
                     paymentDate || null,
                     sessionDate || null,
@@ -425,17 +463,15 @@ exports.markSessionPaid = async (req, res) => {
 
         await pool.query(`
             INSERT INTO payment_audit_log 
-            (event_id, user_id, user_name, action, old_status, new_status, payment_date, session_date)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            (event_id, user_id, action, old_status, new_status, payment_date)
+            VALUES ($1, $2, $3, $4, $5, $6)
         `, [
             eventId,
             req.user.id,
-            req.user.username || req.user.email,
             action,
             oldStatus,
             paymentType || 'pending',
-            paymentDate || null,
-            sessionDate || null
+            paymentDate || null
         ]);
 
         res.json({ success: true, eventId, paymentType });
@@ -485,8 +521,10 @@ exports.updateSessionPrice = async (req, res) => {
         );
         const existingRecord = existingResult.rows[0];
 
-        // Check if session already has a payment status (not pending)
-        if (existingRecord && existingRecord.payment_type !== 'pending' && existingRecord.payment_type) {
+        // Check if session already has a payment status (not pending/unpaid)
+        // Allow price edit for pending and unpaid (unpaid might be due to wrong price)
+        const editableStatuses = ['pending', 'unpaid', null, undefined];
+        if (existingRecord && !editableStatuses.includes(existingRecord.payment_type)) {
             return res.status(403).json({
                 message: 'No se puede modificar el precio de una sesión que ya tiene estado de pago asignado.'
             });
@@ -657,13 +695,12 @@ exports.revokePriceChange = async (req, res) => {
         try {
             await pool.query(`
                 INSERT INTO payment_audit_log 
-                (event_id, user_id, action, old_status, new_status, session_date)
-                VALUES ($1, $2, 'price_revoked', $3, 'pending', $4)
+                (event_id, user_id, action, old_status, new_status)
+                VALUES ($1, $2, 'price_revoked', $3, 'pending')
             `, [
                 eventId,
                 req.user.id,
-                existingPayment.payment_type || 'unknown',
-                sessionDate || null
+                existingPayment.payment_type || 'unknown'
             ]);
         } catch (logError) {
             console.error('Audit log failed (non-blocking):', logError.message);
@@ -768,20 +805,20 @@ exports.getMonthlyTherapistSessions = async (req, res) => {
                 billableSessions.push(session);
                 totalAmount += session.price;
 
-                // Check if pending
-                if (session.paymentStatus === 'pending') {
+                // Check if pending or unpaid (both block invoice)
+                if (session.paymentStatus === 'pending' || session.paymentStatus === 'unpaid') {
                     pendingCount++;
                 }
             }
         });
 
-        // If there are pending sessions, return error
+        // If there are pending/unpaid sessions, return error
         if (pendingCount > 0) {
             return res.status(400).json({
                 error: true,
                 hasPending: true,
                 pendingCount,
-                message: `Tienes ${pendingCount} sesión${pendingCount > 1 ? 'es' : ''} pendiente${pendingCount > 1 ? 's' : ''} de revisar en este mes. Por favor, márcalas como revisadas antes de generar la factura.`
+                message: `Tienes ${pendingCount} sesión${pendingCount > 1 ? 'es' : ''} sin confirmar pago en este mes. Por favor, márcalas como pagadas (transferencia o efectivo) antes de generar la factura.`
             });
         }
 
@@ -1179,5 +1216,140 @@ exports.getInvoiceSubmissions = async (req, res) => {
     } catch (error) {
         console.error('Error getting invoice submissions:', error);
         res.status(500).json({ message: 'Error getting invoice submissions' });
+    }
+};
+
+/**
+ * Get unreviewed payment summary for a therapist (Admin only)
+ * Returns totals by payment type for sessions not yet reviewed by admin
+ */
+exports.getReviewSummary = async (req, res) => {
+    try {
+        const { role } = req.user;
+        const { therapistId, startDate, endDate } = req.query;
+
+        if (role !== 'admin') {
+            return res.status(403).json({ message: 'Solo el administrador puede ver el resumen de revisión.' });
+        }
+
+        if (!therapistId) {
+            return res.status(400).json({ message: 'therapistId requerido' });
+        }
+
+        // Get unreviewed paid sessions for this therapist
+        const result = await pool.query(`
+            SELECT 
+                sp.payment_type,
+                COUNT(*) as session_count,
+                SUM(COALESCE(sp.modified_price, sp.original_price, 55)) as total_amount
+            FROM session_payments sp
+            WHERE sp.therapist_id = $1
+              AND sp.payment_type IN ('transfer', 'cash')
+              AND sp.reviewed_at IS NULL
+              AND ($2::date IS NULL OR sp.session_date >= $2)
+              AND ($3::date IS NULL OR sp.session_date <= $3)
+            GROUP BY sp.payment_type
+        `, [therapistId, startDate || null, endDate || null]);
+
+        const summary = {
+            cash: { count: 0, amount: 0 },
+            transfer: { count: 0, amount: 0 }
+        };
+
+        result.rows.forEach(row => {
+            if (row.payment_type === 'cash') {
+                summary.cash.count = parseInt(row.session_count);
+                summary.cash.amount = parseFloat(row.total_amount);
+            } else if (row.payment_type === 'transfer') {
+                summary.transfer.count = parseInt(row.session_count);
+                summary.transfer.amount = parseFloat(row.total_amount);
+            }
+        });
+
+        res.json({ summary, therapistId });
+
+    } catch (error) {
+        console.error('Error getting review summary:', error);
+        res.status(500).json({ message: 'Error getting review summary' });
+    }
+};
+
+/**
+ * Mark sessions as reviewed by admin
+ * For cash: verifies amount matches before marking
+ * For transfer: just marks as reviewed
+ */
+exports.reviewPayments = async (req, res) => {
+    try {
+        const { role, id: adminId } = req.user;
+        const { therapistId, paymentType, confirmedAmount, startDate, endDate } = req.body;
+
+        if (role !== 'admin') {
+            return res.status(403).json({ message: 'Solo el administrador puede marcar revisiones.' });
+        }
+
+        if (!therapistId || !paymentType) {
+            return res.status(400).json({ message: 'therapistId y paymentType requeridos' });
+        }
+
+        if (!['cash', 'transfer'].includes(paymentType)) {
+            return res.status(400).json({ message: 'paymentType debe ser "cash" o "transfer"' });
+        }
+
+        // Get unreviewed sessions of this type
+        const unreviewedResult = await pool.query(`
+            SELECT 
+                sp.id, sp.event_id,
+                COALESCE(sp.modified_price, sp.original_price, 55) as price
+            FROM session_payments sp
+            WHERE sp.therapist_id = $1
+              AND sp.payment_type = $2
+              AND sp.reviewed_at IS NULL
+              AND ($3::date IS NULL OR sp.session_date >= $3)
+              AND ($4::date IS NULL OR sp.session_date <= $4)
+        `, [therapistId, paymentType, startDate || null, endDate || null]);
+
+        const sessions = unreviewedResult.rows;
+        const expectedTotal = sessions.reduce((sum, s) => sum + parseFloat(s.price), 0);
+
+        // For cash, verify the amount matches
+        if (paymentType === 'cash') {
+            if (confirmedAmount === undefined || confirmedAmount === null) {
+                return res.status(400).json({
+                    message: 'Para efectivo, debes confirmar la cantidad recogida.',
+                    expectedAmount: expectedTotal
+                });
+            }
+
+            const confirmed = parseFloat(confirmedAmount);
+            if (Math.abs(confirmed - expectedTotal) > 0.01) {
+                return res.status(400).json({
+                    message: `La cantidad confirmada (${confirmed}€) no coincide con el total esperado (${expectedTotal}€). Revisa las sesiones o ajusta la cantidad.`,
+                    expectedAmount: expectedTotal,
+                    confirmedAmount: confirmed
+                });
+            }
+        }
+
+        // Mark all matching sessions as reviewed
+        const sessionIds = sessions.map(s => s.id);
+        if (sessionIds.length > 0) {
+            await pool.query(`
+                UPDATE session_payments 
+                SET reviewed_at = NOW(), reviewed_by = $1
+                WHERE id = ANY($2)
+            `, [adminId, sessionIds]);
+        }
+
+        res.json({
+            success: true,
+            reviewedCount: sessionIds.length,
+            reviewedAmount: expectedTotal,
+            paymentType
+        });
+
+    } catch (error) {
+        console.error('Error reviewing payments:', error);
+        res.status(500).json({ message: 'Error reviewing payments' });
     }
 };
