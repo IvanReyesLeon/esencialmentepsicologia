@@ -5,6 +5,9 @@ const { pool } = require('../config/db');
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Helper to avoid Resend rate limit (max 2 emails/second)
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 /**
  * Send weekly reminder emails to all therapists
  */
@@ -72,6 +75,9 @@ const sendWeeklyReminders = async () => {
                 console.error(`❌ Exception sending to ${email}:`, err);
                 errorCount++;
             }
+
+            // Wait 600ms between emails to avoid Resend rate limit (max 2/second)
+            await sleep(600);
         }
 
         console.log(`✅ Weekly reminder job finished. Sent: ${sentCount}, Errors: ${errorCount}`);
