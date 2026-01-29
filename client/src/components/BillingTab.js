@@ -12,8 +12,16 @@ const BillingTab = ({ user }) => {
     const [view, setView] = useState('months'); // 'months' | 'weeks' | 'detail' | 'pending' | 'invoice'
     const [billingMode, setBillingMode] = useState('calendar'); // 'calendar' | 'payments' | 'invoice'
     const [globalSessions, setGlobalSessions] = useState([]);
-    const [globalStartDate, setGlobalStartDate] = useState(`${new Date().getFullYear()}-01-01`);
-    const [globalEndDate, setGlobalEndDate] = useState(`${new Date().getFullYear()}-12-31`);
+
+    // Default to current month
+    const [globalStartDate, setGlobalStartDate] = useState(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA');
+    });
+    const [globalEndDate, setGlobalEndDate] = useState(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-CA');
+    });
 
     // Invoice Submission State
     const [invoiceSubmitted, setInvoiceSubmitted] = useState(false);

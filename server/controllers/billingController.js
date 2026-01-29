@@ -4,6 +4,7 @@ const {
     getWeeksOfMonth,
     getRawEvents,
     detectTherapist,
+    getTherapistMap,
     isNonBillable
 } = require('../services/calendarService');
 const { getAllTherapists } = require('../models/therapistQueries');
@@ -267,17 +268,20 @@ exports.getGlobalSessions = async (req, res) => {
         const events = await getRawEvents(start, end);
 
         // 2. Fetch payments from DB
+        // 2. Fetch payments from DB
         const paymentsRes = await pool.query(`SELECT * FROM session_payments`);
         const paymentsMap = {};
         paymentsRes.rows.forEach(p => {
             paymentsMap[p.event_id] = p;
         });
 
+        const therapistMap = await getTherapistMap();
+
         // 3. Process events
         const processedSessions = events
             .map(event => {
-                // Detect therapist
-                const detected = detectTherapist(event.summary || '');
+                // Detect therapist using dynamic map
+                const detected = detectTherapist(event.summary || '', therapistMap);
                 if (!detected && !process.env.IncludeUnknown) return null; // Skip if strict
 
                 // Filter out "Anna"
