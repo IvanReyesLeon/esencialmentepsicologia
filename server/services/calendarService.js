@@ -86,27 +86,90 @@ const getMonthName = (monthIndex) => {
     return months[monthIndex];
 };
 
-// Therapist database mapping: lowercase name -> { id, fullName, colorId, color }
-// This maps what users write between /slashes/ to therapist info
-const THERAPIST_MAP = {
-    'sara': { id: 8, name: 'Sara Ochoa', colorId: '5', color: '#f6c026' },
-    'miriam': { id: 5, name: 'Miriam Expósito', colorId: '1', color: '#7986cb' },
-    'eli': { id: 11, name: 'Elisabet Vidal', colorId: '6', color: '#f4511e' },
-    'elisabet': { id: 11, name: 'Elisabet Vidal', colorId: '6', color: '#f4511e' },
-    'moni': { id: 7, name: 'Mónica Vidal', colorId: '8', color: '#616161' },
-    'monica': { id: 7, name: 'Mónica Vidal', colorId: '8', color: '#616161' },
-    'mónica': { id: 7, name: 'Mónica Vidal', colorId: '8', color: '#616161' },
-    'lucia': { id: 2, name: 'Lucía Gómez', colorId: '2', color: '#33b679' },
-    'lucía': { id: 2, name: 'Lucía Gómez', colorId: '2', color: '#33b679' },
-    'yaiza': { id: 4, name: 'Yaiza González', colorId: '7', color: '#039be5' },
-    'sonia': { id: 6, name: 'Sonia Montesinos', colorId: '4', color: '#e67c73' },
-    'anna': { id: 1, name: 'Anna Becerra', colorId: '11', color: '#d50000' },
-    'christian': { id: 3, name: 'Christian Ayuste', colorId: '10', color: '#0b8043' },
-    'chris': { id: 3, name: 'Christian Ayuste', colorId: '10', color: '#0b8043' },
-    'cèlia': { id: 10, name: 'Cèlia Morales', colorId: '3', color: '#8e24aa' },
-    'celia': { id: 10, name: 'Cèlia Morales', colorId: '3', color: '#8e24aa' },
-    'joan': { id: 9, name: 'Joan Miralles', colorId: '9', color: '#3f51b5' },
-    'patri': { id: 6, name: 'Patri', colorId: '4', color: '#e67c73' },
+// Google Calendar Colors (ID -> Hex)
+const GOOGLE_COLORS = {
+    '1': '#7986cb', // Lavender (Miriam)
+    '2': '#33b679', // Sage (Lucía)
+    '3': '#8e24aa', // Grape (Cèlia)
+    '4': '#e67c73', // Flamingo (Sonia, Patri, Mariana)
+    '5': '#f6c026', // Banana (Sara)
+    '6': '#f4511e', // Tangerine (Eli)
+    '7': '#039be5', // Peacock (Yaiza)
+    '8': '#616161', // Graphite (Mónica)
+    '9': '#3f51b5', // Blueberry (Joan)
+    '10': '#0b8043', // Basil (Christian)
+    '11': '#d50000', // Tomato (Anna)
+};
+
+// Legacy/Manual aliases that can't be easily inferred
+const MANUAL_ALIASES = {
+    'chris': 'Christian Ayuste',
+    'moni': 'Mónica Vidal',
+    'patri': 'Patri', // If 'Patri' is not the full name in DB
+    'eli': 'Elisabet Vidal',
+};
+
+const pool = require('../config/db');
+
+/**
+ * Fetch therapists from DB and build a detection map
+ * Returns: { 'slug': {id, name, colorId, color}, ... }
+ */
+const getTherapistMap = async () => {
+    try {
+        const result = await pool.query('SELECT id, full_name, calendar_color_id, calendar_alias FROM therapists WHERE is_active = true OR id IN (SELECT therapist_id FROM users)');
+        const map = {};
+
+        // Helper to add entry
+        const addEntry = (key, therapist) => {
+            const normalizedKey = normalizeText(key);
+            if (!normalizedKey) return;
+
+            map[normalizedKey] = {
+                id: therapist.id,
+                name: therapist.full_name,
+                colorId: String(therapist.calendar_color_id || '8'), // Default to graphite
+                color: GOOGLE_COLORS[String(therapist.calendar_color_id)] || '#616161'
+            };
+        };
+
+        result.rows.forEach(t => {
+            // 0. Primary Alias (User defined) - Highest priority (override others if needed)
+            if (t.calendar_alias) {
+                addEntry(t.calendar_alias, t);
+            }
+
+            // 1. Full name
+            addEntry(t.full_name, t);
+
+            // 2. First name (e.g., "Mariana")
+            const firstName = t.full_name.split(' ')[0];
+            if (firstName.length > 2) {
+                addEntry(firstName, t);
+            }
+
+            // 3. Manual aliases support
+            // Reverse lookup: check if this therapist matches any manual alias target
+            Object.entries(MANUAL_ALIASES).forEach(([alias, targetName]) => {
+                if (normalizeText(t.full_name) === normalizeText(targetName) ||
+                    t.full_name.includes(targetName)) {
+                    addEntry(alias, t);
+                }
+            });
+        });
+
+        // Add explicit 'patri' if not mapped (legacy fallback)
+        if (!map['patri']) {
+            // If Patri exists in DB she will be added above. If not, maybe keep fallback?
+            // Let's assume she is in DB or this fallback is needed only if she's not.
+            // map['patri'] = { id: 6, name: 'Patri', colorId: '4', color: '#e67c73' };
+        }
+
+        return map;
+    } catch (error) {
+        console.error('Error building therapist map:', error);
+        return {}; // Return empty map on error to avoid crashes, will result in "Sin asignar"
+    }
 };
 
 
@@ -114,16 +177,15 @@ const THERAPIST_MAP = {
  * Normalize text by removing accents for comparison
  */
 const normalizeText = (text) => {
+    if (!text) return '';
     return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 };
 
 /**
  * Detect therapist from event title using /nombre/ format or plain name
- * Priority 1: "/nombre/" format (e.g., "/sara/", "/joan/")
- * Priority 2: Plain name in title (e.g., "Laura t moni", "Irene - Sara pag")
- * Handles accent variations: Cèlia or Celia
+ * Requires a therapistMap (built from DB). If not provided, returns unknown.
  */
-const detectTherapist = (title) => {
+const detectTherapist = (title, therapistMap = {}) => {
     const normalizedTitle = normalizeText(title);
 
     // Priority 1: Extract text between slashes: /nombre/
@@ -133,44 +195,48 @@ const detectTherapist = (title) => {
         const therapistTag = match[1].toLowerCase().trim();
         const normalizedTag = normalizeText(match[1]);
 
-        // First try exact match
-        if (THERAPIST_MAP[therapistTag]) {
-            return THERAPIST_MAP[therapistTag];
+        // Try exact match or normalized match in map
+        if (therapistMap[normalizedTag]) {
+            return therapistMap[normalizedTag];
         }
 
-        // Try normalized match (without accents)
-        if (THERAPIST_MAP[normalizedTag]) {
-            return THERAPIST_MAP[normalizedTag];
-        }
+        // Try searching keys that contain the tag (partial match for tag?)
+        // Usually tags are exact: /mariana/ -> matches 'mariana' key
     }
 
-    // Priority 2: Search for therapist names anywhere in the title
-    // Use word boundaries to avoid partial matches
-    for (const [key, therapist] of Object.entries(THERAPIST_MAP)) {
+    // Priority 2: Search for therapist keys anywhere in the title
+    // Sort keys by length descending to match "Maria Jose" before "Maria"
+    const keys = Object.keys(therapistMap).sort((a, b) => b.length - a.length);
+
+    for (const key of keys) {
+        // Skip very short keys to avoid false positives (e.g. "a", "el")
+        if (key.length < 3) continue;
+
         // Create a pattern that matches the key as a separate word
+        // \b matches word boundaries
         const pattern = new RegExp(`\\b${key}\\b`, 'i');
         if (pattern.test(normalizedTitle)) {
-            return therapist;
+            return therapistMap[key];
         }
     }
-
 
     // No therapist detected
     return { id: null, name: 'Sin asignar', colorId: 'default', color: '#e0e0e0' };
 };
 
-
-
 /**
  * Get individual sessions for a date range
- * @param {string} calendarId 
- * @param {Date} startDate 
- * @param {Date} endDate 
- * @param {number|null} colorId - Filter by therapist color (null = all)
+ * Now fetches therapist map dynamically
  */
 const getSessions = async (calendarId, startDate, endDate, colorId = null) => {
     try {
-        const authClient = await auth.getClient();
+        const [authClient, eventsList, therapistMap] = await Promise.all([
+            auth.getClient(),
+            // We'll fetch events in the next step, just getting deps here
+            Promise.resolve(null),
+            getTherapistMap()
+        ]);
+
         const calendar = google.calendar({ version: 'v3', auth: authClient });
 
         const response = await calendar.events.list({
@@ -213,8 +279,8 @@ const getSessions = async (calendarId, startDate, endDate, colorId = null) => {
             // Non-billable events (libre/anulada) have 0 price
             const price = isNonBillable ? 0 : calculatePrice(durationMinutes);
 
-            // Detect therapist from title using /nombre/ format
-            const therapist = detectTherapist(event.summary || '');
+            // Detect therapist from title using dynamic map
+            const therapist = detectTherapist(event.summary || '', therapistMap);
 
             sessions.push({
                 id: event.id,
@@ -245,6 +311,7 @@ const getSessions = async (calendarId, startDate, endDate, colorId = null) => {
  * Get sessions grouped by therapist for a week
  */
 const getWeeklySummary = async (calendarId, startDate, endDate, therapists) => {
+    // getSessions handles the map loading internally
     const sessions = await getSessions(calendarId, startDate, endDate);
 
     // Group sessions by therapist (using therapistId/therapistName from /nombre/ detection)
@@ -326,6 +393,7 @@ module.exports = {
     getWeeksOfMonth,
     calculatePrice,
     detectTherapist,
+    getTherapistMap, // Export so other services can use it
     getRawEvents,
     isNonBillable,
     PRICING

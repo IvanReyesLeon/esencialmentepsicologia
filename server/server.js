@@ -25,6 +25,17 @@ const { startWeeklyReminderJob } = require('./services/weeklyReminderService');
 startReminderJob();
 startWeeklyReminderJob();
 
+// Auto-migration for calendar_alias
+(async () => {
+  try {
+    const { query } = require('./config/db');
+    await query("ALTER TABLE therapists ADD COLUMN IF NOT EXISTS calendar_alias VARCHAR(50);");
+    console.log('✅ Auto-migration: calendar_alias column checked/created');
+  } catch (err) {
+    console.error('⚠️ Auto-migration failed:', err.message);
+  }
+})();
+
 const app = express();
 
 // --- CORS: permite tu front en Vercel (y local) ---

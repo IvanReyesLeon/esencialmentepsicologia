@@ -1,4 +1,5 @@
 const { query, getClient } = require('../config/db');
+const bcrypt = require('bcryptjs');
 
 // Función helper para generar slug desde nombre
 const generateSlug = (name) => {
@@ -94,22 +95,24 @@ const createTherapist = async (therapistData) => {
 
         // Insertar terapeuta
         const therapistResult = await client.query(`
-      INSERT INTO therapists (full_name, bio, experience, photo, slug, meta_title, meta_description, methodology, license_number, label, calendar_color_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      INSERT INTO therapists (full_name, bio, experience, photo, slug, meta_title, meta_description, methodology, license_number, label, calendar_color_id, calendar_alias)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *
     `, [
             therapistData.full_name,
-            therapistData.bio,
-            therapistData.experience,
+            therapistData.bio || '',
+            therapistData.experience || 0,
             therapistData.photo || '',
             slug,
-            therapistData.meta_title || therapistData.full_name,
-            therapistData.meta_description || therapistData.bio.substring(0, 280),
+            therapistData.full_name,
+            therapistData.bio ? therapistData.bio.substring(0, 280) : '',
             therapistData.methodology || '',
             therapistData.license_number || '',
             therapistData.label || '',
-            therapistData.calendar_color_id || null
+            therapistData.calendar_color_id || null,
+            therapistData.calendar_alias || null
         ]);
+
 
         const therapist = therapistResult.rows[0];
 
@@ -185,6 +188,75 @@ const createTherapist = async (therapistData) => {
     }
 };
 
+// Crear terapeuta y usuario atómicamente
+const createTherapistWithAccount = async (therapistData, userData) => {
+    const client = await getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        // 1. Crear Terapeuta
+        const slug = therapistData.slug || generateSlug(therapistData.full_name);
+
+        const therapistResult = await client.query(`
+      INSERT INTO therapists(full_name, bio, experience, photo, slug, meta_title, meta_description, methodology, license_number, label, calendar_color_id, calendar_alias, is_active)
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, false)
+        RETURNING *
+            `, [
+            therapistData.full_name,
+            therapistData.bio || '',
+            therapistData.experience || 0,
+            therapistData.photo || '',
+            slug,
+            therapistData.full_name,
+            therapistData.bio ? therapistData.bio.substring(0, 280) : '',
+            therapistData.methodology || '',
+            therapistData.license_number || '',
+            therapistData.label || '',
+            therapistData.calendar_color_id || null,
+            therapistData.calendar_alias || null
+        ]);
+
+        const therapist = therapistResult.rows[0];
+
+        // 2. Crear Usuario
+        // Verificar si existe email
+        const userCheck = await client.query('SELECT id FROM users WHERE email = $1', [userData.email]);
+        if (userCheck.rows.length > 0) {
+            throw new Error('El email ya está registrado');
+        }
+
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+        await client.query(`
+            INSERT INTO users(username, email, password, role, is_active, therapist_id)
+        VALUES($1, $2, $3, $4, true, $5)
+            `, [
+            userData.username || therapist.slug.replace(/-/g, ''), // Default username if not provided
+            userData.email,
+            hashedPassword,
+            'therapist',
+            therapist.id
+        ]);
+
+        // 3. Crear entrada básica en billing_data
+        await client.query(`
+            INSERT INTO therapist_billing_data(therapist_id, full_name)
+        VALUES($1, $2)
+            ON CONFLICT(therapist_id) DO NOTHING
+        `, [therapist.id, therapist.full_name]);
+
+        await client.query('COMMIT');
+        return await getTherapistById(therapist.id);
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 // Actualizar terapeuta
 const updateTherapist = async (id, updates) => {
     const client = await getClient();
@@ -197,11 +269,11 @@ const updateTherapist = async (id, updates) => {
         const values = [];
         let paramCount = 1;
 
-        const allowedFields = ['full_name', 'bio', 'experience', 'photo', 'slug', 'meta_title', 'meta_description', 'is_active', 'methodology', 'license_number', 'label', 'calendar_color_id'];
+        const allowedFields = ['full_name', 'bio', 'experience', 'photo', 'slug', 'meta_title', 'meta_description', 'is_active', 'methodology', 'license_number', 'label', 'calendar_color_id', 'calendar_alias'];
 
         allowedFields.forEach(field => {
             if (updates[field] !== undefined) {
-                fields.push(`${field} = $${paramCount}`);
+                fields.push(`${field} = $${paramCount} `);
                 values.push(updates[field]);
                 paramCount++;
             }
@@ -210,7 +282,7 @@ const updateTherapist = async (id, updates) => {
         if (fields.length > 0) {
             values.push(id);
             await client.query(
-                `UPDATE therapists SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${paramCount}`,
+                `UPDATE therapists SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${paramCount} `,
                 values
             );
         }
@@ -304,6 +376,218 @@ const getAllLanguages = async () => {
     return result.rows;
 };
 
+// Obtener IDs de colores de calendario ya en uso por terapeutas (activos e inactivos para billing)
+const getUsedCalendarColors = async () => {
+    const result = await query(`
+        SELECT DISTINCT calendar_color_id 
+        FROM therapists 
+        WHERE calendar_color_id IS NOT NULL
+            `);
+    return result.rows.map(row => row.calendar_color_id);
+};
+
+// Obtener terapeutas que NO tienen cuenta de usuario (para el modal de billing)
+const getTherapistsWithoutAccount = async () => {
+    const result = await query(`
+        SELECT t.id, t.full_name, t.is_active
+        FROM therapists t
+        LEFT JOIN users u ON u.therapist_id = t.id
+        WHERE u.id IS NULL
+        ORDER BY t.full_name
+            `);
+    return result.rows;
+};
+
+// Crear cuenta de usuario para terapeuta existente
+const createAccountForExistingTherapist = async (therapistId, userData) => {
+    const client = await getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        // Verificar que el terapeuta existe
+        const therapistCheck = await client.query('SELECT id, full_name FROM therapists WHERE id = $1', [therapistId]);
+        if (therapistCheck.rows.length === 0) {
+            throw new Error('Terapeuta no encontrado');
+        }
+
+        // Verificar que no tiene ya un usuario
+        const userCheck = await client.query('SELECT id FROM users WHERE therapist_id = $1', [therapistId]);
+        if (userCheck.rows.length > 0) {
+            throw new Error('Este terapeuta ya tiene una cuenta de usuario');
+        }
+
+        // Verificar que el email no esté en uso
+        const emailCheck = await client.query('SELECT id FROM users WHERE email = $1', [userData.email]);
+        if (emailCheck.rows.length > 0) {
+            throw new Error('El email ya está registrado');
+        }
+
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        const therapist = therapistCheck.rows[0];
+
+        await client.query(`
+            INSERT INTO users(username, email, password, role, is_active, therapist_id)
+        VALUES($1, $2, $3, $4, true, $5)
+            `, [
+            generateSlug(therapist.full_name).replace(/-/g, ''),
+            userData.email,
+            hashedPassword,
+            'therapist',
+            therapistId
+        ]);
+
+        // Crear entrada en billing_data si no existe
+        await client.query(`
+            INSERT INTO therapist_billing_data(therapist_id, full_name)
+        VALUES($1, $2)
+            ON CONFLICT(therapist_id) DO NOTHING
+            `, [therapistId, therapist.full_name]);
+
+        await client.query('COMMIT');
+        return await getTherapistById(therapistId);
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
+// Obtener terapeutas OCULTOS (is_active=false) para poder activarlos en la parte pública
+const getHiddenTherapists = async () => {
+    const result = await query(`
+        SELECT t.id, t.full_name, t.photo, t.bio
+        FROM therapists t
+        WHERE t.is_active = false
+        ORDER BY t.full_name
+            `);
+    return result.rows;
+};
+
+// Activar terapeuta (hacerlo visible en la parte pública)
+const activateTherapist = async (therapistId, updateData) => {
+    const client = await getClient();
+
+    try {
+        await client.query('BEGIN');
+
+        // Update therapist data and set is_active = true
+        const result = await client.query(`
+            UPDATE therapists
+        SET
+        is_active = true,
+            bio = COALESCE($2, bio),
+            experience = COALESCE($3, experience),
+            methodology = COALESCE($4, methodology),
+            license_number = COALESCE($5, license_number),
+            label = COALESCE($6, label),
+            photo = COALESCE($7, photo),
+            updated_at = NOW()
+            WHERE id = $1
+        RETURNING *
+            `, [
+            therapistId,
+            updateData.bio || null,
+            updateData.experience || null,
+            updateData.methodology || null,
+            updateData.license_number || null,
+            updateData.label || null,
+            updateData.photo || null
+        ]);
+
+        if (result.rows.length === 0) {
+            throw new Error('Terapeuta no encontrado');
+        }
+
+        await client.query('COMMIT');
+        return await getTherapistById(therapistId);
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
+// Check if therapist has a user account
+const therapistHasAccount = async (therapistId) => {
+    const result = await query('SELECT id FROM users WHERE therapist_id = $1', [therapistId]);
+    return result.rows.length > 0;
+};
+
+// Hide therapist from public (set is_active=false, keep user account)
+const hideTherapist = async (therapistId) => {
+    const result = await query(
+        'UPDATE therapists SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING *',
+        [therapistId]
+    );
+    return result.rows[0];
+};
+
+// Delete only user account (keep therapist record)
+const deleteTherapistAccount = async (therapistId) => {
+    const client = await getClient();
+    try {
+        await client.query('BEGIN');
+
+        // Delete billing data if exists
+        await client.query('DELETE FROM therapist_billing_data WHERE therapist_id = $1', [therapistId]);
+
+        // Delete user
+        const result = await client.query('DELETE FROM users WHERE therapist_id = $1 RETURNING *', [therapistId]);
+
+        await client.query('COMMIT');
+        return result.rows[0];
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
+// Get therapists that HAVE user accounts (for billing deletion list)
+const getTherapistsWithAccount = async () => {
+    const result = await query(`
+        SELECT t.id, t.full_name, t.is_active, t.photo, u.email
+        FROM therapists t
+        INNER JOIN users u ON u.therapist_id = t.id
+        WHERE u.role = 'therapist'
+        ORDER BY t.full_name
+            `);
+    return result.rows;
+};
+
+// Delete therapist completely (therapist + user + all related data)
+const deleteTherapistCompletely = async (therapistId) => {
+    const client = await getClient();
+    try {
+        await client.query('BEGIN');
+
+        // Delete all related data
+        await client.query('DELETE FROM therapist_billing_data WHERE therapist_id = $1', [therapistId]);
+        await client.query('DELETE FROM therapist_specializations WHERE therapist_id = $1', [therapistId]);
+        await client.query('DELETE FROM therapist_languages WHERE therapist_id = $1', [therapistId]);
+        await client.query('DELETE FROM therapist_session_types WHERE therapist_id = $1', [therapistId]);
+        await client.query('DELETE FROM education WHERE therapist_id = $1', [therapistId]);
+        await client.query('DELETE FROM users WHERE therapist_id = $1', [therapistId]);
+
+        // Delete therapist
+        const result = await client.query('DELETE FROM therapists WHERE id = $1 RETURNING *', [therapistId]);
+
+        await client.query('COMMIT');
+        return result.rows[0];
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     getAllTherapists,
     getTherapistById,
@@ -313,5 +597,16 @@ module.exports = {
     deleteTherapist,
     getAllSpecializations,
     getAllLanguages,
-    generateSlug
+    generateSlug,
+    createTherapistWithAccount,
+    getUsedCalendarColors,
+    getTherapistsWithoutAccount,
+    createAccountForExistingTherapist,
+    getHiddenTherapists,
+    activateTherapist,
+    therapistHasAccount,
+    hideTherapist,
+    deleteTherapistAccount,
+    getTherapistsWithAccount,
+    deleteTherapistCompletely
 };

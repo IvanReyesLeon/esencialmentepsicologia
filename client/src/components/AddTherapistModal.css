@@ -1,0 +1,246 @@
+.add-therapist-modal {
+    max-width: 500px;
+    width: 90%;
+}
+
+.add-therapist-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color, #eee);
+    margin-bottom: 1.5rem;
+}
+
+.add-therapist-modal .modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-primary, #333);
+}
+
+.add-therapist-modal .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary, #666);
+    padding: 0;
+    line-height: 1;
+}
+
+.add-therapist-modal .modal-close:hover {
+    color: var(--text-primary, #333);
+}
+
+.add-therapist-modal .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.add-therapist-modal .form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary, #333);
+}
+
+.add-therapist-modal .form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.add-therapist-modal .form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color, #4285F4);
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.add-therapist-modal .form-group small {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--text-secondary, #888);
+    font-size: 0.85rem;
+}
+
+/* Color Picker */
+.add-therapist-modal .color-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.add-therapist-modal .color-option {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.add-therapist-modal .color-option:hover {
+    transform: scale(1.1);
+}
+
+.add-therapist-modal .color-option.selected {
+    border-color: var(--text-primary, #333);
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--text-primary, #333);
+}
+
+/* Generated Credentials Preview */
+.add-therapist-modal .generated-credentials {
+    background: linear-gradient(135deg, #f0f7ff 0%, #e8f4f8 100%);
+    border: 1px solid #c5dff8;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.add-therapist-modal .generated-credentials p {
+    margin: 0.35rem 0;
+    font-size: 0.95rem;
+    color: var(--text-primary, #333);
+    word-break: break-all;
+}
+
+.add-therapist-modal .generated-credentials small {
+    display: block;
+    margin-top: 0.5rem;
+    color: #666;
+    font-size: 0.8rem;
+}
+
+/* Loading and No Colors Text */
+.add-therapist-modal .loading-text,
+.add-therapist-modal .no-colors-text {
+    color: var(--text-secondary, #888);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+/* Error Message */
+.add-therapist-modal .error-message {
+    background-color: #FEE2E2;
+    color: #DC2626;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+/* Modal Actions */
+.add-therapist-modal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color, #eee);
+}
+
+.add-therapist-modal .modal-actions .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-therapist-modal .modal-actions .btn-secondary {
+    background-color: #f3f4f6;
+    border: 1px solid #d1d5db;
+    color: #374151;
+}
+
+.add-therapist-modal .modal-actions .btn-secondary:hover {
+    background-color: #e5e7eb;
+}
+
+.add-therapist-modal .modal-actions .btn-primary {
+    background-color: var(--primary-color, #4285F4);
+    border: none;
+    color: white;
+}
+
+.add-therapist-modal .modal-actions .btn-primary:hover {
+    background-color: #3367d6;
+}
+
+.add-therapist-modal .modal-actions .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Mode Selector */
+.add-therapist-modal .mode-selector {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.add-therapist-modal .mode-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color, #ddd);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-therapist-modal .mode-option:hover {
+    border-color: var(--primary-color, #4285F4);
+}
+
+.add-therapist-modal .mode-option.selected {
+    border-color: var(--primary-color, #4285F4);
+    background-color: rgba(66, 133, 244, 0.05);
+}
+
+.add-therapist-modal .mode-option input {
+    margin: 0;
+}
+
+.add-therapist-modal .mode-option span {
+    font-size: 0.9rem;
+    color: var(--text-primary, #333);
+}
+
+/* Select dropdown */
+.add-therapist-modal .form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: white;
+    cursor: pointer;
+}
+
+.add-therapist-modal .form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color, #4285F4);
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+/* No data text */
+.add-therapist-modal .no-data-text {
+    color: var(--text-secondary, #888);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+/* Success Message */
+.add-therapist-modal .success-message {
+    background-color: #D1FAE5;
+    color: #065F46;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}

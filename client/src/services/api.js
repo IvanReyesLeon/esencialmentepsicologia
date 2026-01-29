@@ -37,9 +37,20 @@ export const therapistAPI = {
   getAll: () => api.get('/therapists'),
   getById: (id) => api.get(`/therapists/${id}`),
   create: (data) => api.post('/therapists', data),
+  createAccount: (data) => api.post('/therapists/account', data),
+  createAccountForExisting: (id, data) => api.post(`/therapists/${id}/account`, data),
+  getUsedColors: () => api.get('/therapists/colors/used'),
+  getWithoutAccount: () => api.get('/therapists/without-account'),
+  getWithAccount: () => api.get('/therapists/with-account'),
+  getHidden: () => api.get('/therapists/hidden'),
+  checkHasAccount: (id) => api.get(`/therapists/${id}/has-account`),
+  activate: (id, data) => api.put(`/therapists/${id}/activate`, data),
+  hide: (id) => api.put(`/therapists/${id}/hide`),
   updatePhoto: (id, data) => api.put(`/therapists/${id}/photo`, data),
   update: (id, data) => api.put(`/therapists/${id}`, data),
   delete: (id) => api.delete(`/therapists/${id}`),
+  deleteAccount: (id) => api.delete(`/therapists/${id}/account`),
+  deleteCompletely: (id) => api.delete(`/therapists/${id}/complete`),
 };
 
 export const pricingAPI = {

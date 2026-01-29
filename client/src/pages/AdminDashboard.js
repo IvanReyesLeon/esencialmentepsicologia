@@ -15,6 +15,8 @@ import ProfileTab from '../components/ProfileTab';
 import ExpensesTab from '../components/ExpensesTab';
 import NotificationBell from '../components/NotificationBell';
 import UserMenu from '../components/UserMenu';
+import AddTherapistModal from '../components/AddTherapistModal';
+import DeleteTherapistModal from '../components/DeleteTherapistModal';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -26,6 +28,8 @@ const AdminDashboard = () => {
   const [pricing, setPricing] = useState([]);
   const [workshops, setWorkshops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddTherapistModal, setShowAddTherapistModal] = useState(false);
+  const [showDeleteTherapistModal, setShowDeleteTherapistModal] = useState(false);
 
   // Calendar ID provided by user
   const CALENDAR_ID = 'esencialmentepsicologia@gmail.com';
@@ -190,6 +194,24 @@ const AdminDashboard = () => {
           />
         </>
       )}
+      {user.role === 'admin' && (
+        <HubCard
+          title="Añadir terapeuta"
+          icon="➕"
+          color="#0F9D58"
+          description="Añadir al sistema de facturación"
+          onClick={() => setShowAddTherapistModal(true)}
+        />
+      )}
+      {user.role === 'admin' && (
+        <HubCard
+          title="Eliminar terapeuta"
+          icon="🗑️"
+          color="#DC2626"
+          description="Quitar del sistema de facturación"
+          onClick={() => setShowDeleteTherapistModal(true)}
+        />
+      )}
     </div>
   );
 
@@ -241,6 +263,20 @@ const AdminDashboard = () => {
           {activeTab === 'profile' && <ProfileTab user={user} onLogout={handleLogout} />}
         </div>
       </div>
+
+      {/* Modal para añadir terapeuta al sistema de facturación */}
+      <AddTherapistModal
+        isOpen={showAddTherapistModal}
+        onClose={() => setShowAddTherapistModal(false)}
+        onSuccess={fetchData}
+      />
+
+      {/* Modal para eliminar terapeuta del sistema de facturación */}
+      <DeleteTherapistModal
+        isOpen={showDeleteTherapistModal}
+        onClose={() => setShowDeleteTherapistModal(false)}
+        onSuccess={fetchData}
+      />
     </div >
   );
 };

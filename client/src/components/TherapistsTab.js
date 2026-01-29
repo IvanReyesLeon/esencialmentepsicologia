@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { therapistAPI, API_ROOT } from '../services/api';
 import Toast from './Toast';
 
 const TherapistsTab = ({ therapists, onRefresh }) => {
     const [toast, setToast] = useState(null);
     const [showForm, setShowForm] = useState(false);
+    const [formMode, setFormMode] = useState('new'); // 'new' or 'existing'
+    const [hiddenTherapists, setHiddenTherapists] = useState([]);
+    const [selectedHiddenId, setSelectedHiddenId] = useState('');
+    const [loadingHidden, setLoadingHidden] = useState(false);
+
+    // Delete dialog state
+    const [deleteDialog, setDeleteDialog] = useState({ show: false, therapist: null, hasAccount: false });
+
     const [formData, setFormData] = useState({
         full_name: '',
         label: '',
@@ -16,9 +24,21 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
         license_number: '',
         session_types: [],
         calendar_color_id: '',
+        calendar_alias: '',
         photo: null
     });
     const [photoPreview, setPhotoPreview] = useState(null);
+
+    // Fetch hidden therapists when opening form
+    useEffect(() => {
+        if (showForm && !editingId) {
+            setLoadingHidden(true);
+            therapistAPI.getHidden()
+                .then(res => setHiddenTherapists(res.data))
+                .catch(err => console.error('Error fetching hidden therapists:', err))
+                .finally(() => setLoadingHidden(false));
+        }
+    }, [showForm]);
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
@@ -53,7 +73,9 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                 : '',
             license_number: therapist.license_number || '',
             session_types: therapist.session_types || [],
+            session_types: therapist.session_types || [],
             calendar_color_id: therapist.calendar_color_id || '',
+            calendar_alias: therapist.calendar_alias || '',
             photo: null // Reset photo input
         });
         setPhotoPreview(
@@ -74,47 +96,97 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
         try {
             const data = new FormData();
 
-            if (!editingId) {
-                const timestamp = Date.now();
-                data.append('email', `terapeuta${timestamp}@temp.com`);
-                data.append('password', `temp${timestamp}`);
-            }
+            // If activating an existing hidden therapist
+            if (formMode === 'existing' && selectedHiddenId) {
+                data.append('bio', formData.bio);
+                data.append('experience', formData.experience);
+                data.append('label', formData.label);
+                data.append('specializations', formData.specializations);
+                data.append('languages', formData.languages);
+                data.append('methodology', formData.methodology);
+                data.append('license_number', formData.license_number);
+                data.append('calendar_color_id', formData.calendar_color_id);
+                data.append('calendar_alias', formData.calendar_alias); // Nuevo
+                data.append('session_types', JSON.stringify(formData.session_types));
 
-            data.append('full_name', formData.full_name);
-            // Append label even if empty to allow clearing it
-            data.append('label', formData.label);
-            data.append('bio', formData.bio);
-            data.append('experience', formData.experience);
-            data.append('specializations', formData.specializations);
-            data.append('languages', formData.languages);
-            data.append('methodology', formData.methodology);
-            data.append('license_number', formData.license_number);
-            data.append('calendar_color_id', formData.calendar_color_id);
-            data.append('session_types', JSON.stringify(formData.session_types));
+                const educationArray = (formData.education || '')
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .map(degree => ({ degree, university: "", year: null }));
+                data.append('education', JSON.stringify(educationArray));
 
-            // Process education: split by newline and create objects
-            const educationArray = formData.education
-                .split('\n')
-                .map(line => line.trim())
-                .filter(line => line.length > 0)
-                .map(degree => ({ degree, university: "", year: null }));
+                if (formData.photo) {
+                    data.append('photo', formData.photo);
+                }
 
-            data.append('education', JSON.stringify(educationArray));
+                // Activate the hidden therapist
+                await therapistAPI.activate(selectedHiddenId, data);
+                setToast({ message: '✓ Terapeuta activado y visible en la web', type: 'success' });
+            } else if (editingId) {
+                // Editing existing
+                data.append('full_name', formData.full_name);
+                data.append('label', formData.label);
+                data.append('bio', formData.bio);
+                data.append('experience', formData.experience);
+                data.append('specializations', formData.specializations);
+                data.append('languages', formData.languages);
+                data.append('methodology', formData.methodology);
+                data.append('license_number', formData.license_number);
+                data.append('calendar_color_id', formData.calendar_color_id);
+                data.append('calendar_alias', formData.calendar_alias); // Nuevo
+                data.append('session_types', JSON.stringify(formData.session_types));
 
-            if (formData.photo) {
-                data.append('photo', formData.photo);
-            }
+                const educationArray = (formData.education || '')
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .map(degree => ({ degree, university: "", year: null }));
+                data.append('education', JSON.stringify(educationArray));
 
-            if (editingId) {
+                if (formData.photo) {
+                    data.append('photo', formData.photo);
+                }
+
                 await therapistAPI.update(editingId, data);
                 setToast({ message: '✓ Terapeuta actualizado correctamente', type: 'success' });
             } else {
+                // Creating new
+                const timestamp = Date.now();
+                data.append('email', `terapeuta${timestamp}@temp.com`);
+                data.append('password', `temp${timestamp}`);
+
+                data.append('full_name', formData.full_name);
+                data.append('label', formData.label);
+                data.append('bio', formData.bio);
+                data.append('experience', formData.experience);
+                data.append('specializations', formData.specializations);
+                data.append('languages', formData.languages);
+                data.append('methodology', formData.methodology);
+                data.append('license_number', formData.license_number);
+                data.append('calendar_color_id', formData.calendar_color_id);
+                data.append('calendar_alias', formData.calendar_alias); // Nuevo
+                data.append('session_types', JSON.stringify(formData.session_types));
+
+                const educationArray = (formData.education || '')
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .map(degree => ({ degree, university: "", year: null }));
+                data.append('education', JSON.stringify(educationArray));
+
+                if (formData.photo) {
+                    data.append('photo', formData.photo);
+                }
+
                 await therapistAPI.create(data);
                 setToast({ message: '✓ Terapeuta creado correctamente', type: 'success' });
             }
 
             setShowForm(false);
             setEditingId(null);
+            setFormMode('new');
+            setSelectedHiddenId('');
             setFormData({
                 full_name: '',
                 label: '',
@@ -126,6 +198,9 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                 education: '',
                 license_number: '',
                 session_types: [],
+                session_types: [],
+                calendar_color_id: '',
+                calendar_alias: '',
                 photo: null
             });
             setPhotoPreview(null);
@@ -139,6 +214,8 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
     const handleCancel = () => {
         setShowForm(false);
         setEditingId(null);
+        setFormMode('new');
+        setSelectedHiddenId('');
         setFormData({
             full_name: '',
             label: '',
@@ -150,21 +227,59 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
             education: '',
             license_number: '',
             session_types: [],
+            session_types: [],
             calendar_color_id: '',
+            calendar_alias: '',
             photo: null
         });
         setPhotoPreview(null);
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('¿Seguro que quieres eliminar este terapeuta?')) {
-            try {
-                await therapistAPI.delete(id);
-                onRefresh();
-                setToast({ message: '✓ Terapeuta eliminado', type: 'success' });
-            } catch (error) {
-                setToast({ message: 'Error al eliminar', type: 'error' });
+    // Smart delete - check if has account first
+    const handleDeleteClick = async (therapist) => {
+        try {
+            const response = await therapistAPI.checkHasAccount(therapist.id);
+            setDeleteDialog({
+                show: true,
+                therapist,
+                hasAccount: response.data.hasAccount
+            });
+        } catch (error) {
+            console.error('Error checking account:', error);
+            // Fallback to simple delete
+            if (window.confirm('¿Seguro que quieres eliminar este terapeuta?')) {
+                try {
+                    await therapistAPI.delete(therapist.id);
+                    onRefresh();
+                    setToast({ message: '✓ Terapeuta eliminado', type: 'success' });
+                } catch (err) {
+                    setToast({ message: 'Error al eliminar', type: 'error' });
+                }
             }
+        }
+    };
+
+    const handleDeleteConfirm = async (deleteType) => {
+        const { therapist } = deleteDialog;
+        try {
+            if (deleteType === 'hide') {
+                // Only hide from public (keep account)
+                await therapistAPI.hide(therapist.id);
+                setToast({ message: '✓ Terapeuta ocultado de la web (mantiene cuenta)', type: 'success' });
+            } else if (deleteType === 'complete') {
+                // Delete completely
+                await therapistAPI.deleteCompletely(therapist.id);
+                setToast({ message: '✓ Terapeuta eliminado completamente', type: 'success' });
+            } else {
+                // Simple delete (no account)
+                await therapistAPI.delete(therapist.id);
+                setToast({ message: '✓ Terapeuta eliminado', type: 'success' });
+            }
+            onRefresh();
+        } catch (error) {
+            setToast({ message: 'Error al eliminar', type: 'error' });
+        } finally {
+            setDeleteDialog({ show: false, therapist: null, hasAccount: false });
         }
     };
 
@@ -177,30 +292,94 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                 <div className="form-page-container">
                     <div className="form-header">
                         <button onClick={handleCancel} className="btn-link">← Volver a la lista</button>
-                        <h2>{editingId ? '✏️ Editar Terapeuta' : '➕ Nuevo Terapeuta'}</h2>
+                        <h2>{editingId ? '✏️ Editar Terapeuta' : '➕ Añadir Terapeuta'}</h2>
                     </div>
                     <div className="form-card">
-                        <form onSubmit={handleSubmit} className="therapist-form">
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Nombre Completo *</label>
-                                    <input
-                                        type="text"
-                                        value={formData.full_name}
-                                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                                        required
-                                    />
+                        {/* Mode selector - only when creating new */}
+                        {!editingId && hiddenTherapists.length > 0 && (
+                            <div className="mode-selector" style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+                                <p style={{ fontWeight: '500', marginBottom: '0.75rem' }}>¿Qué quieres hacer?</p>
+                                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem 1rem', border: formMode === 'new' ? '2px solid #4285F4' : '2px solid #ddd', borderRadius: '8px', backgroundColor: formMode === 'new' ? '#e8f4fd' : 'white' }}>
+                                        <input
+                                            type="radio"
+                                            name="formMode"
+                                            checked={formMode === 'new'}
+                                            onChange={() => { setFormMode('new'); setSelectedHiddenId(''); }}
+                                        />
+                                        Crear nuevo terapeuta
+                                    </label>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem 1rem', border: formMode === 'existing' ? '2px solid #4285F4' : '2px solid #ddd', borderRadius: '8px', backgroundColor: formMode === 'existing' ? '#e8f4fd' : 'white' }}>
+                                        <input
+                                            type="radio"
+                                            name="formMode"
+                                            checked={formMode === 'existing'}
+                                            onChange={() => setFormMode('existing')}
+                                        />
+                                        Activar terapeuta de facturación ({hiddenTherapists.length} disponibles)
+                                    </label>
                                 </div>
-                                <div className="form-group">
-                                    <label>Etiqueta / Cargo</label>
-                                    <input
-                                        type="text"
-                                        value={formData.label || ''}
-                                        onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-                                        placeholder="Ej: Fundadora"
-                                    />
-                                </div>
+
+                                {/* Dropdown to select hidden therapist */}
+                                {formMode === 'existing' && (
+                                    <div style={{ marginTop: '1rem' }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Selecciona terapeuta:</label>
+                                        <select
+                                            value={selectedHiddenId}
+                                            onChange={(e) => {
+                                                const id = e.target.value;
+                                                setSelectedHiddenId(id);
+                                                // Pre-fill name if available
+                                                const selected = hiddenTherapists.find(t => t.id === parseInt(id));
+                                                if (selected) {
+                                                    setFormData(prev => ({ ...prev, full_name: selected.full_name }));
+                                                }
+                                            }}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
+                                            required={formMode === 'existing'}
+                                        >
+                                            <option value="">-- Selecciona --</option>
+                                            {hiddenTherapists.map(t => (
+                                                <option key={t.id} value={t.id}>{t.full_name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
+                        )}
+
+                        <form onSubmit={handleSubmit} className="therapist-form">
+                            {/* Only show name field for new therapists or editing */}
+                            {(formMode === 'new' || editingId) && (
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Nombre Completo *</label>
+                                        <input
+                                            type="text"
+                                            value={formData.full_name}
+                                            onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Etiqueta / Cargo</label>
+                                        <input
+                                            type="text"
+                                            value={formData.label || ''}
+                                            onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                                            placeholder="Ej: Fundadora"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Show selected therapist info if activating */}
+                            {formMode === 'existing' && selectedHiddenId && (
+                                <div style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#d4edda', borderRadius: '8px' }}>
+                                    <p><strong>Terapeuta seleccionado:</strong> {formData.full_name}</p>
+                                    <small>Completa los datos del perfil para hacerlo visible en la web</small>
+                                </div>
+                            )}
 
                             <div className="form-group">
                                 <label>Foto de Perfil</label>
@@ -263,6 +442,23 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                                         onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
                                     />
                                 </div>
+                            </div>
+
+                            <div className="form-group highlight-box" style={{ backgroundColor: '#e8f4fd', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #bbdefb' }}>
+                                <label style={{ color: '#0d47a1', fontWeight: 'bold' }}>🗓️ Configuración de Calendario</label>
+
+                                <label style={{ marginTop: '10px', display: 'block' }}>Etiqueta corta (alias)</label>
+                                <input
+                                    type="text"
+                                    value={formData.calendar_alias || ''}
+                                    onChange={(e) => setFormData({ ...formData, calendar_alias: e.target.value })}
+                                    placeholder="Ej: mariana (para detectar /mariana/)"
+                                    style={{ marginBottom: '5px' }}
+                                />
+                                <small style={{ display: 'block', marginBottom: '15px', color: '#555' }}>
+                                    Texto exacto entre barras /texto/ que identificará las sesiones de este terapeuta.
+                                    Si se deja vacío, se usará el primer nombre.
+                                </small>
                             </div>
 
                             <div className="form-group highlight-box">
@@ -386,7 +582,7 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                                         <button className="btn btn-small btn-secondary" onClick={() => handleEdit(therapist)}>
                                             ✏️ Editar
                                         </button>
-                                        <button className="btn btn-small btn-danger" onClick={() => handleDelete(therapist.id)}>
+                                        <button className="btn btn-small btn-danger" onClick={() => handleDeleteClick(therapist)}>
                                             🗑️ Eliminar
                                         </button>
                                     </div>
@@ -395,6 +591,72 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                         )}
                     </div>
                 </>
+            )}
+
+            {/* Delete Confirmation Dialog */}
+            {deleteDialog.show && (
+                <div className="modal-overlay" onClick={() => setDeleteDialog({ show: false, therapist: null, hasAccount: false })}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+                        <h3 style={{ marginBottom: '1rem' }}>🗑️ Eliminar terapeuta</h3>
+                        <p style={{ marginBottom: '1.5rem' }}>
+                            <strong>{deleteDialog.therapist?.full_name}</strong>
+                        </p>
+
+                        {deleteDialog.hasAccount ? (
+                            <>
+                                <p style={{ marginBottom: '1rem', color: '#666' }}>
+                                    Este terapeuta también tiene cuenta de facturación. ¿Qué quieres hacer?
+                                </p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => handleDeleteConfirm('hide')}
+                                        style={{ textAlign: 'left', padding: '1rem' }}
+                                    >
+                                        👁️‍🗨️ <strong>Solo ocultar de la web</strong>
+                                        <br /><small style={{ color: '#666' }}>Mantiene la cuenta de facturación</small>
+                                    </button>
+                                    <button
+                                        className="btn btn-danger"
+                                        onClick={() => handleDeleteConfirm('complete')}
+                                        style={{ textAlign: 'left', padding: '1rem' }}
+                                    >
+                                        ⚠️ <strong>Eliminar completamente</strong>
+                                        <br /><small>Web pública + facturación</small>
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <p style={{ marginBottom: '1.5rem', color: '#666' }}>
+                                    ¿Estás seguro de que quieres eliminar este terapeuta?
+                                </p>
+                                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => setDeleteDialog({ show: false, therapist: null, hasAccount: false })}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        className="btn btn-danger"
+                                        onClick={() => handleDeleteConfirm('simple')}
+                                    >
+                                        Sí, eliminar
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
+                        <button
+                            style={{ marginTop: '1rem', width: '100%' }}
+                            className="btn btn-link"
+                            onClick={() => setDeleteDialog({ show: false, therapist: null, hasAccount: false })}
+                        >
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );
