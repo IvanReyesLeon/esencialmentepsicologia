@@ -1689,6 +1689,7 @@
 }
 
 .invoice-inputs input[type="number"],
+.invoice-inputs input[type="text"],
 .invoice-inputs select {
     padding: 12px 15px;
     border: 2px solid #e0e0e0;
@@ -1699,12 +1700,14 @@
 }
 
 .invoice-inputs input[type="number"]:focus,
+.invoice-inputs input[type="text"]:focus,
 .invoice-inputs select:focus {
     outline: none;
     border-color: #FF8C42;
 }
 
 .invoice-inputs input[type="number"]:hover,
+.invoice-inputs input[type="text"]:hover,
 .invoice-inputs select:hover {
     border-color: #FF8C42;
 }

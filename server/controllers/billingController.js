@@ -1035,7 +1035,7 @@ exports.updateCenterBillingData = async (req, res) => {
 exports.submitInvoice = async (req, res) => {
     try {
         const { therapist_id } = req.user;
-        const { month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount } = req.body;
+        const { month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number } = req.body;
 
         if (!therapist_id) {
             return res.status(400).json({ message: 'User is not linked to a therapist profile' });
@@ -1052,9 +1052,9 @@ exports.submitInvoice = async (req, res) => {
             await pool.query(
                 `UPDATE invoice_submissions 
                 SET subtotal = $1, center_percentage = $2, center_amount = $3, 
-                    irpf_percentage = $4, irpf_amount = $5, total_amount = $6, submitted_at = NOW()
-                WHERE therapist_id = $7 AND month = $8 AND year = $9`,
-                [subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, therapist_id, month, year]
+                    irpf_percentage = $4, irpf_amount = $5, total_amount = $6, invoice_number = $7, submitted_at = NOW()
+                WHERE therapist_id = $8 AND month = $9 AND year = $10`,
+                [subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number || null, therapist_id, month, year]
             );
             return res.json({ message: 'Factura actualizada correctamente' });
         }
@@ -1062,9 +1062,9 @@ exports.submitInvoice = async (req, res) => {
         // Insert new submission
         await pool.query(
             `INSERT INTO invoice_submissions 
-            (therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount]
+            (therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number || null]
         );
 
         res.json({ message: 'Factura presentada correctamente' });

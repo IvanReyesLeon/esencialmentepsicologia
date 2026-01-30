@@ -60,6 +60,7 @@ const BillingTab = ({ user }) => {
     const [showConfirmModal, setShowConfirmModal] = useState(false); // State for custom modal
     const [therapistPercentage, setTherapistPercentage] = useState(60);
     const [irpf, setIrpf] = useState(15);
+    const [invoiceNumber, setInvoiceNumber] = useState('');
 
     // Admin Review states
     const [reviewSummary, setReviewSummary] = useState(null);
@@ -735,7 +736,8 @@ const BillingTab = ({ user }) => {
                     center_amount: centerAmount,
                     irpf_percentage: irpf,
                     irpf_amount: irpfAmount,
-                    total_amount: totalFactura
+                    total_amount: totalFactura,
+                    invoice_number: invoiceNumber
                 })
             });
 
@@ -796,12 +798,18 @@ const BillingTab = ({ user }) => {
             // Title
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(22);
-            doc.text('FACTURA', 105, 20, { align: 'center' });
+            doc.text('FACTURA', 105, 15, { align: 'center' });
+
+            // Invoice number (if provided)
+            if (invoiceNumber) {
+                doc.setFontSize(14);
+                doc.text(`Nº ${invoiceNumber}`, 105, 24, { align: 'center' });
+            }
 
             // Date info
             doc.setFontSize(12);
             const monthName = months[invoiceMonth];
-            doc.text(`${monthName} ${invoiceYear}`, 105, 30, { align: 'center' });
+            doc.text(`${monthName} ${invoiceYear}`, 105, invoiceNumber ? 33 : 30, { align: 'center' });
 
             // Reset text color
             doc.setTextColor(0, 0, 0);
@@ -1996,6 +2004,15 @@ const BillingTab = ({ user }) => {
                     <>
                         {/* Configuration Inputs */}
                         <div className="invoice-inputs">
+                            <label>
+                                Nº Factura:
+                                <input
+                                    type="text"
+                                    placeholder="Ej: 2026-001"
+                                    value={invoiceNumber}
+                                    onChange={(e) => setInvoiceNumber(e.target.value)}
+                                />
+                            </label>
                             <label>
                                 % Terapeuta:
                                 <input
