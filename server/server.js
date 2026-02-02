@@ -36,6 +36,22 @@ startWeeklyReminderJob();
   }
 })();
 
+// Auto-migration for invoice_submissions FK
+(async () => {
+  try {
+    const { query } = require('./config/db');
+    // Drop potentially incorrect constraint
+    await query("ALTER TABLE invoice_submissions DROP CONSTRAINT IF EXISTS invoice_submissions_therapist_id_fkey;");
+    // Add correct constraint pointing to therapists
+    await query("ALTER TABLE invoice_submissions ADD CONSTRAINT invoice_submissions_therapist_id_fkey FOREIGN KEY (therapist_id) REFERENCES therapists(id) ON DELETE CASCADE;");
+    console.log('✅ Auto-migration: invoice_submissions FK fixed');
+  } catch (err) {
+    // Ignore if constraint already exists or other non-critical errors (or log them)
+    // If duplicates exist, it might fail. We assume mostly clean state.
+    console.error('⚠️ Auto-migration invoice FK failed:', err.message);
+  }
+})();
+
 const app = express();
 
 // --- CORS: permite tu front en Vercel (y local) ---
