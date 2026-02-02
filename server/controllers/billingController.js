@@ -1049,6 +1049,12 @@ exports.submitInvoice = async (req, res) => {
             excluded_session_ids // New field
         } = req.body;
 
+        console.log('Submitting invoice with data:', {
+            therapist_id, year, month, invoice_number,
+            invoice_number_type: typeof invoice_number,
+            excluded_count: excluded_session_ids?.length
+        }); // DEBUG
+
         if (!therapist_id) {
             return res.status(400).json({ message: 'User is not linked to a therapist profile' });
         }
@@ -1506,7 +1512,7 @@ exports.getInvoiceSubmissions = async (req, res) => {
         const { year, month, therapistId } = req.query;
 
         let query = `
-            SELECT i.*, t.full_name as therapist_name, t.color as therapist_color
+            SELECT i.*, t.full_name as therapist_name, t.calendar_color_id as therapist_color_id
             FROM invoice_submissions i
             JOIN therapists t ON i.therapist_id = t.id
             WHERE 1=1
@@ -1532,7 +1538,7 @@ exports.getInvoiceSubmissions = async (req, res) => {
             paramIdx++;
         }
 
-        query += ` ORDER BY i.created_at DESC`;
+        query += ` ORDER BY i.submitted_at DESC`;
 
         const result = await pool.query(query, params);
 
@@ -1546,3 +1552,120 @@ exports.getInvoiceSubmissions = async (req, res) => {
     }
 };
 
+
+/**
+ * Revoke (delete) an invoice submission
+ * Allows therapist to resubmit correctly.
+ */
+exports.revokeInvoiceSubmission = async (req, res) => {
+    try {
+        const { id } = req.body;
+
+        if (!id) {
+            return res.status(400).json({ message: 'Submission ID required' });
+        }
+
+        // Delete the submission
+        await pool.query('DELETE FROM invoice_submissions WHERE id = $1', [id]);
+
+        res.json({ success: true, message: 'Factura devuelta (eliminada) correctamente' });
+    } catch (error) {
+        console.error('Error revoking invoice:', error);
+        res.status(500).json({ message: 'Error al devolver factura' });
+    }
+};
+
+/**
+ * Get details for invoice PDF generation (Admin)
+ * Reconstructs the session list and therapist data
+ */
+exports.getInvoiceDetails = async (req, res) => {
+    try {
+        const { year, month, therapistId } = req.query;
+
+        if (!therapistId || !year || month === undefined) {
+            return res.status(400).json({ message: 'Missing parameters' });
+        }
+
+        // 1. Get Therapist Billing Data
+        const billingDataRes = await pool.query(
+            'SELECT * FROM therapist_billing_data WHERE therapist_id = $1',
+            [therapistId]
+        );
+        const therapistData = billingDataRes.rows[0] || {};
+
+        // 2. Get Therapist Info (for name fallback)
+        const therapists = await getAllTherapists();
+        const therapist = therapists.find(t => t.id === parseInt(therapistId));
+        if (!therapistData.full_name && therapist) {
+            therapistData.full_name = therapist.full_name;
+        }
+
+        // 3. Get Sessions for that month
+        const y = parseInt(year);
+        const m = parseInt(month);
+        const startDate = new Date(y, m, 1);
+        const endDate = new Date(y, m + 1, 0, 23, 59, 59);
+
+        // Uses existing getSessions helper (assumes it's available in scope or imported)
+        // We know getSessions is defined in this file or imported. 
+        // Checking previous file reads, it seems getSessions calls google calendar.
+        // However, for invoices we should rely on what was persisted if possible?
+        // But the system design seems to rely on fetching from Calendar + SessionPayments DB.
+
+        const allSessions = await getSessions(
+            CALENDAR_ID,
+            startDate,
+            endDate,
+            null
+        );
+
+        const sessions = allSessions.filter(s => s.therapistId === parseInt(therapistId));
+
+        // Get payment status to attach prices
+        const sessionIds = sessions.map(s => s.id);
+
+        let paymentMap = {};
+        if (sessionIds.length > 0) {
+            const paymentResult = await pool.query(
+                `SELECT event_id, payment_type, marked_at, original_price, modified_price 
+                 FROM session_payments 
+                 WHERE event_id = ANY($1) AND therapist_id = $2`,
+                [sessionIds, therapistId]
+            );
+
+            paymentResult.rows.forEach(p => {
+                paymentMap[p.event_id] = p;
+            });
+        }
+
+        const processedSessions = [];
+        sessions.forEach(session => {
+            const payment = paymentMap[session.id];
+
+            // Default price logic matches getMonthlyTherapistSessions
+            if (payment) {
+                if (payment.original_price) session.price = parseFloat(payment.original_price);
+                if (payment.modified_price) session.price = parseFloat(payment.modified_price);
+                session.paymentStatus = payment.payment_type;
+            } else {
+                session.paymentStatus = 'pending';
+            }
+
+            // Only include potentially billable sessions (even if excluded later by ID)
+            // The frontend filters exclusions. We just provide the raw list.
+            if (session.price > 0 && session.paymentStatus !== 'cancelled' && !session.isLibre) {
+                processedSessions.push(session);
+            }
+        });
+
+        res.json({
+            therapistData,
+            sessions: processedSessions
+        });
+
+    } catch (error) {
+        console.error('Error getting invoice details:', error);
+        res.status(500).json({ message: 'Error getting invoice details' });
+    }
+};

@@ -44,6 +44,7 @@ router.get('/billing/invoice-status', auth, billingController.checkInvoiceStatus
 router.get('/billing/invoice-submissions', auth, admin, billingController.getInvoiceSubmissions);
 router.post('/billing/validate-invoice', auth, admin, billingController.validateInvoiceSubmission);
 router.post('/billing/revoke-invoice', auth, admin, billingController.revokeInvoiceSubmission);
+router.get('/billing/invoice-details', auth, admin, billingController.getInvoiceDetails);
 
 // Admin: Payment Review routes
 router.get('/billing/review-summary', auth, admin, billingController.getReviewSummary);
