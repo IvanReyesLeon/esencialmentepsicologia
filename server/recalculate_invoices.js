@@ -36,6 +36,41 @@ async function recalculateInvoices() {
 
             const therapistSessions = sessions.filter(s => s.therapistId === invoice.therapist_id);
 
+            // Fetch payment statuses (critical for cancellations and modified prices)
+            const sessionIds = therapistSessions.map(s => s.id);
+            let payments = [];
+            if (sessionIds.length > 0) {
+                const paymentResult = await pool.query(
+                    `SELECT event_id, payment_type, marked_at, original_price, modified_price 
+                     FROM session_payments 
+                     WHERE event_id = ANY($1) AND therapist_id = $2`,
+                    [sessionIds, invoice.therapist_id]
+                );
+                payments = paymentResult.rows;
+            }
+
+            const paymentMap = {};
+            payments.forEach(p => paymentMap[p.event_id] = p);
+
+            // Apply payment logic (overrides and cancellations)
+            const billableSessions = [];
+            therapistSessions.forEach(session => {
+                const payment = paymentMap[session.id];
+                if (payment) {
+                    if (payment.original_price) session.price = parseFloat(payment.original_price);
+                    if (payment.modified_price) session.price = parseFloat(payment.modified_price);
+                    session.paymentStatus = payment.payment_type;
+                } else {
+                    session.paymentStatus = 'pending';
+                }
+
+                // Filter out cancelled and non-billable
+                // Also check isLibre if available (property from specific calendar parsing service)
+                if (session.price > 0 && session.paymentStatus !== 'cancelled' && !session.isLibre) {
+                    billableSessions.push(session);
+                }
+            });
+
             // 3. Filter excluded sessions
             let excludedIds = new Set();
             if (invoice.excluded_session_ids) {
@@ -45,10 +80,10 @@ async function recalculateInvoices() {
                 ids.forEach(id => excludedIds.add(id));
             }
 
-            const activeSessions = therapistSessions.filter(s => !excludedIds.has(s.id));
+            // In invoice preview, exclusions are applied to billable sessions
+            const activeSessions = billableSessions.filter(s => !excludedIds.has(s.id));
 
             // 4. Calculate Totals
-            // Logic must match frontend exactly
             const subtotal = activeSessions.reduce((sum, s) => sum + (s.price || 0), 0);
 
             // Recalculate derived amounts

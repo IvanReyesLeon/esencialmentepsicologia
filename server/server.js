@@ -70,9 +70,44 @@ startWeeklyReminderJob();
       const CALENDAR_ID = 'esencialmentepsicologia@gmail.com';
 
       try {
+        // 1. Fetch sessions
         const sessions = await getSessions(CALENDAR_ID, startDate, endDate);
         const therapistSessions = sessions.filter(s => s.therapistId === invoice.therapist_id);
 
+        // 2. Fetch payment statuses to handle cancellations and price overrides
+        const sessionIds = therapistSessions.map(s => s.id);
+        let payments = [];
+        if (sessionIds.length > 0) {
+          const paymentResult = await pool.query(
+            `SELECT event_id, payment_type, marked_at, original_price, modified_price 
+                         FROM session_payments 
+                         WHERE event_id = ANY($1) AND therapist_id = $2`,
+            [sessionIds, invoice.therapist_id]
+          );
+          payments = paymentResult.rows;
+        }
+        const paymentMap = {};
+        payments.forEach(p => paymentMap[p.event_id] = p);
+
+        // 3. Filter billable sessions (Active count)
+        const billableSessions = [];
+        therapistSessions.forEach(session => {
+          const payment = paymentMap[session.id];
+          if (payment) {
+            if (payment.original_price) session.price = parseFloat(payment.original_price);
+            if (payment.modified_price) session.price = parseFloat(payment.modified_price);
+            session.paymentStatus = payment.payment_type;
+          } else {
+            session.paymentStatus = 'pending';
+          }
+
+          // Strict filtering: count only if valid price, not cancelled, and not libre
+          if (session.price > 0 && session.paymentStatus !== 'cancelled' && !session.isLibre) {
+            billableSessions.push(session);
+          }
+        });
+
+        // 4. Apply exclusions
         let excludedIds = new Set();
         if (invoice.excluded_session_ids) {
           const ids = typeof invoice.excluded_session_ids === 'string'
@@ -81,12 +116,8 @@ startWeeklyReminderJob();
           ids.forEach(id => excludedIds.add(id));
         }
 
-        const activeSessions = therapistSessions.filter(s => !excludedIds.has(s.id));
+        const activeSessions = billableSessions.filter(s => !excludedIds.has(s.id));
         const subtotal = activeSessions.reduce((sum, s) => sum + (s.price || 0), 0);
-
-        // If subtotal is same as stored, skip update? 
-        // No, stored might be wrong even if subtotal matches (unlikely but safe to overwrite)
-        // Actually stored subtotal was WRONG because it included exclusions. 
 
         const centerPercentage = parseFloat(invoice.center_percentage);
         const centerAmount = subtotal * (centerPercentage / 100);
