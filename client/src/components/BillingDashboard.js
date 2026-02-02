@@ -16,6 +16,45 @@ const BillingDashboard = ({ user }) => {
     const [view, setView] = useState('summary'); // 'summary' | 'invoices'
     const [invoices, setInvoices] = useState([]);
     const [invoicesLoading, setInvoicesLoading] = useState(false);
+    const [showRevokeModal, setShowRevokeModal] = useState(false);
+    const [selectedInvoiceToRevoke, setSelectedInvoiceToRevoke] = useState(null);
+
+    const openRevokeModal = (invoice) => {
+        setSelectedInvoiceToRevoke(invoice);
+        setShowRevokeModal(true);
+    };
+
+    const closeRevokeModal = () => {
+        setShowRevokeModal(false);
+        setSelectedInvoiceToRevoke(null);
+    };
+
+    const confirmRevoke = async () => {
+        if (!selectedInvoiceToRevoke) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/billing/revoke-invoice`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ id: selectedInvoiceToRevoke.id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                // alert('Factura devuelta correctamente'); // Optional: show toast instead
+                fetchInvoices(); // Refresh list
+                closeRevokeModal();
+            } else {
+                alert('Error al devolver factura: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error revoking invoice:', error);
+            alert('Error al conectar con el servidor');
+        }
+    };
 
     useEffect(() => {
         if (view === 'summary') {
@@ -23,7 +62,7 @@ const BillingDashboard = ({ user }) => {
         } else if (view === 'invoices') {
             fetchInvoices();
         }
-    }, [selectedYear, selectedMonth, view]); // Added selectedMonth dependency
+    }, [selectedYear, selectedMonth, view]);
 
     const fetchAllData = async () => {
         try {
@@ -555,6 +594,33 @@ const BillingDashboard = ({ user }) => {
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* Custom Revoke Modal */}
+            {showRevokeModal && selectedInvoiceToRevoke && (
+                <div className="bd-modal-overlay">
+                    <div className="bd-modal">
+                        <div className="bd-modal-header">
+                            <h3 className="bd-modal-title">Devolver Factura</h3>
+                        </div>
+                        <div className="bd-modal-body">
+                            <p>
+                                ¿Estás seguro de que quieres devolver la factura de <strong>{selectedInvoiceToRevoke.therapist_name}</strong>?
+                            </p>
+                            <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '10px' }}>
+                                Esto eliminará la factura actual y permitirá al terapeuta volver a generarla para corregir errores.
+                            </p>
+                        </div>
+                        <div className="bd-modal-footer">
+                            <button className="bd-btn bd-btn-secondary" onClick={closeRevokeModal}>
+                                Cancelar
+                            </button>
+                            <button className="bd-btn bd-btn-danger" onClick={confirmRevoke}>
+                                Devolver Factura
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
