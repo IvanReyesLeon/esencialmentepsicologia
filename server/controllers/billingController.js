@@ -7,6 +7,7 @@ const {
     getTherapistMap,
     isNonBillable
 } = require('../services/calendarService');
+const { Resend } = require('resend');
 const { getAllTherapists } = require('../models/therapistQueries');
 const pool = require('../config/db');
 
@@ -1035,11 +1036,27 @@ exports.updateCenterBillingData = async (req, res) => {
 exports.submitInvoice = async (req, res) => {
     try {
         const { therapist_id } = req.user;
-        const { month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number } = req.body;
+        const {
+            month,
+            year,
+            subtotal,
+            center_percentage,
+            center_amount,
+            irpf_percentage,
+            irpf_amount,
+            total_amount,
+            invoice_number,
+            excluded_session_ids // New field
+        } = req.body;
 
         if (!therapist_id) {
             return res.status(400).json({ message: 'User is not linked to a therapist profile' });
         }
+
+        // Get therapist name for email
+        const therapists = await getAllTherapists();
+        const me = therapists.find(t => t.id === therapist_id);
+        const therapistName = me ? me.full_name : 'Terapeuta';
 
         // Check if invoice already submitted
         const existing = await pool.query(
@@ -1047,27 +1064,78 @@ exports.submitInvoice = async (req, res) => {
             [therapist_id, month, year]
         );
 
+        // Prepare exclusions JSON
+        const exclusions = JSON.stringify(excluded_session_ids || []);
+        const excludedCount = excluded_session_ids ? excluded_session_ids.length : 0;
+
         if (existing.rows.length > 0) {
             // Update existing submission
             await pool.query(
                 `UPDATE invoice_submissions 
                 SET subtotal = $1, center_percentage = $2, center_amount = $3, 
-                    irpf_percentage = $4, irpf_amount = $5, total_amount = $6, invoice_number = $7, submitted_at = NOW()
-                WHERE therapist_id = $8 AND month = $9 AND year = $10`,
-                [subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number || null, therapist_id, month, year]
+                    irpf_percentage = $4, irpf_amount = $5, total_amount = $6, 
+                    invoice_number = $7, excluded_session_ids = $8, submitted_at = NOW()
+                WHERE therapist_id = $9 AND month = $10 AND year = $11`,
+                [subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number || null, exclusions, therapist_id, month, year]
             );
-            return res.json({ message: 'Factura actualizada correctamente' });
+        } else {
+            // Insert new submission
+            await pool.query(
+                `INSERT INTO invoice_submissions 
+                (therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number, excluded_session_ids)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+                [therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number || null, exclusions]
+            );
         }
 
-        // Insert new submission
-        await pool.query(
-            `INSERT INTO invoice_submissions 
-            (therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-            [therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number || null]
-        );
+        // --- Send Email Notification to Admin ---
+        if (process.env.RESEND_API_KEY) {
+            try {
+                const resend = new Resend(process.env.RESEND_API_KEY);
+                const monthName = new Date(year, month).toLocaleDateString('es-ES', { month: 'long' });
+                const adminEmail = 'abecerrapsicologa@gmail.com'; // Target email from requirements
 
-        res.json({ message: 'Factura presentada correctamente' });
+                let exclusionWarning = '';
+                if (excludedCount > 0) {
+                    exclusionWarning = `
+                        <div style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 10px; margin: 10px 0; border-radius: 4px;">
+                            <strong>⚠️ Atención:</strong> Esta factura excluye explicitamente <strong>${excludedCount} sesión(es)</strong> del total mensual.
+                        </div>
+                    `;
+                }
+
+                await resend.emails.send({
+                    from: 'Esencialmente Psicología <facturacion@esencialmentepsicologia.com>',
+                    to: [adminEmail],
+                    subject: `Nueva Factura Presentada - ${therapistName} - ${monthName} ${year}`,
+                    html: `
+                        <h2>Nueva Factura Presentada</h2>
+                        <p><strong>Terapeuta:</strong> ${therapistName}</p>
+                        <p><strong>Período:</strong> ${monthName} ${year}</p>
+                        <hr>
+                        <h3>Resumen</h3>
+                        <ul>
+                            <li><strong>Subtotal:</strong> ${subtotal}€</li>
+                            <li><strong>Retención Centro (${center_percentage}%):</strong> ${center_amount}€</li>
+                            <li><strong>IRPF (${irpf_percentage}%):</strong> ${irpf_amount}€</li>
+                            <li><strong>Total a Percibir:</strong> ${total_amount}€</li>
+                        </ul>
+                        ${exclusionWarning}
+                        <p>
+                            <a href="https://esencialmentepsicologia.onrender.com/admin/dashboard" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                                Ver Factura en Panel Admin
+                            </a>
+                        </p>
+                    `
+                });
+                console.log('Factura notification email sent to admin');
+            } catch (emailError) {
+                console.error('Error sending invoice email:', emailError);
+                // Don't fail the request if email fails
+            }
+        }
+
+        res.json({ message: existing.rows.length > 0 ? 'Factura actualizada correctamente' : 'Factura presentada correctamente' });
     } catch (error) {
         console.error('Error submitting invoice:', error);
         res.status(500).json({ message: 'Error presenting invoice' });
@@ -1092,7 +1160,10 @@ exports.checkInvoiceStatus = async (req, res) => {
         );
 
         if (result.rows.length > 0) {
-            return res.json({ submitted: true, submission: result.rows[0] });
+            return res.json({
+                submitted: true,
+                submission: result.rows[0]
+            });
         }
 
         res.json({ submitted: false });
@@ -1426,3 +1497,52 @@ exports.toggleReviewStatus = async (req, res) => {
         res.status(500).json({ message: 'Error toggling review status' });
     }
 };
+
+/**
+ * Get all invoice submissions for admin dashboard
+ */
+exports.getInvoiceSubmissions = async (req, res) => {
+    try {
+        const { year, month, therapistId } = req.query;
+
+        let query = `
+            SELECT i.*, t.full_name as therapist_name, t.color as therapist_color
+            FROM invoice_submissions i
+            JOIN therapists t ON i.therapist_id = t.id
+            WHERE 1=1
+        `;
+        const params = [];
+        let paramIdx = 1;
+
+        if (year) {
+            query += ` AND i.year = $${paramIdx}`;
+            params.push(year);
+            paramIdx++;
+        }
+
+        if (month) {
+            query += ` AND i.month = $${paramIdx}`;
+            params.push(month);
+            paramIdx++;
+        }
+
+        if (therapistId) {
+            query += ` AND i.therapist_id = $${paramIdx}`;
+            params.push(therapistId);
+            paramIdx++;
+        }
+
+        query += ` ORDER BY i.created_at DESC`;
+
+        const result = await pool.query(query, params);
+
+        res.json({
+            success: true,
+            submissions: result.rows
+        });
+    } catch (error) {
+        console.error('Error fetching invoice submissions:', error);
+        res.status(500).json({ message: 'Error al obtener facturas' });
+    }
+};
+

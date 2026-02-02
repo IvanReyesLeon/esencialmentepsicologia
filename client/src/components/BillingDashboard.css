@@ -195,3 +195,74 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Tabs */
+.bd-tabs {
+    display: flex;
+    gap: 10px;
+    margin-left: 20px;
+}
+
+.bd-tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.bd-tab:hover {
+    background-color: #f5f5f5;
+    border-radius: 4px 4px 0 0;
+}
+
+.bd-tab.active {
+    color: #4285F4;
+    border-bottom-color: #4285F4;
+}
+
+/* Full Width Panel */
+.bd-panel.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Empty State */
+.bd-empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #888;
+    background: #fdfdfd;
+    border-radius: 8px;
+    border: 1px dashed #ddd;
+}
+
+/* Tags & Badges */
+.therapist-badge {
+    font-weight: 500;
+    display: inline-block;
+}
+
+.exclusion-tag {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    border: 1px solid #ffeeba;
+}
+
+.status-badge.success {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.invoices-table th {
+    background-color: #f8f9fa;
+}

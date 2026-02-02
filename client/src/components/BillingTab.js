@@ -4,6 +4,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ConfirmModal from './ConfirmModal';
 import './BillingTab.css';
+import './BillingDashboard.css'; // Reusing styling if needed
 
 const API_URL = `${API_ROOT}/api`;
 const CALENDAR_ID = 'esencialmentepsicologia@gmail.com';
@@ -61,6 +62,7 @@ const BillingTab = ({ user }) => {
     const [therapistPercentage, setTherapistPercentage] = useState(60);
     const [irpf, setIrpf] = useState(15);
     const [invoiceNumber, setInvoiceNumber] = useState('');
+    const [excludedSessions, setExcludedSessions] = useState(new Set()); // Track ID of excluded sessions
 
     // Admin Review states
     const [reviewSummary, setReviewSummary] = useState(null);
@@ -681,9 +683,21 @@ const BillingTab = ({ user }) => {
             if (statusData.submitted) {
                 setInvoiceSubmitted(true);
                 setSubmissionData(statusData.submission);
+                // Load exclusions if any
+                if (statusData.submission.excluded_session_ids) {
+                    // Check if it's a string (JSON) or already an object
+                    let exclusions = statusData.submission.excluded_session_ids;
+                    if (typeof exclusions === 'string') {
+                        try { exclusions = JSON.parse(exclusions); } catch (e) { exclusions = []; }
+                    }
+                    setExcludedSessions(new Set(exclusions));
+                } else {
+                    setExcludedSessions(new Set());
+                }
             } else {
                 setInvoiceSubmitted(false);
                 setSubmissionData(null);
+                setExcludedSessions(new Set());
             }
 
             // Fetch Therapist Configuration (Percentage & IRPF)
@@ -702,6 +716,19 @@ const BillingTab = ({ user }) => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // Helper to toggle exclusion
+    const toggleSessionExclusion = (sessionId) => {
+        setExcludedSessions(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(sessionId)) {
+                newSet.delete(sessionId);
+            } else {
+                newSet.add(sessionId);
+            }
+            return newSet;
+        });
     };
 
     const submitInvoice = async () => {
@@ -737,7 +764,9 @@ const BillingTab = ({ user }) => {
                     irpf_percentage: irpf,
                     irpf_amount: irpfAmount,
                     total_amount: totalFactura,
-                    invoice_number: invoiceNumber
+
+                    invoice_number: invoiceNumber,
+                    excluded_session_ids: Array.from(excludedSessions)
                 })
             });
 
@@ -783,8 +812,10 @@ const BillingTab = ({ user }) => {
 
             const doc = new jsPDF();
 
+            const activeInvoiceSessions = invoiceSessions.filter(s => !excludedSessions.has(s.id));
+
             // Calculate all values
-            const subtotal = invoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
+            const subtotal = activeInvoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
             const centerPercentage = 100 - therapistPercentage;
             const centerAmount = subtotal * (centerPercentage / 100);
             const baseDisponible = subtotal * (therapistPercentage / 100);
@@ -1949,6 +1980,19 @@ const BillingTab = ({ user }) => {
         const irpfAmount = baseDisponible * (irpf / 100);
         const totalFactura = baseDisponible - irpfAmount;
 
+        // Filter active sessions for display
+        const activeInvoiceSessions = invoiceSessions.filter(s => !excludedSessions.has(s.id));
+
+        // Recalculate totals based on active sessions
+        const activeSubtotal = activeInvoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
+        const activeCenterAmount = activeSubtotal * (centerPercentage / 100);
+        const activeBaseDisponible = activeSubtotal * (therapistPercentage / 100);
+        const activeIrpfAmount = activeBaseDisponible * (irpf / 100);
+        const activeTotalFactura = activeBaseDisponible - activeIrpfAmount;
+
+        // Count excluded
+        const excludedCount = excludedSessions.size;
+
         return (
             <div className="billing-detail invoice-view">
                 <div className="billing-header">
@@ -2045,42 +2089,63 @@ const BillingTab = ({ user }) => {
                                         <th>Hora</th>
                                         <th>Paciente</th>
                                         <th>Precio</th>
+                                        <th style={{ width: '50px' }}>Exc.</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {invoiceSessions.map((session, index) => (
-                                        <tr key={session.id || index}>
-                                            <td>{formatDate(session.date)}</td>
-                                            <td>{session.startTime}</td>
-                                            <td>{session.title}</td>
-                                            <td>{formatCurrency(session.price)}</td>
-                                        </tr>
-                                    ))}
+                                    {invoiceSessions.map((session, index) => {
+                                        const isExcluded = excludedSessions.has(session.id);
+                                        return (
+                                            <tr key={session.id || index} className={isExcluded ? 'session-excluded' : ''}>
+                                                <td>{formatDate(session.date)}</td>
+                                                <td>{session.startTime}</td>
+                                                <td>{session.title}</td>
+                                                <td>{formatCurrency(session.price)}</td>
+                                                <td className="text-center">
+                                                    {!invoiceSubmitted && (
+                                                        <button
+                                                            className={`btn-exclude-session ${isExcluded ? 'active' : ''}`}
+                                                            onClick={() => toggleSessionExclusion(session.id)}
+                                                            title={isExcluded ? "Incluir de nuevo" : "Excluir de factura"}
+                                                        >
+                                                            {isExcluded ? '↩️' : '❌'}
+                                                        </button>
+                                                    )}
+                                                    {invoiceSubmitted && isExcluded && '❌'}
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
                                 </tbody>
                             </table>
+                            {excludedCount > 0 && (
+                                <div className="excluded-summary-note">
+                                    <small>ℹ️ Se han excluido {excludedCount} sesión(es) de los cálculos.</small>
+                                </div>
+                            )}
                         </div>
 
                         {/* Invoice Summary */}
                         <div className="invoice-summary">
                             <div className="summary-row">
                                 <span>SUBTOTAL:</span>
-                                <span>{formatCurrency(subtotal)}</span>
+                                <span>{formatCurrency(activeSubtotal)}</span>
                             </div>
                             <div className="summary-row">
                                 <span>PORCENTAJE CENTRO ({centerPercentage}%):</span>
-                                <span>{formatCurrency(centerAmount)}</span>
+                                <span>{formatCurrency(activeCenterAmount)}</span>
                             </div>
                             <div className="summary-row">
                                 <span>BASE DISPONIBLE ({therapistPercentage}%):</span>
-                                <span>{formatCurrency(baseDisponible)}</span>
+                                <span>{formatCurrency(activeBaseDisponible)}</span>
                             </div>
                             <div className="summary-row">
                                 <span>- {irpf}% IRPF:</span>
-                                <span>{formatCurrency(irpfAmount)}</span>
+                                <span>{formatCurrency(activeIrpfAmount)}</span>
                             </div>
                             <div className="summary-row total">
                                 <span>TOTAL FACTURA:</span>
-                                <span>{formatCurrency(totalFactura)}</span>
+                                <span>{formatCurrency(activeTotalFactura)}</span>
                             </div>
                         </div>
 

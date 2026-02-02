@@ -10,10 +10,17 @@ const BillingDashboard = ({ user }) => {
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [view, setView] = useState('summary'); // 'summary' | 'invoices'
+    const [invoices, setInvoices] = useState([]);
+    const [invoicesLoading, setInvoicesLoading] = useState(false);
 
     useEffect(() => {
-        fetchAllData();
-    }, [selectedYear]);
+        if (view === 'summary') {
+            fetchAllData();
+        } else if (view === 'invoices') {
+            fetchInvoices();
+        }
+    }, [selectedYear, view]);
 
     const fetchAllData = async () => {
         try {
@@ -38,6 +45,24 @@ const BillingDashboard = ({ user }) => {
             console.error('Error fetching dashboard data:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchInvoices = async () => {
+        try {
+            setInvoicesLoading(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/admin/billing/invoice-submissions?year=${selectedYear}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setInvoices(data.submissions);
+            }
+        } catch (error) {
+            console.error('Error fetching invoices:', error);
+        } finally {
+            setInvoicesLoading(false);
         }
     };
 
@@ -67,6 +92,17 @@ const BillingDashboard = ({ user }) => {
     const getMonthName = (month) => {
         const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         return months[parseInt(month) - 1] || '';
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        return new Date(dateString).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
     // Aggregate monthly data
@@ -106,105 +142,184 @@ const BillingDashboard = ({ user }) => {
                 <div className="bd-title">
                     <h2>📊 Dashboard de Facturación</h2>
                 </div>
+
+                {/* View Tabs */}
+                <div className="bd-tabs">
+                    <button
+                        className={`bd-tab ${view === 'summary' ? 'active' : ''}`}
+                        onClick={() => setView('summary')}
+                    >
+                        Resumen
+                    </button>
+                    <button
+                        className={`bd-tab ${view === 'invoices' ? 'active' : ''}`}
+                        onClick={() => setView('invoices')}
+                    >
+                        Facturas Presentadas
+                    </button>
+                </div>
+
                 <div className="bd-actions">
                     <select
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                         className="bd-select"
                     >
-                        {[2023, 2024, 2025].map(y => (
+                        {[2023, 2024, 2025, 2026].map(y => (
                             <option key={y} value={y}>{y}</option>
                         ))}
                     </select>
-                    <button
-                        className="bd-sync-btn"
-                        onClick={executeSync}
-                        disabled={syncing}
-                    >
-                        {syncing ? '⏳' : '🔄'} Sincronizar
-                    </button>
+                    {view === 'summary' && (
+                        <button
+                            className="bd-sync-btn"
+                            onClick={executeSync}
+                            disabled={syncing}
+                        >
+                            {syncing ? '⏳' : '🔄'} Sincronizar
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* Quick Stats Row */}
-            <div className="bd-quick-stats">
-                <div className="bd-stat">
-                    <span className="bd-stat-value">{stats?.sessions?.total_sessions || 0}</span>
-                    <span className="bd-stat-name">Sesiones</span>
-                </div>
-                <div className="bd-stat">
-                    <span className="bd-stat-value">{stats?.sessions?.billable_sessions || 0}</span>
-                    <span className="bd-stat-name">Facturables</span>
-                </div>
-                <div className="bd-stat">
-                    <span className="bd-stat-value">{stats?.patients?.total || 0}</span>
-                    <span className="bd-stat-name">Pacientes</span>
-                </div>
-                <div className="bd-stat">
-                    <span className="bd-stat-value">{stats?.sessions?.therapists_with_sessions || 0}</span>
-                    <span className="bd-stat-name">Terapeutas</span>
-                </div>
-            </div>
+            {view === 'invoices' ? (
+                <div className="bd-panel full-width">
+                    <h3>📄 Historial de Facturas ({selectedYear})</h3>
+                    {invoicesLoading ? (
+                        <div className="bd-loading-section">Cargando facturas...</div>
+                    ) : invoices.length === 0 ? (
+                        <div className="bd-empty-state">No hay facturas presentadas para este año.</div>
+                    ) : (
+                        <table className="bd-table invoices-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha Presentación</th>
+                                    <th>Mes Facturado</th>
+                                    <th>Terapeuta</th>
+                                    <th>Nº Factura</th>
+                                    <th>Importe Total</th>
+                                    <th>Info</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {invoices.map(inv => {
+                                    const exclusions = inv.excluded_session_ids ? (typeof inv.excluded_session_ids === 'string' ? JSON.parse(inv.excluded_session_ids) : inv.excluded_session_ids) : [];
+                                    const excludedCount = exclusions.length;
 
-            {/* Two Column Layout */}
-            <div className="bd-grid">
-                {/* Left: Monthly Table */}
-                <div className="bd-panel">
-                    <h3>📅 Resumen Mensual {selectedYear}</h3>
-                    <table className="bd-table">
-                        <thead>
-                            <tr>
-                                <th>Mes</th>
-                                <th>Sesiones</th>
-                                <th>Facturado</th>
-                                <th>Cobrado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(month => {
-                                const data = monthlyTotals[month] || { sessions: 0, revenue: 0, paid: 0 };
-                                if (data.sessions === 0) return null;
-                                return (
-                                    <tr key={month}>
-                                        <td><strong>{getMonthName(month)}</strong></td>
-                                        <td>{data.sessions}</td>
-                                        <td>{formatCurrency(data.revenue)}</td>
-                                        <td className="green">{formatCurrency(data.paid)}</td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td><strong>TOTAL</strong></td>
-                                <td><strong>{totalSessions}</strong></td>
-                                <td><strong>{formatCurrency(totalRevenue)}</strong></td>
-                                <td className="green"><strong>{formatCurrency(totalPaid)}</strong></td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                                    return (
+                                        <tr key={inv.id}>
+                                            <td>{formatDate(inv.created_at)}</td>
+                                            <td>{getMonthName(inv.month)} {inv.year}</td>
+                                            <td>
+                                                <span
+                                                    className="therapist-badge"
+                                                    style={{ borderLeft: `4px solid ${inv.therapist_color || '#ccc'}`, paddingLeft: '8px' }}
+                                                >
+                                                    {inv.therapist_name}
+                                                </span>
+                                            </td>
+                                            <td>{inv.invoice_number || '-'}</td>
+                                            <td style={{ fontWeight: 'bold' }}>{formatCurrency(inv.total_amount)}</td>
+                                            <td>
+                                                {excludedCount > 0 && (
+                                                    <span className="exclusion-tag" title={`${excludedCount} sesiones excluidas`}>
+                                                        ⚠️ {excludedCount} Excl.
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td>
+                                                <span className="status-badge success">Presentada</span>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
-
-                {/* Right: Therapists */}
-                <div className="bd-panel">
-                    <h3>👨‍⚕️ Por Terapeuta</h3>
-                    <div className="bd-therapist-list">
-                        {Object.entries(therapistTotals)
-                            .sort((a, b) => b[1].revenue - a[1].revenue)
-                            .map(([name, data]) => (
-                                <div key={name} className="bd-therapist-row">
-                                    <span className="bd-t-name">{name}</span>
-                                    <span className="bd-t-sessions">{data.sessions} ses.</span>
-                                    <span className="bd-t-revenue">{formatCurrency(data.revenue)}</span>
-                                </div>
-                            ))
-                        }
-                        {Object.keys(therapistTotals).length === 0 && (
-                            <p className="bd-empty">Sin datos para este año</p>
-                        )}
+            ) : (
+                <>
+                    {/* Quick Stats Row */}
+                    <div className="bd-quick-stats">
+                        <div className="bd-stat">
+                            <span className="bd-stat-value">{stats?.sessions?.total_sessions || 0}</span>
+                            <span className="bd-stat-name">Sesiones</span>
+                        </div>
+                        <div className="bd-stat">
+                            <span className="bd-stat-value">{stats?.sessions?.billable_sessions || 0}</span>
+                            <span className="bd-stat-name">Facturables</span>
+                        </div>
+                        <div className="bd-stat">
+                            <span className="bd-stat-value">{stats?.patients?.total || 0}</span>
+                            <span className="bd-stat-name">Pacientes</span>
+                        </div>
+                        <div className="bd-stat">
+                            <span className="bd-stat-value">{stats?.sessions?.therapists_with_sessions || 0}</span>
+                            <span className="bd-stat-name">Terapeutas</span>
+                        </div>
                     </div>
-                </div>
-            </div>
+
+                    {/* Two Column Layout */}
+                    <div className="bd-grid">
+                        {/* Left: Monthly Table */}
+                        <div className="bd-panel">
+                            <h3>📅 Resumen Mensual {selectedYear}</h3>
+                            <table className="bd-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mes</th>
+                                        <th>Sesiones</th>
+                                        <th>Facturado</th>
+                                        <th>Cobrado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(month => {
+                                        const data = monthlyTotals[month] || { sessions: 0, revenue: 0, paid: 0 };
+                                        if (data.sessions === 0) return null;
+                                        return (
+                                            <tr key={month}>
+                                                <td><strong>{getMonthName(month)}</strong></td>
+                                                <td>{data.sessions}</td>
+                                                <td>{formatCurrency(data.revenue)}</td>
+                                                <td className="green">{formatCurrency(data.paid)}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td><strong>TOTAL</strong></td>
+                                        <td><strong>{totalSessions}</strong></td>
+                                        <td><strong>{formatCurrency(totalRevenue)}</strong></td>
+                                        <td className="green"><strong>{formatCurrency(totalPaid)}</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        {/* Right: Therapists */}
+                        <div className="bd-panel">
+                            <h3>👨‍⚕️ Por Terapeuta</h3>
+                            <div className="bd-therapist-list">
+                                {Object.entries(therapistTotals)
+                                    .sort((a, b) => b[1].revenue - a[1].revenue)
+                                    .map(([name, data]) => (
+                                        <div key={name} className="bd-therapist-row">
+                                            <span className="bd-t-name">{name}</span>
+                                            <span className="bd-t-sessions">{data.sessions} ses.</span>
+                                            <span className="bd-t-revenue">{formatCurrency(data.revenue)}</span>
+                                        </div>
+                                    ))
+                                }
+                                {Object.keys(therapistTotals).length === 0 && (
+                                    <p className="bd-empty">Sin datos para este año</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
