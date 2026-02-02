@@ -742,7 +742,9 @@ const BillingTab = ({ user }) => {
             const token = localStorage.getItem('token');
 
             // Recalculate totals just to be safe
-            const subtotal = invoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
+            const activeInvoiceSessions = invoiceSessions.filter(s => !excludedSessions.has(s.id));
+            const subtotal = activeInvoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
+
             const centerPercentage = 100 - therapistPercentage;
             const centerAmount = subtotal * (centerPercentage / 100);
             const baseDisponible = subtotal * (therapistPercentage / 100);
