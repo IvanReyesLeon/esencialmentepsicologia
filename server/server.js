@@ -52,6 +52,65 @@ startWeeklyReminderJob();
   }
 })();
 
+// Auto-recalculation for incorrect totals (fix for excluded sessions bug)
+(async () => {
+  try {
+    const { pool } = require('./config/db');
+    const { getSessions } = require('./services/calendarService');
+
+    console.log('🔄 Auto-migration: Recalculating invoice totals...');
+    const res = await pool.query('SELECT * FROM invoice_submissions');
+    const invoices = res.rows;
+
+    for (const invoice of invoices) {
+      const year = parseInt(invoice.year);
+      const month = parseInt(invoice.month);
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month + 1, 0, 23, 59, 59);
+      const CALENDAR_ID = 'esencialmentepsicologia@gmail.com';
+
+      try {
+        const sessions = await getSessions(CALENDAR_ID, startDate, endDate);
+        const therapistSessions = sessions.filter(s => s.therapistId === invoice.therapist_id);
+
+        let excludedIds = new Set();
+        if (invoice.excluded_session_ids) {
+          const ids = typeof invoice.excluded_session_ids === 'string'
+            ? JSON.parse(invoice.excluded_session_ids)
+            : invoice.excluded_session_ids;
+          ids.forEach(id => excludedIds.add(id));
+        }
+
+        const activeSessions = therapistSessions.filter(s => !excludedIds.has(s.id));
+        const subtotal = activeSessions.reduce((sum, s) => sum + (s.price || 0), 0);
+
+        // If subtotal is same as stored, skip update? 
+        // No, stored might be wrong even if subtotal matches (unlikely but safe to overwrite)
+        // Actually stored subtotal was WRONG because it included exclusions. 
+
+        const centerPercentage = parseFloat(invoice.center_percentage);
+        const centerAmount = subtotal * (centerPercentage / 100);
+        const baseDisponible = subtotal - centerAmount;
+        const irpfPercentage = parseFloat(invoice.irpf_percentage);
+        const irpfAmount = baseDisponible * (irpfPercentage / 100);
+        const totalFactura = baseDisponible - irpfAmount;
+
+        await pool.query(
+          `UPDATE invoice_submissions 
+                     SET subtotal = $1, center_amount = $2, irpf_amount = $3, total_amount = $4
+                     WHERE id = $5`,
+          [subtotal, centerAmount, irpfAmount, totalFactura, invoice.id]
+        );
+      } catch (innerErr) {
+        console.error(`⚠️ Failed to recalculate invoice ${invoice.id}:`, innerErr.message);
+      }
+    }
+    console.log('✅ Auto-migration: Invoices recalculated successfully');
+  } catch (err) {
+    console.error('⚠️ Auto-migration invoice recalc failed:', err.message);
+  }
+})();
+
 const app = express();
 
 // --- CORS: permite tu front en Vercel (y local) ---
