@@ -18,10 +18,57 @@ const BillingDashboard = ({ user }) => {
     const [invoicesLoading, setInvoicesLoading] = useState(false);
     const [showRevokeModal, setShowRevokeModal] = useState(false);
     const [selectedInvoiceToRevoke, setSelectedInvoiceToRevoke] = useState(null);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [selectedInvoiceDetails, setSelectedInvoiceDetails] = useState(null);
+    const [detailsLoading, setDetailsLoading] = useState(false);
 
     const openRevokeModal = (invoice) => {
         setSelectedInvoiceToRevoke(invoice);
         setShowRevokeModal(true);
+    };
+
+    const openDetailsModal = async (invoice) => {
+        try {
+            setDetailsLoading(true);
+            setShowDetailsModal(true);
+            const token = localStorage.getItem('token');
+            // Fetch details similar to PDF generation
+            const res = await fetch(`${API_URL}/admin/billing/invoice-details?year=${invoice.year}&month=${invoice.month}&therapistId=${invoice.therapist_id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+
+            // Mark excluded sessions
+            let exclusions = [];
+            if (invoice.excluded_session_ids) {
+                exclusions = typeof invoice.excluded_session_ids === 'string'
+                    ? JSON.parse(invoice.excluded_session_ids)
+                    : invoice.excluded_session_ids;
+            }
+            const excludedSet = new Set(exclusions);
+
+            const processedSessions = (data.sessions || []).map(session => ({
+                ...session,
+                isExcluded: excludedSet.has(session.id)
+            }));
+
+            setSelectedInvoiceDetails({
+                ...invoice,
+                sessions: processedSessions,
+                therapistData: data.therapistData
+            });
+        } catch (error) {
+            console.error('Error fetching invoice details:', error);
+            alert('Error al cargar los detalles de la factura');
+            setShowDetailsModal(false);
+        } finally {
+            setDetailsLoading(false);
+        }
+    };
+
+    const closeDetailsModal = () => {
+        setShowDetailsModal(false);
+        setSelectedInvoiceDetails(null);
     };
 
     const closeRevokeModal = () => {
@@ -464,6 +511,14 @@ const BillingDashboard = ({ user }) => {
                                                     <div style={{ display: 'flex', gap: '8px' }}>
                                                         <button
                                                             className="btn-icon"
+                                                            onClick={() => openDetailsModal(inv)}
+                                                            title="Ver Detalle de Sesiones"
+                                                            style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}
+                                                        >
+                                                            👁️
+                                                        </button>
+                                                        <button
+                                                            className="btn-icon"
                                                             onClick={() => handleDownloadPDF(inv)}
                                                             title="Descargar PDF"
                                                             style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}
@@ -600,6 +655,7 @@ const BillingDashboard = ({ user }) => {
             {showRevokeModal && selectedInvoiceToRevoke && (
                 <div className="bd-modal-overlay">
                     <div className="bd-modal">
+                        {/* ... existing revoke modal content ... */}
                         <div className="bd-modal-header">
                             <h3 className="bd-modal-title">Devolver Factura</h3>
                         </div>
@@ -619,6 +675,63 @@ const BillingDashboard = ({ user }) => {
                                 Devolver Factura
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Details Modal */}
+            {showDetailsModal && selectedInvoiceDetails && (
+                <div className="bd-modal-overlay">
+                    <div className="bd-modal bd-modal-lg">
+                        <div className="bd-modal-header">
+                            <h3 className="bd-modal-title">Detalle de Factura</h3>
+                            <button onClick={closeDetailsModal} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
+                        </div>
+
+                        {detailsLoading ? (
+                            <div className="bd-loading">Cargando detalles...</div>
+                        ) : (
+                            <>
+                                <div className="bd-details-info">
+                                    <strong>Terapeuta:</strong> {selectedInvoiceDetails.therapistData?.full_name} <br />
+                                    <strong>Periodo:</strong> {getMonthName(selectedInvoiceDetails.month)} {selectedInvoiceDetails.year}
+                                </div>
+
+                                <div className="bd-session-list">
+                                    {selectedInvoiceDetails.sessions && selectedInvoiceDetails.sessions.length > 0 ? (
+                                        selectedInvoiceDetails.sessions.map(session => (
+                                            <div key={session.id} className={`bd-session-item ${session.isExcluded ? 'excluded' : ''}`}>
+                                                <div className="bd-session-main">
+                                                    <div className="bd-session-date">
+                                                        {new Date(session.date).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
+                                                    <div className="bd-session-patient">
+                                                        {session.patient_name}
+                                                    </div>
+                                                </div>
+                                                <div className="bd-session-meta">
+                                                    <div className="bd-session-price">
+                                                        {formatCurrency(session.modified_price || session.price || 0)}
+                                                    </div>
+                                                    {session.isExcluded && (
+                                                        <span className="bd-excluded-badge">Excluida</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
+                                            No se encontraron sesiones.
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="bd-modal-footer" style={{ marginTop: '20px' }}>
+                                    <button className="bd-btn bd-btn-secondary" onClick={closeDetailsModal}>
+                                        Cerrar
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

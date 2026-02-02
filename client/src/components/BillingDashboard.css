@@ -277,3 +277,173 @@
 .invoices-table th {
     background-color: #f8f9fa;
 }
+/* Modal Overlay */
+.bd-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.bd-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    animation: slideUp 0.3s ease-out;
+}
+
+.bd-modal-header {
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bd-modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.bd-modal-body {
+    margin-bottom: 24px;
+    color: #555;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.bd-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.bd-btn {
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+
+.bd-btn-secondary {
+    background-color: #f1f3f4;
+    color: #5f6368;
+}
+
+.bd-btn-secondary:hover {
+    background-color: #e8eaed;
+}
+
+.bd-btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.bd-btn-danger:hover {
+    background-color: #c82333;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Details Modal Specifics */
+.bd-modal-lg {
+    max-width: 800px;
+    width: 95%;
+}
+
+.bd-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.bd-details-info {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 16px;
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.bd-session-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
+
+.bd-session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    background: white;
+}
+
+.bd-session-item:last-child {
+    border-bottom: none;
+}
+
+.bd-session-item.excluded {
+    background-color: #fff5f5;
+    border-left: 4px solid #dc3545;
+}
+
+.bd-session-main {
+    flex: 1;
+}
+
+.bd-session-date {
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.bd-session-patient {
+    font-weight: 500;
+    color: #333;
+}
+
+.bd-session-meta {
+    text-align: right;
+}
+
+.bd-session-price {
+    font-weight: 600;
+    color: #333;
+}
+
+.bd-excluded-badge {
+    display: inline-block;
+    background: #dc3545;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+}
