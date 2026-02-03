@@ -702,7 +702,7 @@ const BillingTab = ({ user }) => {
             }
 
             // Fetch Therapist Configuration (Percentage & IRPF)
-            const myDataRes = await fetch(`${API_URL}/admin/billing/my-data`, {
+            const myDataRes = await fetch(`${API_URL}/admin/billing/my-data?t=${Date.now()}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const myData = await myDataRes.json();
