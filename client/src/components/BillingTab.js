@@ -2072,6 +2072,7 @@ const BillingTab = ({ user }) => {
                             <label>
                                 IRPF:
                                 <select value={irpf} onChange={(e) => setIrpf(parseInt(e.target.value))}>
+                                    <option value={0}>0%</option>
                                     <option value={7}>7%</option>
                                     <option value={15}>15%</option>
                                 </select>
