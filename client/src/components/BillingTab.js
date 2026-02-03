@@ -61,6 +61,7 @@ const BillingTab = ({ user }) => {
     const [showConfirmModal, setShowConfirmModal] = useState(false); // State for custom modal
     const [therapistPercentage, setTherapistPercentage] = useState(60);
     const [irpf, setIrpf] = useState(15);
+    const [iva, setIva] = useState(0); // New state for IVA
     const [invoiceNumber, setInvoiceNumber] = useState('');
     const [excludedSessions, setExcludedSessions] = useState(new Set()); // Track ID of excluded sessions
 
@@ -741,15 +742,17 @@ const BillingTab = ({ user }) => {
             setLoading(true);
             const token = localStorage.getItem('token');
 
-            // Recalculate totals just to be safe
+            // Recalculate totals based on active sessions (filtered by exclusion)
             const activeInvoiceSessions = invoiceSessions.filter(s => !excludedSessions.has(s.id));
-            const subtotal = activeInvoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
-
+            const activeSubtotal = activeInvoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
             const centerPercentage = 100 - therapistPercentage;
-            const centerAmount = subtotal * (centerPercentage / 100);
-            const baseDisponible = subtotal * (therapistPercentage / 100);
-            const irpfAmount = baseDisponible * (irpf / 100);
-            const totalFactura = baseDisponible - irpfAmount;
+            const activeCenterAmount = activeSubtotal * (centerPercentage / 100);
+            const activeBaseDisponible = activeSubtotal * (therapistPercentage / 100);
+            const activeIvaAmount = activeBaseDisponible * (iva / 100);
+            const activeIrpfAmount = activeBaseDisponible * (irpf / 100);
+            const activeTotalFactura = activeBaseDisponible + activeIvaAmount - activeIrpfAmount;
+
+            const excludedArray = Array.from(excludedSessions);
 
             const res = await fetch(`${API_URL}/admin/billing/submit-invoice`, {
                 method: 'POST',
@@ -760,15 +763,16 @@ const BillingTab = ({ user }) => {
                 body: JSON.stringify({
                     month: invoiceMonth,
                     year: invoiceYear,
-                    subtotal,
+                    subtotal: activeSubtotal,
                     center_percentage: centerPercentage,
-                    center_amount: centerAmount,
+                    center_amount: activeCenterAmount,
                     irpf_percentage: irpf,
-                    irpf_amount: irpfAmount,
-                    total_amount: totalFactura,
-
+                    irpf_amount: activeIrpfAmount,
+                    iva_percentage: iva,
+                    iva_amount: activeIvaAmount,
+                    total_amount: activeTotalFactura,
                     invoice_number: invoiceNumber,
-                    excluded_session_ids: Array.from(excludedSessions)
+                    excluded_session_ids: excludedArray
                 })
             });
 
@@ -821,8 +825,9 @@ const BillingTab = ({ user }) => {
             const centerPercentage = 100 - therapistPercentage;
             const centerAmount = subtotal * (centerPercentage / 100);
             const baseDisponible = subtotal * (therapistPercentage / 100);
+            const ivaAmount = baseDisponible * (iva / 100);
             const irpfAmount = baseDisponible * (irpf / 100);
-            const totalFactura = baseDisponible - irpfAmount;
+            const totalFactura = baseDisponible + ivaAmount - irpfAmount;
 
             // Header with orange background
             doc.setFillColor(255, 140, 66);
@@ -1979,8 +1984,9 @@ const BillingTab = ({ user }) => {
         const centerPercentage = 100 - therapistPercentage;
         const centerAmount = subtotal * (centerPercentage / 100);
         const baseDisponible = subtotal * (therapistPercentage / 100);
+        const ivaAmount = baseDisponible * (iva / 100);
         const irpfAmount = baseDisponible * (irpf / 100);
-        const totalFactura = baseDisponible - irpfAmount;
+        const totalFactura = baseDisponible + ivaAmount - irpfAmount;
 
         // Filter active sessions for display
         const activeInvoiceSessions = invoiceSessions.filter(s => !excludedSessions.has(s.id));
@@ -1989,8 +1995,9 @@ const BillingTab = ({ user }) => {
         const activeSubtotal = activeInvoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
         const activeCenterAmount = activeSubtotal * (centerPercentage / 100);
         const activeBaseDisponible = activeSubtotal * (therapistPercentage / 100);
+        const activeIvaAmount = activeBaseDisponible * (iva / 100);
         const activeIrpfAmount = activeBaseDisponible * (irpf / 100);
-        const activeTotalFactura = activeBaseDisponible - activeIrpfAmount;
+        const activeTotalFactura = activeBaseDisponible + activeIvaAmount - activeIrpfAmount;
 
         // Count excluded
         const excludedCount = excludedSessions.size;
@@ -2077,6 +2084,13 @@ const BillingTab = ({ user }) => {
                                     <option value={15}>15%</option>
                                 </select>
                             </label>
+                            <label>
+                                IVA:
+                                <select value={iva} onChange={(e) => setIva(parseInt(e.target.value))}>
+                                    <option value={0}>0%</option>
+                                    <option value={21}>21%</option>
+                                </select>
+                            </label>
                         </div>
 
                         {/* Sessions Table */}
@@ -2141,6 +2155,10 @@ const BillingTab = ({ user }) => {
                             <div className="summary-row">
                                 <span>BASE DISPONIBLE ({therapistPercentage}%):</span>
                                 <span>{formatCurrency(activeBaseDisponible)}</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>+ {iva}% IVA:</span>
+                                <span>{formatCurrency(activeIvaAmount)}</span>
                             </div>
                             <div className="summary-row">
                                 <span>- {irpf}% IRPF:</span>

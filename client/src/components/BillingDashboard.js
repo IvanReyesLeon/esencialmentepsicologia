@@ -369,12 +369,18 @@ const BillingDashboard = ({ user }) => {
             finalY += 7;
 
             doc.text(`BASE DISPONIBLE:`, labelX, finalY);
-            // Calculate base available if not explicit in invoice record (usually subtotal - center_amount)
-            // Or use stored totals if available. Invoice record has: subtotal, center_amount, irpf_amount, total_amount
-            // Base = Subtotal - CenterAmount
+            // Calculate base available (Subtotal - Center Amount)
             const baseDisponible = parseFloat(invoice.subtotal) - parseFloat(invoice.center_amount);
             doc.text(formatCurrency(baseDisponible), valueX, finalY, { align: 'right' });
             finalY += 7;
+
+            if (invoice.iva_percentage > 0) {
+                doc.text(`+ ${invoice.iva_percentage}% IVA:`, labelX, finalY);
+                // Use stored iva amount or calculate if missing (legacy compatibility)
+                const ivaVal = invoice.iva_amount !== undefined ? invoice.iva_amount : (baseDisponible * (invoice.iva_percentage / 100));
+                doc.text(formatCurrency(ivaVal), valueX, finalY, { align: 'right' });
+                finalY += 7;
+            }
 
             doc.text(`- ${invoice.irpf_percentage}% IRPF:`, labelX, finalY);
             doc.text(formatCurrency(invoice.irpf_amount), valueX, finalY, { align: 'right' });

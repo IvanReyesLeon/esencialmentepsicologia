@@ -829,10 +829,10 @@ exports.getMonthlyTherapistSessions = async (req, res) => {
             }
         });
 
-        // If there are pending/unpaid sessions, return error
+        // If there are pending/unpaid sessions, return info with hasPending flag (200 OK to avoid console errors)
         if (pendingCount > 0) {
-            return res.status(400).json({
-                error: true,
+            return res.json({
+                error: false, // Changed to false so it's not a protocol error
                 hasPending: true,
                 pendingCount,
                 message: `Tienes ${pendingCount} sesión${pendingCount > 1 ? 'es' : ''} sin confirmar pago en este mes. Por favor, márcalas como pagadas (transferencia o efectivo) antes de generar la factura.`
@@ -1044,16 +1044,19 @@ exports.submitInvoice = async (req, res) => {
             center_amount,
             irpf_percentage,
             irpf_amount,
+            iva_percentage, // New field 
+            iva_amount,     // New field
             total_amount,
             invoice_number,
-            excluded_session_ids // New field
+            excluded_session_ids
         } = req.body;
 
         console.log('Submitting invoice with data:', {
             therapist_id, year, month, invoice_number,
             invoice_number_type: typeof invoice_number,
-            excluded_count: excluded_session_ids?.length
-        }); // DEBUG
+            excluded_count: excluded_session_ids?.length,
+            iva_percentage // Log IVA
+        });
 
         if (!therapist_id) {
             return res.status(400).json({ message: 'User is not linked to a therapist profile' });
@@ -1074,23 +1077,28 @@ exports.submitInvoice = async (req, res) => {
         const exclusions = JSON.stringify(excluded_session_ids || []);
         const excludedCount = excluded_session_ids ? excluded_session_ids.length : 0;
 
+        const ivaPerc = iva_percentage || 0;
+        const ivaAmt = iva_amount || 0;
+
         if (existing.rows.length > 0) {
             // Update existing submission
             await pool.query(
                 `UPDATE invoice_submissions 
                 SET subtotal = $1, center_percentage = $2, center_amount = $3, 
-                    irpf_percentage = $4, irpf_amount = $5, total_amount = $6, 
-                    invoice_number = $7, excluded_session_ids = $8, submitted_at = NOW()
-                WHERE therapist_id = $9 AND month = $10 AND year = $11`,
-                [subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number || null, exclusions, therapist_id, month, year]
+                    irpf_percentage = $4, irpf_amount = $5, 
+                    iva_percentage = $6, iva_amount = $7,
+                    total_amount = $8, 
+                    invoice_number = $9, excluded_session_ids = $10, submitted_at = NOW()
+                WHERE therapist_id = $11 AND month = $12 AND year = $13`,
+                [subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, ivaPerc, ivaAmt, total_amount, invoice_number || null, exclusions, therapist_id, month, year]
             );
         } else {
             // Insert new submission
             await pool.query(
                 `INSERT INTO invoice_submissions 
-                (therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number, excluded_session_ids)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-                [therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, total_amount, invoice_number || null, exclusions]
+                (therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, iva_percentage, iva_amount, total_amount, invoice_number, excluded_session_ids)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+                [therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, ivaPerc, ivaAmt, total_amount, invoice_number || null, exclusions]
             );
         }
 
@@ -1110,6 +1118,15 @@ exports.submitInvoice = async (req, res) => {
                     `;
                 }
 
+                // Calculate base properly for display (Total = Base + IVA - IRPF, so Base is roughly Total - IVA + IRPF, or just derive from Subtotal - Center)
+                // Actually, let's just list what we have.
+                const base = parseFloat(subtotal) - parseFloat(center_amount);
+
+                let ivaLine = '';
+                if (ivaPerc > 0) {
+                    ivaLine = `<li><strong>IVA (${ivaPerc}%):</strong> ${ivaAmt}€</li>`;
+                }
+
                 await resend.emails.send({
                     from: 'Esencialmente Psicología <facturacion@esencialmentepsicologia.com>',
                     to: [adminEmail],
@@ -1123,6 +1140,8 @@ exports.submitInvoice = async (req, res) => {
                         <ul>
                             <li><strong>Subtotal:</strong> ${subtotal}€</li>
                             <li><strong>Retención Centro (${center_percentage}%):</strong> ${center_amount}€</li>
+                            <li><strong>Base Disponible:</strong> ${base.toFixed(2)}€</li>
+                            ${ivaLine}
                             <li><strong>IRPF (${irpf_percentage}%):</strong> ${irpf_amount}€</li>
                             <li><strong>Total a Percibir:</strong> ${total_amount}€</li>
                         </ul>
