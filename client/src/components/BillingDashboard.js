@@ -234,10 +234,11 @@ const BillingDashboard = ({ user }) => {
             // Fetch Centre Data and Invoice Details (Therapist Data + Sessions)
             // We need a new endpoint to get full details for admin reconstruction
             const [centerRes, detailsRes] = await Promise.all([
-                fetch(`${API_URL}/admin/billing/center-data`, {
+                // Add timestamp to prevent caching
+                fetch(`${API_URL}/admin/billing/center-data?t=${Date.now()}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
-                fetch(`${API_URL}/admin/billing/invoice-details?year=${year}&month=${month}&therapistId=${therapist_id}`, {
+                fetch(`${API_URL}/admin/billing/invoice-details?year=${year}&month=${month}&therapistId=${therapist_id}&t=${Date.now()}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 })
             ]);

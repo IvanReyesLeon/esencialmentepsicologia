@@ -805,10 +805,12 @@ const BillingTab = ({ user }) => {
             // Fetch billing data
             const token = localStorage.getItem('token');
             const [therapistRes, centerRes] = await Promise.all([
-                fetch(`${API_URL}/admin/billing/my-data`, {
+                // Add timestamp to prevent caching of therapist data
+                fetch(`${API_URL}/admin/billing/my-data?t=${Date.now()}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
-                fetch(`${API_URL}/admin/billing/center-data`, {
+                // Add timestamp to prevent caching of center data
+                fetch(`${API_URL}/admin/billing/center-data?t=${Date.now()}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 })
             ]);
