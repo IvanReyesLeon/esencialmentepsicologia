@@ -423,6 +423,14 @@ const BillingTab = ({ user }) => {
         return `${day}/${month}/${year}`;
     };
 
+    // Helper to clean session title (remove /TherapistName/ prefix)
+    const formatSessionTitle = (title) => {
+        if (!title) return '';
+        // Regex to match leading /Name/ pattern
+        // Matches / followed by any characters that are not / followed by / and optional whitespace
+        return title.replace(/^\/[^/]+\/\s*/, '');
+    };
+
     const markPayment = async (eventId, paymentType, paymentDate = null, session = null) => {
         try {
             const token = localStorage.getItem('token');
@@ -1569,7 +1577,7 @@ const BillingTab = ({ user }) => {
                                                                     </div>
                                                                     <div className="session-details-mini">
                                                                         <span className="date">{formatDate(s.date)}</span>
-                                                                        <span className="title">{s.title}</span>
+                                                                        <span className="title">{formatSessionTitle(s.title)}</span>
                                                                         <span className="price">{formatCurrency(s.modifiedPrice || s.originalPrice || s.price)}</span>
                                                                     </div>
                                                                     {isReviewed && <span className="mini-badge">Revisado</span>}
@@ -1623,7 +1631,7 @@ const BillingTab = ({ user }) => {
                                                                     </div>
                                                                     <div className="session-details-mini">
                                                                         <span className="date">{formatDate(s.date)}</span>
-                                                                        <span className="title">{s.title}</span>
+                                                                        <span className="title">{formatSessionTitle(s.title)}</span>
                                                                         <span className="price">{formatCurrency(s.modifiedPrice || s.originalPrice || s.price)}</span>
                                                                     </div>
                                                                 </div>
