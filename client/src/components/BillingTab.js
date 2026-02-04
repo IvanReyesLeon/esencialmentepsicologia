@@ -919,7 +919,7 @@ const BillingTab = ({ user }) => {
 
             // Group sessions by price
             const sessionsByPrice = {};
-            invoiceSessions.forEach(session => {
+            activeInvoiceSessions.forEach(session => {
                 const price = session.price || 0;
                 if (!sessionsByPrice[price]) {
                     sessionsByPrice[price] = { count: 0, price: price };
