@@ -99,16 +99,18 @@ async function recalculateInvoices() {
             const baseDisponible = subtotal - centerAmount;
             const irpfPercentage = parseFloat(invoice.irpf_percentage);
             const irpfAmount = baseDisponible * (irpfPercentage / 100);
-            const totalFactura = baseDisponible - irpfAmount;
+            const ivaPercentage = parseFloat(invoice.iva_percentage) || 0;
+            const ivaAmount = baseDisponible * (ivaPercentage / 100);
+            const totalFactura = baseDisponible + ivaAmount - irpfAmount;
 
             console.log(`   Old Total: ${invoice.total_amount} -> New Total: ${totalFactura}`);
 
             // 5. Update Database
             await pool.query(
                 `UPDATE invoice_submissions 
-                 SET subtotal = $1, center_amount = $2, irpf_amount = $3, total_amount = $4
-                 WHERE id = $5`,
-                [subtotal, centerAmount, irpfAmount, totalFactura, invoice.id]
+                 SET subtotal = $1, center_amount = $2, irpf_amount = $3, iva_amount = $4, total_amount = $5
+                 WHERE id = $6`,
+                [subtotal, centerAmount, irpfAmount, ivaAmount, totalFactura, invoice.id]
             );
         }
 
