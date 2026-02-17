@@ -57,6 +57,13 @@ const Navbar = () => {
             Talleres
           </Link>
           <Link
+            to="/psico-accesible"
+            className={`nav-link ${isActive('/psico-accesible')}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            PsicoAccesible
+          </Link>
+          <Link
             to="/blog"
             className={`nav-link ${isActive('/blog')}`}
             onClick={() => setIsMenuOpen(false)}

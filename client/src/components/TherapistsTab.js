@@ -8,7 +8,6 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
     const [formMode, setFormMode] = useState('new'); // 'new' or 'existing'
     const [hiddenTherapists, setHiddenTherapists] = useState([]);
     const [selectedHiddenId, setSelectedHiddenId] = useState('');
-    const [loadingHidden, setLoadingHidden] = useState(false);
 
     // Delete dialog state
     const [deleteDialog, setDeleteDialog] = useState({ show: false, therapist: null, hasAccount: false });
@@ -32,13 +31,11 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
     // Fetch hidden therapists when opening form
     useEffect(() => {
         if (showForm && !editingId) {
-            setLoadingHidden(true);
             therapistAPI.getHidden()
                 .then(res => setHiddenTherapists(res.data))
-                .catch(err => console.error('Error fetching hidden therapists:', err))
-                .finally(() => setLoadingHidden(false));
+                .catch(err => console.error('Error fetching hidden therapists:', err));
         }
-    }, [showForm]);
+    }, [showForm, editingId]);
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
@@ -72,7 +69,6 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                 ? therapist.education.map(e => e.degree).join('\n')
                 : '',
             license_number: therapist.license_number || '',
-            session_types: therapist.session_types || [],
             session_types: therapist.session_types || [],
             calendar_color_id: therapist.calendar_color_id || '',
             calendar_alias: therapist.calendar_alias || '',
@@ -198,7 +194,6 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                 education: '',
                 license_number: '',
                 session_types: [],
-                session_types: [],
                 calendar_color_id: '',
                 calendar_alias: '',
                 photo: null
@@ -226,7 +221,6 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
             methodology: '',
             education: '',
             license_number: '',
-            session_types: [],
             session_types: [],
             calendar_color_id: '',
             calendar_alias: '',

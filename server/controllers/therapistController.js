@@ -20,7 +20,7 @@ const {
 const { Resend } = require('resend');
 
 // Initialize Resend for welcome emails
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Helper: Generate internal email from full name
 const generateInternalEmail = (fullName) => {

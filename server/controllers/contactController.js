@@ -22,6 +22,7 @@ exports.sendContactEmail = async (req, res) => {
     }
 
     // 2. Intentar enviar email via Resend API (solo si hay API key configurada)
+    let emailSent = false;
     console.log('📧 Checking Resend API key...');
     console.log('RESEND_API_KEY configured:', !!process.env.RESEND_API_KEY);
 
@@ -54,6 +55,7 @@ exports.sendContactEmail = async (req, res) => {
           console.warn('Error de Resend:', error);
         } else {
           console.log('📧 Email enviado correctamente via Resend. ID:', data.id);
+          emailSent = true;
         }
       } catch (emailError) {
         console.warn('No se pudo enviar el email, pero el mensaje fue guardado:', emailError.message);
@@ -63,7 +65,10 @@ exports.sendContactEmail = async (req, res) => {
     }
 
     res.json({
-      message: 'Mensaje enviado correctamente. Nos pondremos en contacto contigo pronto.'
+      message: emailSent
+        ? 'Mensaje enviado correctamente. Nos pondremos en contacto contigo pronto.'
+        : 'Tu mensaje ha sido guardado. Te contactaremos pronto.',
+      emailSent
     });
   } catch (error) {
     console.error('Contact error:', error);

@@ -1,0 +1,158 @@
+.service-notice-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-out;
+    backdrop-filter: blur(2px);
+}
+
+.service-notice-content {
+    background: white;
+    padding: 0;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    animation: slideUpFade 0.3s ease-out;
+    overflow: hidden;
+}
+
+.service-notice-header {
+    background: #FFF3E0;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #FFE0B2;
+}
+
+.notice-icon {
+    font-size: 24px;
+}
+
+.service-notice-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #E65100;
+    flex-grow: 1;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #E65100;
+    padding: 0;
+    line-height: 1;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.close-btn:hover {
+    opacity: 1;
+}
+
+.service-notice-body {
+    padding: 24px;
+}
+
+.service-notice-body p {
+    margin-bottom: 12px;
+    color: #455A64;
+    line-height: 1.6;
+    font-size: 1.05rem;
+}
+
+.service-notice-body p:last-child {
+    margin-bottom: 0;
+}
+
+.service-notice-actions {
+    padding: 16px 24px;
+    background: #FAFAFA;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid #EEEEEE;
+}
+
+.btn-notice-secondary {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #CFD8DC;
+    background-color: white;
+    color: #546E7A;
+    transition: all 0.2s;
+}
+
+.btn-notice-secondary:hover {
+    background-color: #ECEFF1;
+}
+
+.btn-notice-primary {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background-color: #25D366;
+    /* WhatsApp color */
+    color: white;
+    box-shadow: 0 4px 6px rgba(37, 211, 102, 0.2);
+    transition: all 0.2s;
+}
+
+.btn-notice-primary:hover {
+    background-color: #128C7E;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px rgba(37, 211, 102, 0.3);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (max-width: 480px) {
+    .service-notice-content {
+        width: 95%;
+    }
+
+    .service-notice-actions {
+        flex-direction: column-reverse;
+    }
+
+    .btn-notice-secondary,
+    .btn-notice-primary {
+        width: 100%;
+    }
+}

@@ -348,7 +348,7 @@
     box-shadow: 0 6px 15px rgba(139, 92, 246, 0.4);
 }
 
-.btn-primary {
+.expenses-container .btn-primary {
     background-color: #1971c2;
     color: white;
     border: none;
@@ -359,7 +359,7 @@
     transition: background 0.2s;
 }
 
-.btn-primary:hover {
+.expenses-container .btn-primary:hover {
     background-color: #1864ab;
 }
 

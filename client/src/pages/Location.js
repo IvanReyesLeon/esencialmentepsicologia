@@ -16,29 +16,29 @@ const Location = () => {
       {/* Location Info */}
       <section className="location-info">
         <div className="container">
+          <h2>Esencialmente Psicología - Anna Becerra</h2>
           <div className="location-content">
             <div className="location-details">
-              <h2>Esencialmente Psicología - Anna Becerra</h2>
               <div className="address-info">
                 <div className="address-item">
                   <h3>📍 Dirección</h3>
                   <p>Carrer del Pintor Togores, 1</p>
                   <p>08290 Cerdanyola del Vallès, Barcelona</p>
                 </div>
-                
+
                 <div className="address-item">
                   <h3>🕒 Horarios</h3>
                   <p>Lunes a Viernes: 9:00h - 20:00h</p>
                   <p>Sábados: Consultar disponibilidad</p>
                   <p>Domingos: Cerrado</p>
                 </div>
-                
+
                 <div className="address-item">
                   <h3>📞 Contacto</h3>
-                  <p>Teléfono: +34 XXX XXX XXX</p>
+                  <p>Teléfono: +34 649 49 01 40</p>
                   <p>Email: info@esencialmentepsicologia.com</p>
                 </div>
-                
+
                 <div className="address-item">
                   <h3>🚗 Cómo llegar</h3>
                   <p>Transporte público: Metro, autobús</p>
@@ -47,7 +47,7 @@ const Location = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="map-section">
               <div className="map-container">
                 <ConsentGoogleMaps

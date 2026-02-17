@@ -153,7 +153,7 @@
   animation: slideUp 0.3s ease-out;
 }
 
-.btn-secondary {
+.admin-dashboard .btn-secondary {
   background-color: #f1f3f5;
   color: #495057;
   border: 1px solid #dee2e6;
@@ -164,7 +164,7 @@
   transition: all 0.2s;
 }
 
-.btn-secondary:hover {
+.admin-dashboard .btn-secondary:hover {
   background-color: #e9ecef;
   border-color: #ced4da;
   transform: translateY(-1px);

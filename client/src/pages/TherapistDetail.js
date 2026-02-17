@@ -62,7 +62,7 @@ const TherapistDetail = () => {
       ? (therapist.photo.startsWith('http') ? therapist.photo : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`)
       : undefined,
     "url": window.location.href,
-    "telephone": "+34600000000", // Placeholder or actual clinic phone
+    "telephone": "+34649490140", // Placeholder or actual clinic phone
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Carrer del Bruc, 123", // Example address

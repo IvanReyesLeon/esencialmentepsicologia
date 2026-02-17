@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import { Toaster } from 'sileo';
+import 'sileo/styles.css';
 import CookieConsent from './components/CookieConsent';
 import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
@@ -9,7 +11,12 @@ import Services from './pages/Services';
 import Therapists from './pages/Therapists';
 import TherapistDetail from './pages/TherapistDetail';
 import Contact from './pages/Contact';
-import Location from './pages/Location';
+import LocationPage from './pages/Location';
+import './App.css';
+
+// Ensure global styles handle text-white! override if necessary, 
+// though sileo might handle inline styles via this prop pattern.
+// Just in case, define css if needed elsewhere, but let's assume standard css or inline handling.
 import Workshops from './pages/Workshops';
 import WorkshopDetail from './pages/WorkshopDetail';
 import Blog from './pages/Blog';
@@ -18,6 +25,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import CookiePolicy from './pages/CookiePolicy';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import PsicoAccesible from './pages/PsicoAccesible';
 import './App.css';
 
 // Layout wrapper that conditionally shows Navbar/Footer
@@ -27,6 +35,7 @@ const Layout = ({ children }) => {
 
   return (
     <div className="App">
+      <Toaster position="top-center" />
       {!isAdminRoute && <Navbar />}
       <main>{children}</main>
       {!isAdminRoute && <Footer />}
@@ -52,10 +61,11 @@ function App() {
           <Route path="/terapeutas" element={<Therapists />} />
           <Route path="/terapeutas/:id" element={<TherapistDetail />} />
           <Route path="/servicios" element={<Services />} />
-          <Route path="/donde-estamos" element={<Location />} />
+          <Route path="/donde-estamos" element={<LocationPage />} />
           <Route path="/contacto" element={<Contact />} />
           <Route path="/talleres" element={<Workshops />} />
           <Route path="/talleres/:id" element={<WorkshopDetail />} />
+          <Route path="/psico-accesible" element={<PsicoAccesible />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
 

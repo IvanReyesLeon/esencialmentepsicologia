@@ -147,8 +147,9 @@
   margin-right: 0.5rem;
 }
 
-/* Button Styles */
-.btn {
+/* Button Styles (scoped to admin) */
+.admin-panel .btn,
+.admin-login .btn {
   padding: 0.8rem 1.5rem;
   border: none;
   border-radius: 8px;
@@ -163,17 +164,20 @@
   user-select: none;
 }
 
-.btn-primary {
+.admin-panel .btn-primary,
+.admin-login .btn-primary {
   background: linear-gradient(135deg, #B19CD9 0%, #E91E63 100%);
   color: white;
 }
 
-.btn-primary:hover:not(:disabled) {
+.admin-panel .btn-primary:hover:not(:disabled),
+.admin-login .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(233, 30, 99, 0.3);
 }
 
-.btn-primary:disabled {
+.admin-panel .btn-primary:disabled,
+.admin-login .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -580,13 +584,15 @@
   font-size: 1rem;
 }
 
-/* Secondary Button */
-.btn-secondary {
+/* Secondary Button (scoped to admin) */
+.admin-panel .btn-secondary,
+.admin-login .btn-secondary {
   background: #6c757d;
   color: white;
 }
 
-.btn-secondary:hover {
+.admin-panel .btn-secondary:hover,
+.admin-login .btn-secondary:hover {
   background: #5a6268;
   transform: translateY(-2px);
 }

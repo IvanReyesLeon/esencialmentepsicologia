@@ -553,3 +553,11 @@ p {
   background: var(--primary-light);
   color: var(--primary-dark);
 }
+
+/* ========================================
+   SILEO TOAST OVERRIDES
+======================================== */
+/* Navbar has z-index: 1000, Sileo default is 50 */
+[data-sileo-viewport] {
+  z-index: 10000 !important;
+}

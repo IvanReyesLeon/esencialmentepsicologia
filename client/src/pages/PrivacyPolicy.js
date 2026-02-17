@@ -14,7 +14,7 @@ const PrivacyPolicy = () => {
           <p><strong>NIF/CIF:</strong> [Tu NIF/CIF]</p>
           <p><strong>Dirección:</strong> Carrer del Pintor Togores, 1, 08290 Cerdanyola del Vallès, Barcelona</p>
           <p><strong>Email:</strong> info@esencialmentepsicologia.com</p>
-          <p><strong>Teléfono:</strong> +34 XXX XXX XXX</p>
+          <p><strong>Teléfono:</strong> +34 649 49 01 40</p>
         </section>
 
         <section>
@@ -115,7 +115,7 @@ const PrivacyPolicy = () => {
           <h2>11. Contacto</h2>
           <p>Para cualquier consulta sobre esta política de privacidad o el tratamiento de sus datos, puede contactarnos en:</p>
           <p>Email: info@esencialmentepsicologia.com</p>
-          <p>Teléfono: +34 XXX XXX XXX</p>
+          <p>Teléfono: +34 649 49 01 40</p>
         </section>
       </div>
     </div>

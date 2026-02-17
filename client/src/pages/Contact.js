@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { sileo } from 'sileo';
 import { contactAPI } from '../services/api';
 import './Contact.css';
 
@@ -11,7 +12,6 @@ const Contact = () => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -23,11 +23,32 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitMessage('');
 
     try {
       const response = await contactAPI.sendMessage(formData);
-      setSubmitMessage(response.data.message);
+      console.log('📧 Response received:', response.data);
+
+      if (response.data.emailSent) {
+        console.log('✅ Email sent, showing success toast');
+        // Email sent successfully
+        sileo.success({
+          title: "Mensaje Enviado ✉️",
+          description: response.data.message || "Tu mensaje ha sido enviado correctamente.",
+          fill: "black",
+          styles: {
+            title: "text-white!",
+            description: "text-white/75!"
+          }
+        });
+      } else {
+        console.log('⚠️ Email not sent, showing warning toast');
+        // Message saved but email failed
+        sileo.warning({
+          title: "Mensaje Guardado ⚠️",
+          description: "Tu mensaje se ha guardado correctamente, pero el email de notificación no se pudo enviar.",
+        });
+      }
+
       setFormData({
         name: '',
         email: '',
@@ -36,7 +57,12 @@ const Contact = () => {
         message: ''
       });
     } catch (error) {
-      setSubmitMessage(error.response?.data?.message || 'Error al enviar el mensaje. Por favor, inténtalo de nuevo.');
+      // Error toast
+      const errorMsg = error.response?.data?.message || 'Error al enviar el mensaje. Por favor, inténtalo de nuevo.';
+      sileo.error({
+        title: "Error al Enviar",
+        description: errorMsg,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -163,11 +189,6 @@ const Contact = () => {
                 {isSubmitting ? 'Enviando...' : 'Enviar Mensaje'}
               </button>
 
-              {submitMessage && (
-                <div className={`submit-message ${submitMessage.includes('Error') ? 'error' : 'success'}`}>
-                  {submitMessage}
-                </div>
-              )}
             </form>
           </div>
         </div>
