@@ -10,116 +10,177 @@
     justify-content: center;
     z-index: 9999;
     animation: fadeIn 0.3s ease-out;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(3px);
+    padding: 16px;
 }
 
-.service-notice-content {
-    background: white;
+.psico-accesible-modal {
+    background: linear-gradient(180deg, #e8f5f0 0%, #ffffff 40%);
     padding: 0;
-    border-radius: 16px;
+    border-radius: 20px;
     width: 90%;
-    max-width: 450px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    max-width: 420px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
     display: flex;
     flex-direction: column;
-    animation: slideUpFade 0.3s ease-out;
+    animation: slideUpFade 0.4s cubic-bezier(0.22, 1, 0.36, 1);
     overflow: hidden;
+    position: relative;
 }
 
-.service-notice-header {
-    background: #FFF3E0;
-    padding: 20px 24px;
+.psico-accesible-modal .close-btn {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #546E7A;
+    padding: 2px 8px;
+    line-height: 1;
+    border-radius: 50%;
+    opacity: 0.8;
+    transition: opacity 0.2s, background 0.2s;
+    z-index: 2;
+}
+
+.psico-accesible-modal .close-btn:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+/* Header */
+.psico-modal-header {
+    text-align: center;
+    padding: 28px 24px 16px;
+}
+
+.psico-piggy {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 8px;
+    animation: piggyBounce 2s ease-in-out infinite;
+}
+
+.psico-modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #78909C;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.psico-modal-header h2 {
+    margin: 4px 0 0;
+    font-size: 1.8rem;
+    color: #37474F;
+    font-weight: 700;
+}
+
+.psico-highlight {
+    color: #00897B;
+    font-weight: 800;
+}
+
+/* Body */
+.psico-modal-body {
+    padding: 0 24px 20px;
+}
+
+.psico-intro {
+    text-align: center;
+    color: #546E7A;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+}
+
+.psico-features {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.psico-feature {
     display: flex;
     align-items: center;
     gap: 12px;
-    border-bottom: 1px solid #FFE0B2;
-}
-
-.notice-icon {
-    font-size: 24px;
-}
-
-.service-notice-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: #E65100;
-    flex-grow: 1;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #E65100;
-    padding: 0;
-    line-height: 1;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.close-btn:hover {
-    opacity: 1;
-}
-
-.service-notice-body {
-    padding: 24px;
-}
-
-.service-notice-body p {
-    margin-bottom: 12px;
+    background: #f5faf8;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #e0f2ee;
+    font-size: 0.9rem;
     color: #455A64;
-    line-height: 1.6;
-    font-size: 1.05rem;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.service-notice-body p:last-child {
-    margin-bottom: 0;
+.psico-feature:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 137, 123, 0.1);
 }
 
-.service-notice-actions {
+.psico-feature span:first-child {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.psico-feature:last-child {
+    background: linear-gradient(135deg, #e0f7fa, #e8f5e9);
+    border-color: #b2dfdb;
+}
+
+.psico-feature:last-child strong {
+    color: #00897B;
+    font-size: 1.1rem;
+}
+
+/* Actions */
+.psico-modal-actions {
     padding: 16px 24px;
-    background: #FAFAFA;
+    background: #fafafa;
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    border-top: 1px solid #EEEEEE;
+    border-top: 1px solid #e0e0e0;
 }
 
-.btn-notice-secondary {
+.btn-psico-secondary {
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 10px;
     font-weight: 600;
     cursor: pointer;
     border: 1px solid #CFD8DC;
     background-color: white;
     color: #546E7A;
+    font-size: 0.9rem;
     transition: all 0.2s;
 }
 
-.btn-notice-secondary:hover {
+.btn-psico-secondary:hover {
     background-color: #ECEFF1;
 }
 
-.btn-notice-primary {
-    padding: 10px 20px;
-    border-radius: 8px;
+.btn-psico-primary {
+    padding: 10px 24px;
+    border-radius: 10px;
     font-weight: 600;
     cursor: pointer;
     border: none;
-    background-color: #25D366;
-    /* WhatsApp color */
+    background: linear-gradient(135deg, #00897B, #00695C);
     color: white;
-    box-shadow: 0 4px 6px rgba(37, 211, 102, 0.2);
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
     transition: all 0.2s;
 }
 
-.btn-notice-primary:hover {
-    background-color: #128C7E;
+.btn-psico-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 8px rgba(37, 211, 102, 0.3);
+    box-shadow: 0 6px 16px rgba(0, 137, 123, 0.4);
 }
 
+/* Animations */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -133,7 +194,7 @@
 @keyframes slideUpFade {
     from {
         opacity: 0;
-        transform: translateY(20px) scale(0.95);
+        transform: translateY(30px) scale(0.95);
     }
 
     to {
@@ -142,17 +203,35 @@
     }
 }
 
+@keyframes piggyBounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* Responsive */
 @media (max-width: 480px) {
-    .service-notice-content {
+    .psico-accesible-modal {
         width: 95%;
     }
 
-    .service-notice-actions {
+    .psico-modal-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .psico-modal-actions {
         flex-direction: column-reverse;
     }
 
-    .btn-notice-secondary,
-    .btn-notice-primary {
+    .btn-psico-secondary,
+    .btn-psico-primary {
         width: 100%;
+        text-align: center;
     }
 }
