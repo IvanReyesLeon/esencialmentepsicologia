@@ -36,8 +36,13 @@ const Home = () => {
           <h1>Esencialmente Psicología</h1>
           <p className="hero-subtitle">Tu bienestar emocional es nuestra prioridad</p>
           <p className="hero-description">
-            <strong>Esencialmente Psicología</strong> es un espacio donde encontrarás salud mental, divulgación sobre temas de psicología, gran variedad de talleres y conferencias, herramientas e información para la gestión mental-emocional y una comunidad de personas como tu.
+            <strong>Esencialmente Psicología</strong> es un espacio donde encontrarás salud mental, divulgación sobre temas de psicología, una gran variedad de talleres y conferencias, herramientas e información para la gestión mental-emocional y una comunidad de personas como tú.
+          </p>
+          <p className="hero-description">
             ¿Personas como tú? Sí, personas como tú y como yo. Personas que le damos importancia a lo que tenemos dentro: a nuestra <strong>esencia</strong>. Personas valientes que entendemos la necesidad de cuidar nuestro cuerpo y nuestra <strong>mente</strong>.
+          </p>
+          <p className="hero-description">
+            Somos psicólogas con formación avanzada en enfoques informados en trauma y especialistas en <strong>EMDR</strong> (Eye Movement Desensitization and Reprocessing), una de las terapias más eficaces para sanar experiencias traumáticas y heridas emocionales profundas. Nuestro objetivo es acompañarte en un espacio cercano, seguro y profesional, donde puedas comprender lo que te ha ocurrido, procesarlo a tu ritmo y empezar a vivir con mayor calma, equilibrio y bienestar.
           </p>
           <div className="hero-buttons">
             <Link to="/contacto" className="btn btn-primary">Solicitar Cita</Link>
