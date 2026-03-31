@@ -261,6 +261,10 @@ exports.getGlobalSessions = async (req, res) => {
         const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), 0, 1);
         const end = endDate ? new Date(endDate) : new Date(new Date().getFullYear(), 11, 31);
 
+        // Ensure end date covers the full day (23:59:59.999)
+        // Without this, '2026-03-31' becomes midnight UTC and excludes all events on that day
+        end.setUTCHours(23, 59, 59, 999);
+
         // Calculate ISO strings for Google Calendar
         const timeMin = start.toISOString();
         const timeMax = end.toISOString();
