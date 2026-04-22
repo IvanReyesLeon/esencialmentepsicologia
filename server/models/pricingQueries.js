@@ -15,7 +15,9 @@ const getAllPricing = async () => {
         WHEN 'couple' THEN 2
         WHEN 'family' THEN 3
         WHEN 'group' THEN 4
-      END
+      END,
+      p.duration ASC,
+      p.id ASC
   `);
   return result.rows;
 };
@@ -34,7 +36,7 @@ const getPricingById = async (id) => {
   return result.rows[0];
 };
 
-// Obtener precio por tipo de sesión
+// Obtener precios por tipo de sesión (puede haber varios)
 const getPricingBySessionType = async (sessionTypeName) => {
   const result = await query(`
     SELECT 
@@ -43,13 +45,14 @@ const getPricingBySessionType = async (sessionTypeName) => {
       st.display_name as session_type_display_name
     FROM pricing p
     JOIN session_types st ON p.session_type_id = st.id
-    WHERE st.name = $1
+    WHERE st.name = $1 AND p.is_active = true
+    ORDER BY p.duration ASC
   `, [sessionTypeName]);
-  return result.rows[0];
+  return result.rows;
 };
 
-// Crear o actualizar precio (upsert)
-const upsertPricing = async (sessionTypeName, price, duration, description) => {
+// Crear nuevo precio
+const createPricing = async (sessionTypeName, price, duration, description) => {
   // Primero obtener el ID del tipo de sesión
   const sessionTypeResult = await query(
     'SELECT id FROM session_types WHERE name = $1',
@@ -62,16 +65,10 @@ const upsertPricing = async (sessionTypeName, price, duration, description) => {
 
   const sessionTypeId = sessionTypeResult.rows[0].id;
 
-  // Upsert (insert o update si ya existe)
+  // Insert simple (la validación de límites se hace en el controlador)
   const result = await query(`
     INSERT INTO pricing (session_type_id, price, duration, description)
     VALUES ($1, $2, $3, $4)
-    ON CONFLICT (session_type_id)
-    DO UPDATE SET 
-      price = EXCLUDED.price,
-      duration = EXCLUDED.duration,
-      description = EXCLUDED.description,
-      updated_at = NOW()
     RETURNING *
   `, [sessionTypeId, price, duration, description]);
 
@@ -111,7 +108,16 @@ const updatePricing = async (id, updates) => {
 // Eliminar precio (soft delete)
 const deletePricing = async (id) => {
   const result = await query(
-    'UPDATE pricing SET is_active = false WHERE id = $1 RETURNING *',
+    'UPDATE pricing SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING *',
+    [id]
+  );
+  return result.rows[0];
+};
+
+// Eliminar precio permanentemente (hard delete)
+const hardDeletePricing = async (id) => {
+  const result = await query(
+    'DELETE FROM pricing WHERE id = $1 RETURNING *',
     [id]
   );
   return result.rows[0];
@@ -127,8 +133,9 @@ module.exports = {
   getAllPricing,
   getPricingById,
   getPricingBySessionType,
-  upsertPricing,
+  createPricing,
   updatePricing,
   deletePricing,
+  hardDeletePricing,
   getAllSessionTypes
 };

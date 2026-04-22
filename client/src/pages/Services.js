@@ -60,10 +60,31 @@ const Services = () => {
   };
 
   const selectedType = searchParams.get('tipo');
-  const activePricing = pricing.filter(p => p.is_active === true);
-  const displayPricing = selectedType
-    ? activePricing.filter(p => p.session_type_name === selectedType)
-    : activePricing;
+  
+  // Filtrar activos y ordenar por duración
+  const activePricing = pricing
+    .filter(p => p.is_active === true)
+    .sort((a, b) => a.duration - b.duration);
+
+  // Agrupar precios por tipo de sesión
+  const groupedPricing = activePricing.reduce((acc, item) => {
+    const type = item.session_type_name;
+    if (!acc[type]) {
+      acc[type] = {
+        name: type,
+        displayName: item.session_type_display_name || getServiceTitle(type),
+        image: getServiceImage(type),
+        variants: []
+      };
+    }
+    acc[type].variants.push(item);
+    return acc;
+  }, {});
+
+  // Determinar qué mostrar basándose en el filtro de la URL
+  const displayGroups = selectedType
+    ? (groupedPricing[selectedType] ? [groupedPricing[selectedType]] : [])
+    : Object.values(groupedPricing);
 
   const sectionTitle = selectedType
     ? `Tarifa: ${getServiceTitle(selectedType)}`
@@ -98,43 +119,51 @@ const Services = () => {
             {loading && <div className="loading">Cargando servicios...</div>}
             {error && <div className="error-message">{error}</div>}
 
-            {displayPricing.length === 0 && !loading && !error ? (
+            {displayGroups.length === 0 && !loading && !error ? (
               <div className="no-pricing">
                 <p>No hay tarifas publicadas por el momento.</p>
               </div>
             ) : (
               <div className="pricing-grid">
-                {displayPricing.map((service) => (
-                  <div key={service.id} className="pricing-card">
+                {displayGroups.map((group) => (
+                  <div key={group.name} className="pricing-card">
                     <div className="service-header">
                       <div className="service-cover">
                         <img
-                          src={getServiceImage(service.session_type_name)}
-                          alt={getServiceTitle(service.session_type_name)}
+                          src={group.image}
+                          alt={group.displayName}
                           loading="lazy"
                           onError={(e) => { e.currentTarget.src = '/assets/home_sup/t_individual_new.png'; }}
                         />
                       </div>
-                      <h3>{service.session_type_display_name || getServiceTitle(service.session_type_name)}</h3>
+                      <h3>{group.displayName}</h3>
                     </div>
 
                     <div className="service-details">
-                      {service.description && (
-                        <p className="service-description">{service.description}</p>
-                      )}
+                      {group.variants.map((variant, idx) => (
+                        <div key={variant.id} className={`variant-container ${group.variants.length > 1 ? 'has-multiple' : ''}`}>
+                          {group.variants.length > 1 && (
+                            <h4 className="variant-title">Opción {idx + 1}</h4>
+                          )}
+                          
+                          {variant.description && (
+                            <p className="service-description">{variant.description}</p>
+                          )}
 
-                      <div className="service-info">
-                        <div className="info-item">
-                          <span className="label">Duración:</span>
-                          <span className="value">{service.duration} minutos</span>
+                          <div className="service-info">
+                            <div className="info-item">
+                              <span className="label">Duración:</span>
+                              <span className="value">{variant.duration} minutos</span>
+                            </div>
+                            <div className="info-item">
+                              <span className="label">Precio:</span>
+                              <span className="value price">
+                                {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(variant.price)}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="info-item">
-                          <span className="label">Precio:</span>
-                          <span className="value price">
-                            {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(service.price)}
-                          </span>
-                        </div>
-                      </div>
+                      ))}
                     </div>
 
                     <div className="service-footer">

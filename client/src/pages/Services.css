@@ -293,6 +293,28 @@
   font-size: 0.95rem;
 }
 
+.variant-container {
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.variant-container:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.variant-title {
+  font-size: 0.8rem;
+  color: var(--primary-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: var(--space-3);
+  font-weight: 700;
+  opacity: 0.8;
+}
+
 .service-info {
   border-top: 1px solid var(--border-light);
   padding-top: var(--space-5);
