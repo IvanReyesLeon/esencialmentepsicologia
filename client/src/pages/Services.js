@@ -61,13 +61,11 @@ const Services = () => {
 
   const selectedType = searchParams.get('tipo');
   
-  // Filtrar activos y ordenar por duración
-  const activePricing = pricing
-    .filter(p => p.is_active === true)
-    .sort((a, b) => a.duration - b.duration);
-
   // Agrupar precios por tipo de sesión
-  const groupedPricing = activePricing.reduce((acc, item) => {
+  const groupedPricing = pricing.reduce((acc, item) => {
+    // Solo procesar si está activo
+    if (item.is_active !== true) return acc;
+    
     const type = item.session_type_name;
     if (!acc[type]) {
       acc[type] = {
@@ -81,10 +79,20 @@ const Services = () => {
     return acc;
   }, {});
 
+  // Ordenar variantes por duración dentro de cada grupo
+  Object.values(groupedPricing).forEach(group => {
+    group.variants.sort((a, b) => a.duration - b.duration);
+  });
+
   // Determinar qué mostrar basándose en el filtro de la URL
   const displayGroups = selectedType
     ? (groupedPricing[selectedType] ? [groupedPricing[selectedType]] : [])
-    : Object.values(groupedPricing);
+    : [
+        groupedPricing['individual'],
+        groupedPricing['couple'],
+        groupedPricing['family'],
+        groupedPricing['group']
+      ].filter(Boolean); // Solo mostrar los que tengan configuración
 
   const sectionTitle = selectedType
     ? `Tarifa: ${getServiceTitle(selectedType)}`
