@@ -692,6 +692,18 @@ const BillingTab = ({ user }) => {
             if (statusData.submitted) {
                 setInvoiceSubmitted(true);
                 setSubmissionData(statusData.submission);
+                
+                // Set taxes from stored data if available
+                if (statusData.submission.iva_percentage !== undefined) {
+                    setIva(Number(statusData.submission.iva_percentage));
+                }
+                if (statusData.submission.irpf_percentage !== undefined) {
+                    setIrpf(Number(statusData.submission.irpf_percentage));
+                }
+                if (statusData.submission.invoice_number) {
+                    setInvoiceNumber(statusData.submission.invoice_number);
+                }
+
                 // Load exclusions if any
                 if (statusData.submission.excluded_session_ids) {
                     // Check if it's a string (JSON) or already an object
@@ -980,6 +992,14 @@ const BillingTab = ({ user }) => {
 
             finalY += 8;
             doc.setFont(undefined, 'normal');
+
+            // IVA line (only if therapist has IVA > 0)
+            if (iva > 0) {
+                doc.text(`+ ${iva}% IVA:`, 120, finalY);
+                doc.text(formatCurrency(ivaAmount), 190, finalY, { align: 'right' });
+                finalY += 8;
+            }
+
             doc.text(`- ${irpf}% IRPF:`, 120, finalY);
             doc.text(formatCurrency(irpfAmount), 190, finalY, { align: 'right' });
 
@@ -996,13 +1016,15 @@ const BillingTab = ({ user }) => {
             doc.text('TOTAL FACTURA:', 120, finalY);
             doc.text(formatCurrency(totalFactura), 190, finalY, { align: 'right' });
 
-            // Legal text
-            doc.setFontSize(8);
-            doc.setTextColor(80, 80, 80);
-            doc.setFont(undefined, 'italic');
-            const legalText = 'Operación exenta según lo dispuesto en el art. 20. Uno. 3 de la Ley 37/1992 de 28 de diciembre. del Impuesto sobre el Valor Añadido.';
-            const legalLines = doc.splitTextToSize(legalText, 180);
-            doc.text(legalLines, 105, 270, { align: 'center' });
+            // Legal text: only show VAT exemption text when IVA is 0
+            if (iva === 0) {
+                doc.setFontSize(8);
+                doc.setTextColor(80, 80, 80);
+                doc.setFont(undefined, 'italic');
+                const legalText = 'Operación exenta según lo dispuesto en el art. 20. Uno. 3 de la Ley 37/1992 de 28 de diciembre. del Impuesto sobre el Valor Añadido.';
+                const legalLines = doc.splitTextToSize(legalText, 180);
+                doc.text(legalLines, 105, 270, { align: 'center' });
+            }
 
             // Footer
             doc.setFontSize(8);
