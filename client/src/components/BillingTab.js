@@ -842,14 +842,38 @@ const BillingTab = ({ user }) => {
 
             const activeInvoiceSessions = invoiceSessions.filter(s => !excludedSessions.has(s.id));
 
-            // Calculate all values
-            const subtotal = activeInvoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
-            const centerPercentage = 100 - therapistPercentage;
-            const centerAmount = subtotal * (centerPercentage / 100);
-            const baseDisponible = subtotal * (therapistPercentage / 100);
-            const ivaAmount = baseDisponible * (iva / 100);
-            const irpfAmount = baseDisponible * (irpf / 100);
-            const totalFactura = baseDisponible + ivaAmount - irpfAmount;
+            // Calculate all values (use submissionData if already submitted to match Admin view exactly)
+            let finalSubtotal, finalCenterPercentage, finalCenterAmount, finalBaseDisponible;
+            let finalIvaPercentage, finalIvaAmount, finalIrpfPercentage, finalIrpfAmount, finalTotalFactura;
+            let finalInvoiceNumber;
+
+            if (invoiceSubmitted && submissionData) {
+                finalSubtotal = parseFloat(submissionData.subtotal || 0);
+                finalCenterPercentage = parseFloat(submissionData.center_percentage || 0);
+                finalCenterAmount = parseFloat(submissionData.center_amount || 0);
+                finalBaseDisponible = finalSubtotal - finalCenterAmount;
+                finalIvaPercentage = parseFloat(submissionData.iva_percentage || 0);
+                finalIvaAmount = submissionData.iva_amount !== undefined && submissionData.iva_amount !== null 
+                                 ? parseFloat(submissionData.iva_amount) 
+                                 : (finalBaseDisponible * (finalIvaPercentage / 100));
+                finalIrpfPercentage = parseFloat(submissionData.irpf_percentage || 0);
+                finalIrpfAmount = submissionData.irpf_amount !== undefined && submissionData.irpf_amount !== null 
+                                  ? parseFloat(submissionData.irpf_amount) 
+                                  : (finalBaseDisponible * (finalIrpfPercentage / 100));
+                finalTotalFactura = parseFloat(submissionData.total_amount || 0);
+                finalInvoiceNumber = submissionData.invoice_number;
+            } else {
+                finalSubtotal = activeInvoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
+                finalCenterPercentage = 100 - therapistPercentage;
+                finalCenterAmount = finalSubtotal * (finalCenterPercentage / 100);
+                finalBaseDisponible = finalSubtotal * (therapistPercentage / 100);
+                finalIvaPercentage = iva;
+                finalIvaAmount = finalBaseDisponible * (finalIvaPercentage / 100);
+                finalIrpfPercentage = irpf;
+                finalIrpfAmount = finalBaseDisponible * (finalIrpfPercentage / 100);
+                finalTotalFactura = finalBaseDisponible + finalIvaAmount - finalIrpfAmount;
+                finalInvoiceNumber = invoiceNumber;
+            }
 
             // Header with orange background
             doc.setFillColor(255, 140, 66);
@@ -861,9 +885,9 @@ const BillingTab = ({ user }) => {
             doc.text('FACTURA', 105, 15, { align: 'center' });
 
             // Invoice number (if provided)
-            if (invoiceNumber) {
+            if (finalInvoiceNumber) {
                 doc.setFontSize(14);
-                doc.text(`Nº ${invoiceNumber}`, 105, 24, { align: 'center' });
+                doc.text(`Nº ${finalInvoiceNumber}`, 105, 24, { align: 'center' });
             }
 
             // Date info
@@ -978,30 +1002,30 @@ const BillingTab = ({ user }) => {
 
             // Summary lines
             doc.text('SUBTOTAL:', 120, finalY);
-            doc.text(formatCurrency(subtotal), 190, finalY, { align: 'right' });
+            doc.text(formatCurrency(finalSubtotal), 190, finalY, { align: 'right' });
 
             finalY += 10;
             doc.setFont(undefined, 'normal');
-            doc.text(`- Centro (${centerPercentage}%):`, 120, finalY);
-            doc.text(formatCurrency(centerAmount), 190, finalY, { align: 'right' });
+            doc.text(`- Centro (${finalCenterPercentage}%):`, 120, finalY);
+            doc.text(formatCurrency(finalCenterAmount), 190, finalY, { align: 'right' });
 
             finalY += 8;
             doc.setFont(undefined, 'bold');
             doc.text(`BASE DISPONIBLE (${therapistPercentage}%):`, 120, finalY);
-            doc.text(formatCurrency(baseDisponible), 190, finalY, { align: 'right' });
+            doc.text(formatCurrency(finalBaseDisponible), 190, finalY, { align: 'right' });
 
             finalY += 8;
             doc.setFont(undefined, 'normal');
 
             // IVA line (only if therapist has IVA > 0)
-            if (iva > 0) {
-                doc.text(`+ ${iva}% IVA:`, 120, finalY);
-                doc.text(formatCurrency(ivaAmount), 190, finalY, { align: 'right' });
+            if (finalIvaPercentage > 0) {
+                doc.text(`+ ${finalIvaPercentage}% IVA:`, 120, finalY);
+                doc.text(formatCurrency(finalIvaAmount), 190, finalY, { align: 'right' });
                 finalY += 8;
             }
 
-            doc.text(`- ${irpf}% IRPF:`, 120, finalY);
-            doc.text(formatCurrency(irpfAmount), 190, finalY, { align: 'right' });
+            doc.text(`- ${finalIrpfPercentage}% IRPF:`, 120, finalY);
+            doc.text(formatCurrency(finalIrpfAmount), 190, finalY, { align: 'right' });
 
             // Total line
             finalY += 10;
@@ -1014,10 +1038,10 @@ const BillingTab = ({ user }) => {
             doc.setFont(undefined, 'bold');
             doc.setTextColor(255, 140, 66);
             doc.text('TOTAL FACTURA:', 120, finalY);
-            doc.text(formatCurrency(totalFactura), 190, finalY, { align: 'right' });
+            doc.text(formatCurrency(finalTotalFactura), 190, finalY, { align: 'right' });
 
             // Legal text: only show VAT exemption text when IVA is 0
-            if (iva === 0) {
+            if (finalIvaPercentage === 0) {
                 doc.setFontSize(8);
                 doc.setTextColor(80, 80, 80);
                 doc.setFont(undefined, 'italic');
