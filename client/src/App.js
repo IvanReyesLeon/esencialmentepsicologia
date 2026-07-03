@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import { Toaster } from 'sileo';
 import 'sileo/styles.css';
 import CookieConsent from './components/CookieConsent';
+import StickyWhatsApp from './components/StickyWhatsApp';
 import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Services from './pages/Services';
@@ -26,7 +27,6 @@ import CookiePolicy from './pages/CookiePolicy';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import PsicoAccesible from './pages/PsicoAccesible';
-import './App.css';
 
 // Layout wrapper that conditionally shows Navbar/Footer
 const Layout = ({ children }) => {
@@ -40,6 +40,7 @@ const Layout = ({ children }) => {
       <main>{children}</main>
       {!isAdminRoute && <Footer />}
       {!isAdminRoute && <CookieConsent />}
+      {!isAdminRoute && <StickyWhatsApp />}
     </div>
   );
 };

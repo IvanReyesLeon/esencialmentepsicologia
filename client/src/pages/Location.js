@@ -1,5 +1,6 @@
 import React from 'react';
 import ConsentGoogleMaps from '../components/ConsentGoogleMaps';
+import { getPhoneDisplay, getPhoneTelUrl } from '../config/contactConfig';
 import './Location.css';
 
 const Location = () => {
@@ -35,7 +36,7 @@ const Location = () => {
 
                 <div className="address-item">
                   <h3>📞 Contacto</h3>
-                  <p>Teléfono: +34 649 49 01 40</p>
+                  <p>Teléfono: <a href={getPhoneTelUrl()} style={{ color: 'inherit', textDecoration: 'underline' }}>{getPhoneDisplay(true)}</a></p>
                   <p>Email: info@esencialmentepsicologia.com</p>
                 </div>
 

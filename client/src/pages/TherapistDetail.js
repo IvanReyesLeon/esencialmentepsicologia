@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { therapistAPI, API_ROOT } from '../services/api';
+import { getWhatsAppPhone } from '../config/contactConfig';
 import './TherapistDetail.css';
 import SEOHead from '../components/SEOHead';
 
@@ -13,19 +14,21 @@ const TherapistDetail = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(!initialTherapist); // Only show loading if we don't have initial data
-        const res = await therapistAPI.getById(id);
-        setTherapist(res.data);
-      } catch (e) {
-        setError('No se pudo cargar la información del terapeuta.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [id]); // Removed 'therapist' dependency, fixed SWR logic
+    // Si no tenemos el terapeuta en location.state o el ID cambió, lo cargamos
+    if (!initialTherapist || (initialTherapist._id !== id && initialTherapist.id !== id && initialTherapist.slug !== id)) {
+      setLoading(true);
+      therapistAPI.getById(id)
+        .then(res => {
+          setTherapist(res.data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Error cargando terapeuta:", err);
+          setError("No se pudo cargar la información del profesional.");
+          setLoading(false);
+        });
+    }
+  }, [id, initialTherapist]);
 
   if (loading) {
     return (
@@ -62,12 +65,12 @@ const TherapistDetail = () => {
       ? (therapist.photo.startsWith('http') ? therapist.photo : `${API_ROOT}/uploads/terapeutas/${therapist.photo}`)
       : undefined,
     "url": window.location.href,
-    "telephone": "+34649490140", // Placeholder or actual clinic phone
+    "telephone": getWhatsAppPhone() ? `+${getWhatsAppPhone()}` : undefined,
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Carrer del Bruc, 123", // Example address
-      "addressLocality": "Barcelona",
-      "postalCode": "08009",
+      "streetAddress": "Carrer del Pintor Togores, 1",
+      "addressLocality": "Cerdanyola del Vallès",
+      "postalCode": "08290",
       "addressCountry": "ES"
     }
   };
@@ -75,7 +78,7 @@ const TherapistDetail = () => {
   return (
     <div className="therapist-detail">
       <SEOHead
-        title={`${therapist.full_name} | Psicólogo en Barcelona`}
+        title={`${therapist.full_name} | Psicóloga/o en Cerdanyola del Vallès y online`}
         description={therapist.bio ? therapist.bio.substring(0, 160) + '...' : `Conoce a ${therapist.full_name}, especialista en ${therapist.specializations?.join(', ')}.`}
         image={therapist.photo
           ? (therapist.photo.startsWith('http') ? therapist.photo : `/uploads/terapeutas/${therapist.photo}`)
