@@ -1,0 +1,299 @@
+.local-hub-page {
+  color: #333333;
+}
+
+/* Hero Section */
+.local-hero {
+  background: linear-gradient(135deg, #fbf8f5 0%, #f4eae1 100%);
+  padding: 5rem 0 4rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.breadcrumbs {
+  font-size: 0.9rem;
+  color: #777;
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumbs a {
+  color: #8c7a6b;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbs a:hover {
+  color: #5c4d41;
+  text-decoration: underline;
+}
+
+.breadcrumbs span {
+  margin: 0 0.5rem;
+}
+
+.breadcrumbs .current {
+  color: #333;
+  font-weight: 500;
+}
+
+.local-hero h1 {
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: #2c2523;
+  margin-bottom: 1rem;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  color: #5c524b;
+  max-width: 750px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.6;
+}
+
+.hero-cta-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Introducción y Filosofía */
+.intro-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(140, 122, 107, 0.15);
+  max-width: 950px;
+  margin: 0 auto;
+}
+
+.intro-text h2 {
+  font-size: 2rem;
+  color: #2c2523;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.intro-text p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #4a423d;
+  margin-bottom: 1.5rem;
+}
+
+.intro-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* Methodology & Why Us */
+.methodology-content {
+  max-width: 850px;
+  margin: 0 auto 3rem;
+  text-align: center;
+}
+
+.lead-text {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: #4a423d;
+  margin-bottom: 1.5rem;
+}
+
+.why-us-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.why-card {
+  background: #ffffff;
+  padding: 2.25rem 1.75rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
+  border-top: 4px solid #8c7a6b;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.why-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.07);
+}
+
+.why-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #8c7a6b;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.why-card h3 {
+  font-size: 1.25rem;
+  color: #2c2523;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.why-card p {
+  color: #665d56;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Grid de Municipios */
+.cities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.city-card {
+  background: #ffffff;
+  border: 1px solid #e8e1da;
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+.city-card:hover {
+  border-color: #8c7a6b;
+  box-shadow: 0 10px 25px rgba(140, 122, 107, 0.12);
+  transform: translateY(-4px);
+}
+
+.city-card-header h3 {
+  font-size: 1.4rem;
+  color: #2c2523;
+  margin-bottom: 0.75rem;
+}
+
+.city-card-body p {
+  color: #665d56;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.city-link {
+  color: #8c7a6b;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+  display: inline-block;
+}
+
+.city-link:hover {
+  color: #5c4d41;
+}
+
+/* FAQ Accordion */
+.faq-accordion {
+  max-width: 800px;
+  margin: 2.5rem auto 0;
+}
+
+.faq-item {
+  background: #ffffff;
+  border: 1px solid #e8e1da;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.faq-item:hover, .faq-item.open {
+  border-color: #8c7a6b;
+}
+
+.faq-question {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.faq-question h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c2523;
+  margin: 0;
+}
+
+.faq-icon {
+  font-size: 1.5rem;
+  color: #8c7a6b;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.faq-answer {
+  padding: 0 1.5rem 1.25rem;
+  border-top: 1px solid #f4eae1;
+  color: #5c524b;
+  line-height: 1.6;
+  font-size: 0.98rem;
+}
+
+.faq-answer p {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+/* CTA Section */
+.cta-box {
+  background: linear-gradient(135deg, #2c2523 0%, #433835 100%);
+  color: #ffffff;
+  padding: 4rem 2rem;
+  border-radius: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.cta-box h2 {
+  color: #ffffff;
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+}
+
+.cta-box p {
+  color: #d8cec4;
+  font-size: 1.15rem;
+  max-width: 650px;
+  margin: 0 auto 2.5rem;
+}
+
+.cta-actions {
+  display: flex;
+  gap: 1.25rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .local-hero h1 {
+    font-size: 2.1rem;
+  }
+  
+  .intro-card {
+    padding: 1.75rem;
+  }
+  
+  .why-us-grid, .cities-grid {
+    grid-template-columns: 1fr;
+  }
+}

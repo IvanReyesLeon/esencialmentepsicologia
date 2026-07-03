@@ -141,6 +141,30 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Cobertura Territorial y Hub Comarcal */}
+      <section className="home-territorial" style={{ backgroundColor: '#fbf8f5', padding: '4rem 0', textAlign: 'center', borderTop: '1px solid #e8e1da', borderBottom: '1px solid #e8e1da' }}>
+        <div className="container">
+          <span style={{ textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '1.5px', color: '#8c7a6b', fontWeight: '600', display: 'block', marginBottom: '0.5rem' }}>
+            Atención Presencial y Online
+          </span>
+          <h2 style={{ fontSize: '2rem', color: '#2c2523', marginBottom: '1rem' }}>Tu Psicólogo en el Vallès Occidental</h2>
+          <p style={{ maxWidth: '750px', margin: '0 auto 2rem', color: '#5c524b', fontSize: '1.08rem', lineHeight: '1.7' }}>
+            Desde nuestra consulta física en Cerdanyola del Vallès y a través de nuestra plataforma online, acompañamos a pacientes de toda la comarca y la provincia de Barcelona con terapia EMDR y psicoterapia especializada.
+          </p>
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '850px', margin: '0 auto' }}>
+            <Link to="/psicologo-valles-occidental" style={{ backgroundColor: '#2c2523', color: '#fff', padding: '0.6rem 1.5rem', borderRadius: '50px', textDecoration: 'none', fontWeight: '600', fontSize: '0.95rem' }}>
+              Descubrir cobertura en el Vallès Occidental →
+            </Link>
+            <Link to="/psicologo-cerdanyola-del-valles" style={{ border: '1px solid #8c7a6b', color: '#5c524b', padding: '0.6rem 1.25rem', borderRadius: '50px', textDecoration: 'none', fontSize: '0.95rem', background: '#fff' }}>Cerdanyola</Link>
+            <Link to="/psicologo-sabadell" style={{ border: '1px solid #8c7a6b', color: '#5c524b', padding: '0.6rem 1.25rem', borderRadius: '50px', textDecoration: 'none', fontSize: '0.95rem', background: '#fff' }}>Sabadell</Link>
+            <Link to="/psicologo-sant-cugat" style={{ border: '1px solid #8c7a6b', color: '#5c524b', padding: '0.6rem 1.25rem', borderRadius: '50px', textDecoration: 'none', fontSize: '0.95rem', background: '#fff' }}>Sant Cugat</Link>
+            <Link to="/psicologo-rubi" style={{ border: '1px solid #8c7a6b', color: '#5c524b', padding: '0.6rem 1.25rem', borderRadius: '50px', textDecoration: 'none', fontSize: '0.95rem', background: '#fff' }}>Rubí</Link>
+            <Link to="/psicologo-terrassa" style={{ border: '1px solid #8c7a6b', color: '#5c524b', padding: '0.6rem 1.25rem', borderRadius: '50px', textDecoration: 'none', fontSize: '0.95rem', background: '#fff' }}>Terrassa</Link>
+            <Link to="/psicologo-barbera-del-valles" style={{ border: '1px solid #8c7a6b', color: '#5c524b', padding: '0.6rem 1.25rem', borderRadius: '50px', textDecoration: 'none', fontSize: '0.95rem', background: '#fff' }}>Barberà</Link>
+          </div>
+        </div>
+      </section>
+
       {/* Reviews Section */}
       <Reviews />
 

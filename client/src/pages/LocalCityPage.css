@@ -1,0 +1,273 @@
+.local-city-page {
+  color: #333333;
+}
+
+/* City Hero */
+.city-hero {
+  background: linear-gradient(135deg, #fefcfb 0%, #f4eae1 100%);
+  padding: 4.5rem 0 3.5rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.city-hero h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c2523;
+  margin-bottom: 1rem;
+  max-width: 850px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.25;
+}
+
+/* Content Section */
+.content-box {
+  max-width: 850px;
+  margin: 0 auto;
+  background: #ffffff;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(140, 122, 107, 0.15);
+}
+
+.lead-paragraph {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #4a423d;
+  margin-bottom: 1.5rem;
+}
+
+.lead-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Context Grid */
+.context-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 3rem;
+  align-items: start;
+  max-width: 1050px;
+  margin: 0 auto;
+}
+
+.context-text h2 {
+  font-size: 1.8rem;
+  color: #2c2523;
+  margin-bottom: 0.5rem;
+}
+
+.title-divider-left {
+  width: 60px;
+  height: 3px;
+  background-color: #8c7a6b;
+  margin-bottom: 1.5rem;
+}
+
+.context-text p {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: #5c524b;
+  margin-bottom: 1.25rem;
+}
+
+.context-card-highlight {
+  background: #ffffff;
+  border: 1px solid #e8e1da;
+  border-top: 4px solid #2c2523;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  text-align: center;
+}
+
+.context-card-highlight h3 {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #8c7a6b;
+  margin-bottom: 0.5rem;
+}
+
+.highlight-director {
+  font-size: 1.3rem;
+  color: #2c2523;
+  margin-bottom: 0.25rem;
+}
+
+.highlight-role {
+  font-size: 0.95rem;
+  color: #777;
+  margin-bottom: 1rem;
+}
+
+.context-card-highlight hr {
+  border: none;
+  border-top: 1px solid #e8e1da;
+  margin: 1rem 0;
+}
+
+.highlight-desc {
+  font-size: 0.9rem;
+  color: #5c524b;
+  line-height: 1.5;
+}
+
+/* Connectivity Section */
+.connectivity-box {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.connectivity-details {
+  text-align: left;
+  background: #fbf8f5;
+  padding: 2.5rem;
+  border-radius: 12px;
+  border: 1px solid #e8e1da;
+  margin-top: 2rem;
+}
+
+.connectivity-details p {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #4a423d;
+  margin-bottom: 1.25rem;
+}
+
+.connectivity-list {
+  list-style-type: none;
+  padding-left: 0;
+  margin-bottom: 1.25rem;
+}
+
+.connectivity-list li {
+  position: relative;
+  padding-left: 1.75rem;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #4a423d;
+}
+
+.connectivity-list li::before {
+  content: "📍";
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* Reasons Grid */
+.reasons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2.5rem;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.reason-card {
+  background: #ffffff;
+  padding: 2.25rem 1.75rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e8e1da;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.reason-card:hover {
+  transform: translateY(-4px);
+  border-color: #8c7a6b;
+}
+
+.reason-icon {
+  font-size: 1.75rem;
+  color: #ffffff;
+  background: #8c7a6b;
+  width: 48px;
+  height: 48px;
+  line-height: 48px;
+  border-radius: 50%;
+  margin: 0 auto 1.25rem;
+  font-weight: 700;
+}
+
+.reason-card h3 {
+  font-size: 1.25rem;
+  color: #2c2523;
+  margin-bottom: 0.75rem;
+}
+
+.reason-card p {
+  font-size: 0.95rem;
+  color: #665d56;
+  line-height: 1.6;
+}
+
+/* Silo Navigation */
+.silo-subtext {
+  color: #665d56;
+  margin-bottom: 1.5rem;
+}
+
+.silo-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.silo-tag {
+  background: #ffffff;
+  border: 1px solid #dcd3cb;
+  color: #5c524b;
+  padding: 0.5rem 1.25rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.silo-tag:hover {
+  background: #8c7a6b;
+  color: #ffffff;
+  border-color: #8c7a6b;
+}
+
+.hub-tag {
+  background: #2c2523;
+  color: #ffffff;
+  border-color: #2c2523;
+  font-weight: 600;
+}
+
+.hub-tag:hover {
+  background: #433835;
+  border-color: #433835;
+}
+
+/* Responsividad */
+@media (max-width: 900px) {
+  .context-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .city-hero h1 {
+    font-size: 2rem;
+  }
+  
+  .content-box, .connectivity-details {
+    padding: 1.75rem;
+  }
+}

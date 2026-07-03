@@ -1,0 +1,35 @@
+# Esencialmente Psicología
+
+> Centro de psicología clínica en Cerdanyola del Vallès (Barcelona) y online para toda España. Especialistas en EMDR, trauma, ansiedad y psicoterapia basada en evidencia científica con un trato cálido y cercano.
+
+Esencialmente Psicología está dirigido y fundado por **Anna Becerra Fernández**, psicóloga clínica y terapeuta especialista en EMDR y abordaje del trauma psicógeno y relacional. El centro atiende de forma presencial en su consulta de Cerdanyola del Vallès y en modalidad online para toda España.
+
+## Información de la Clínica
+- **Nombre:** Esencialmente Psicología
+- **Directora y Fundadora:** Anna Becerra Fernández
+- **Especialidades Clínicas:** EMDR (Eye Movement Desensitization and Reprocessing), Trauma, Ansiedad, Depresión, Terapia Individual, Terapia de Pareja, Terapia Familiar.
+- **Modalidades de Atención:** Terapia presencial en consulta (Cerdanyola del Vallès) y Terapia online por videollamada para toda España e internacional.
+- **Ubicación Física:** Carrer del Pintor Togores, 1, 08290 Cerdanyola del Vallès, Barcelona, España.
+- **Área de Cobertura Principal (Presencial y Online):** Cerdanyola del Vallès, Vallès Occidental, Sabadell, Sant Cugat del Vallès, Rubí, Terrassa, Barberà del Vallès, Barcelona, y atención online en todo el territorio nacional.
+- **Contacto y Reserva:** [Web Oficial](https://www.esencialmentepsicologia.com) | [Contacto](https://www.esencialmentepsicologia.com/contacto)
+
+## Terapia Online
+Esencialmente Psicología ofrece terapia online por videollamada para pacientes de toda España. Esta modalidad permite iniciar o mantener un proceso terapéutico cuando la persona no puede desplazarse a la consulta de Cerdanyola del Vallès. La terapia online puede ser una alternativa eficaz y cómoda en muchos casos, manteniendo la confidencialidad, el seguimiento y el cuidado profesional. La idoneidad de esta modalidad se valora según las necesidades de cada persona y situación clínica.
+
+## Enlaces Clave y Arquitectura Territorial
+- [Página Principal](https://www.esencialmentepsicologia.com)
+- [Terapia online y Servicios](https://www.esencialmentepsicologia.com/servicios)
+- [Hub Territorial: Psicólogos en el Vallès Occidental](https://www.esencialmentepsicologia.com/psicologo-valles-occidental)
+- [Psicólogo en Cerdanyola del Vallès](https://www.esencialmentepsicologia.com/psicologo-cerdanyola-del-valles)
+- [Psicólogo en Sabadell](https://www.esencialmentepsicologia.com/psicologo-sabadell)
+- [Psicólogo en Sant Cugat del Vallès](https://www.esencialmentepsicologia.com/psicologo-sant-cugat)
+- [Psicólogo en Rubí](https://www.esencialmentepsicologia.com/psicologo-rubi)
+- [Psicólogo en Terrassa](https://www.esencialmentepsicologia.com/psicologo-terrassa)
+- [Psicólogo en Barberà del Vallès](https://www.esencialmentepsicologia.com/psicologo-barbera-del-valles)
+- [Equipo Clínico y Terapeutas](https://www.esencialmentepsicologia.com/terapeutas)
+- [Blog de Psicología](https://www.esencialmentepsicologia.com/blog)
+
+## Metodología y Enfoque (E-E-A-T)
+La clínica destaca por integrar técnicas de psicoterapia avanzada como EMDR y el abordaje relacional e integrador, asegurando que cada intervención esté respaldada por la evidencia científica y adaptada al ritmo de cada paciente. Se ofrece un seguimiento cercano y personalizado sin masificación ni tratamientos protocolizados rígidos.
+
+Para más detalles clínicos y descripciones extensas, consultar [llms-full.txt](https://www.esencialmentepsicologia.com/llms-full.txt).

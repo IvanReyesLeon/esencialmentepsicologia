@@ -11,7 +11,6 @@ const pricingRoutes = require('./routes/pricing');
 const contactRoutes = require('./routes/contact');
 const workshopRoutes = require('./routes/workshops');
 const contactMessagesRoutes = require('./routes/contactMessages');
-const seoRoutes = require('./routes/seo');
 const postRoutes = require('./routes/posts');
 const contactController = require('./controllers/contactController');
 const { getSitemap } = require('./controllers/sitemapController');
@@ -116,7 +115,6 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/workshops', workshopRoutes);
 app.use('/api/admin/contact-messages', contactMessagesRoutes);
 app.get('/sitemap.xml', getSitemap);
-app.use('/api', seoRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/admin/sync', syncRoutes);
 

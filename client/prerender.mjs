@@ -14,8 +14,6 @@ const BASE_URL = `http://localhost:${PORT}`;
 const BUILD_DIR = path.join(__dirname, 'build');
 const SITE_URL = 'https://www.esencialmentepsicologia.com';
 
-// Routes to prerender
-// Routes to prerender
 const ROUTES = [
     '/',
     '/servicios',
@@ -23,7 +21,14 @@ const ROUTES = [
     '/contacto',
     '/talleres',
     '/donde-estamos',
-    '/blog'
+    '/blog',
+    '/psicologo-valles-occidental',
+    '/psicologo-cerdanyola-del-valles',
+    '/psicologo-sabadell',
+    '/psicologo-sant-cugat',
+    '/psicologo-rubi',
+    '/psicologo-terrassa',
+    '/psicologo-barbera-del-valles'
 ];
 
 // Simple MIME types

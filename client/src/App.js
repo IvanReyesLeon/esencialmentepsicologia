@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { Toaster } from 'sileo';
@@ -27,6 +27,8 @@ import CookiePolicy from './pages/CookiePolicy';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import PsicoAccesible from './pages/PsicoAccesible';
+import LocalHub from './pages/LocalHub';
+import LocalCityPage from './pages/LocalCityPage';
 
 // Layout wrapper that conditionally shows Navbar/Footer
 const Layout = ({ children }) => {
@@ -76,6 +78,26 @@ function App() {
           {/* Admin Routes - No Navbar/Footer */}
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+          {/* Regional SEO & GEO Routes */}
+          <Route path="/psicologo-valles-occidental" element={<LocalHub />} />
+          <Route path="/psicologo-cerdanyola-del-valle" element={<Navigate to="/psicologo-cerdanyola-del-valles" replace />} />
+          <Route path="/psicologo-barbera-del-valle" element={<Navigate to="/psicologo-barbera-del-valles" replace />} />
+          <Route path="/psicologo-cerdanyola-del-valles" element={<LocalCityPage citySlug="cerdanyola-del-valles" />} />
+          <Route path="/psicologo-sabadell" element={<LocalCityPage citySlug="sabadell" />} />
+          <Route path="/psicologo-sant-cugat" element={<LocalCityPage citySlug="sant-cugat" />} />
+          <Route path="/psicologo-rubi" element={<LocalCityPage citySlug="rubi" />} />
+          <Route path="/psicologo-terrassa" element={<LocalCityPage citySlug="terrassa" />} />
+          <Route path="/psicologo-barbera-del-valles" element={<LocalCityPage citySlug="barbera-del-valles" />} />
+
+          {/* 404 Fallback Safe Route */}
+          <Route path="*" element={
+            <div className="container" style={{ padding: '80px 20px', textAlign: 'center', minHeight: '60vh' }}>
+              <h1 style={{ fontSize: '2.5rem', marginBottom: '15px', color: '#333' }}>404 - Página no encontrada</h1>
+              <p style={{ margin: '20px 0', fontSize: '1.1rem', color: '#666' }}>Lo sentimos, la página que estás buscando no existe o ha cambiado de dirección.</p>
+              <a href="/" className="btn btn-primary" style={{ display: 'inline-block', marginTop: '15px', padding: '12px 28px', borderRadius: '30px', textDecoration: 'none' }}>Volver al Inicio</a>
+            </div>
+          } />
         </Routes>
       </Layout>
     </Router>
