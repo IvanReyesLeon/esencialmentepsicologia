@@ -37,7 +37,11 @@ const Location = () => {
 
                 <div className="address-item">
                   <h3>📞 Contacto</h3>
-                  <p>Teléfono: <a href={getPhoneTelUrl()} style={{ color: 'inherit', textDecoration: 'underline' }}>{getPhoneDisplay(true)}</a></p>
+                  <p>Teléfono: {getPhoneTelUrl() ? (
+                    <a href={getPhoneTelUrl()} style={{ color: 'inherit', textDecoration: 'underline' }}>{getPhoneDisplay(true)}</a>
+                  ) : (
+                    <span>{getPhoneDisplay(true)}</span>
+                  )}</p>
                   <p>Email: info@esencialmentepsicologia.com</p>
                 </div>
 

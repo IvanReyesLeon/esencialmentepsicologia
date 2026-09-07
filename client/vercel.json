@@ -4,6 +4,22 @@
   "outputDirectory": "build",
   "redirects": [
     {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "esencialmentepsicologia.com"
+        }
+      ],
+      "destination": "https://www.esencialmentepsicologia.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*/tel::number*",
+      "destination": "/contacto",
+      "permanent": true
+    },
+    {
       "source": "/mireia-xicart",
       "destination": "/terapeutas",
       "permanent": true

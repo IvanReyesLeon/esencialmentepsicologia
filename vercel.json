@@ -15,6 +15,22 @@
     ],
     "redirects": [
         {
+            "source": "/:path*",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "esencialmentepsicologia.com"
+                }
+            ],
+            "destination": "https://www.esencialmentepsicologia.com/:path*",
+            "permanent": true
+        },
+        {
+            "source": "/:path*/tel::number*",
+            "destination": "/contacto",
+            "permanent": true
+        },
+        {
             "source": "/sara-ochoa",
             "destination": "/terapeutas/sara-ochoa",
             "permanent": true

@@ -99,3 +99,8 @@ jspm_packages/
 credentials.json
 server/credentials.json
 .vercel
+
+# Private Multi-Agent Architecture and Governance
+.agents/
+.codex/
+AGENTS.md

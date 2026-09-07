@@ -8,9 +8,6 @@ Sitemap: https://www.esencialmentepsicologia.com/sitemap.xml
 # Bloquear panel de administración
 Disallow: /admin
 
-# Bloquear assets innecesarios
-Disallow: /static/
-
 # Permitir rastreo de páginas importantes
 Allow: /terapeutas
 Allow: /servicios

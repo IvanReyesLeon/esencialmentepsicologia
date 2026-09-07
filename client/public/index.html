@@ -11,7 +11,13 @@
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
-    gtag('config', 'G-MWQB9NXPFJ');
+
+    // Exclusión estricta de rutas administrativas para proteger la analítica pública
+    if (window.location.pathname.indexOf('/admin') === 0) {
+      window['ga-disable-G-MWQB9NXPFJ'] = true;
+    } else {
+      gtag('config', 'G-MWQB9NXPFJ');
+    }
   </script>
 
   <title>Esencialmente Psicología | Centro de psicología en Cerdanyola del Vallès</title>

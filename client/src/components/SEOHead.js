@@ -12,7 +12,7 @@ const SEOHead = ({
     locale = 'es_ES',
     structuredData
 }) => {
-    const siteUrl = process.env.REACT_APP_SITE_URL || 'https://esencialmentepsicologia.com';
+    const siteUrl = process.env.REACT_APP_SITE_URL || 'https://www.esencialmentepsicologia.com';
     const fullUrl = canonicalUrl || `${siteUrl}${window.location.pathname}`;
     const defaultImage = '/assets/logo.png';
     const imageToUse = image || defaultImage;

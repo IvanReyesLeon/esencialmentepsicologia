@@ -161,7 +161,7 @@ const WorkshopDetail = () => {
         "organizer": {
             "@type": "Organization",
             "name": "Esencialmente Psicología",
-            "url": "https://esencialmentepsicologia.com"
+            "url": "https://www.esencialmentepsicologia.com"
         }
     };
 

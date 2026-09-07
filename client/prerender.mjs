@@ -233,7 +233,7 @@ async function prerender() {
                 });
 
                 // 5.1 Inject canonical URL for SEO
-                const canonicalUrl = route === '/' ? SITE_URL : `${SITE_URL}${route}`;
+                const canonicalUrl = route === '/' ? `${SITE_URL}/` : `${SITE_URL}${route}`;
                 const canonicalTag = `<link rel="canonical" href="${canonicalUrl}">`;
 
                 // Remove any existing canonical (from React Helmet) and add proper one

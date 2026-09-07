@@ -30,10 +30,21 @@ import PsicoAccesible from './pages/PsicoAccesible';
 import LocalHub from './pages/LocalHub';
 import LocalCityPage from './pages/LocalCityPage';
 
-// Layout wrapper that conditionally shows Navbar/Footer
+// Layout wrapper that conditionally shows Navbar/Footer and manages analytics exclusion
 const Layout = ({ children }) => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+
+  // Sincronizar exclusión de GA4 para rutas administrativas durante navegación cliente (SPA)
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (isAdminRoute) {
+        window['ga-disable-G-MWQB9NXPFJ'] = true;
+      } else {
+        window['ga-disable-G-MWQB9NXPFJ'] = false;
+      }
+    }
+  }, [isAdminRoute]);
 
   return (
     <div className="App">

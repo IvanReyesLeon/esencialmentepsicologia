@@ -86,7 +86,11 @@ const Contact = () => {
             <div className="quick-contact-card">
               <div className="quick-icon">📞</div>
               <h3>Llámanos</h3>
-              <a href={getPhoneTelUrl()} className="quick-btn">Llamar Ahora</a>
+              {getPhoneTelUrl() ? (
+                <a href={getPhoneTelUrl()} className="quick-btn">Llamar Ahora</a>
+              ) : (
+                <span className="quick-btn" style={{ opacity: 0.7, cursor: 'default' }}>Vía WhatsApp / Email</span>
+              )}
             </div>
             <div className="quick-contact-card">
               <div className="quick-icon">✉️</div>
