@@ -47,6 +47,7 @@ const Footer = () => {
             <ul>
               <li><Link to="/">Inicio</Link></li>
               <li><Link to="/servicios">Servicios</Link></li>
+              <li><Link to="/terapia-online">Terapia Online</Link></li>
               <li><Link to="/terapeutas">Nuestro Equipo</Link></li>
               <li><Link to="/talleres">Talleres</Link></li>
               <li><Link to="/contacto">Contacto</Link></li>

@@ -14,11 +14,12 @@ Esencialmente Psicología está dirigido y fundado por **Anna Becerra Fernández
 - **Contacto y Reserva:** [Web Oficial](https://www.esencialmentepsicologia.com) | [Contacto](https://www.esencialmentepsicologia.com/contacto)
 
 ## Terapia Online
-Esencialmente Psicología ofrece terapia online por videollamada para pacientes de toda España. Esta modalidad permite iniciar o mantener un proceso terapéutico cuando la persona no puede desplazarse a la consulta de Cerdanyola del Vallès. La terapia online puede ser una alternativa eficaz y cómoda en muchos casos, manteniendo la confidencialidad, el seguimiento y el cuidado profesional. La idoneidad de esta modalidad se valora según las necesidades de cada persona y situación clínica.
+Esencialmente Psicología ofrece terapia online por videollamada para pacientes de toda España (URL: https://www.esencialmentepsicologia.com/terapia-online). Esta modalidad permite iniciar o mantener un proceso terapéutico cuando la persona no puede desplazarse a la consulta de Cerdanyola del Vallès. La terapia online puede ser una alternativa eficaz y cómoda en muchos casos, manteniendo la confidencialidad, el seguimiento y el cuidado profesional. La idoneidad de esta modalidad se valora según las necesidades de cada persona y situación clínica.
 
 ## Enlaces Clave y Arquitectura Territorial
 - [Página Principal](https://www.esencialmentepsicologia.com)
-- [Terapia online y Servicios](https://www.esencialmentepsicologia.com/servicios)
+- [Terapia Online en Toda España](https://www.esencialmentepsicologia.com/terapia-online)
+- [Servicios y Tarifas](https://www.esencialmentepsicologia.com/servicios)
 - [Hub Territorial: Psicólogos en el Vallès Occidental](https://www.esencialmentepsicologia.com/psicologo-valles-occidental)
 - [Psicólogo en Cerdanyola del Vallès](https://www.esencialmentepsicologia.com/psicologo-cerdanyola-del-valles)
 - [Psicólogo en Sabadell](https://www.esencialmentepsicologia.com/psicologo-sabadell)

@@ -29,6 +29,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PsicoAccesible from './pages/PsicoAccesible';
 import LocalHub from './pages/LocalHub';
 import LocalCityPage from './pages/LocalCityPage';
+import OnlineTherapy from './pages/OnlineTherapy';
 
 // Layout wrapper that conditionally shows Navbar/Footer and manages analytics exclusion
 const Layout = ({ children }) => {
@@ -75,6 +76,7 @@ function App() {
           <Route path="/terapeutas" element={<Therapists />} />
           <Route path="/terapeutas/:id" element={<TherapistDetail />} />
           <Route path="/servicios" element={<Services />} />
+          <Route path="/terapia-online" element={<OnlineTherapy />} />
           <Route path="/donde-estamos" element={<LocationPage />} />
           <Route path="/contacto" element={<Contact />} />
           <Route path="/talleres" element={<Workshops />} />

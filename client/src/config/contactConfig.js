@@ -53,6 +53,9 @@ export const getSmartWhatsAppMessage = (pathname = '') => {
   if (path.includes('/talleres')) {
     return "Hola 👋, me gustaría pedir información sobre los próximos talleres, grupos y actividades en el centro.";
   }
+  if (path.includes('/terapia-online')) {
+    return "Hola 👋, he visto vuestra información sobre terapia online y me gustaría saber cómo empezar.";
+  }
   if (path.includes('/servicios')) {
     return "Hola 👋, me gustaría recibir información sobre las tarifas, modalidades y servicios de terapia en Esencialmente Psicología.";
   }

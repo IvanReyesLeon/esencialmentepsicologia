@@ -17,6 +17,7 @@ const SITE_URL = 'https://www.esencialmentepsicologia.com';
 const ROUTES = [
     '/',
     '/servicios',
+    '/terapia-online',
     '/terapeutas',
     '/contacto',
     '/talleres',
@@ -46,7 +47,13 @@ const MIMES = {
 async function fetchDynamicRoutes() {
     try {
         console.log('🔄 Fetching dynamic blog posts...');
-        const response = await fetch('http://localhost:3001/api/posts');
+        let response;
+        try {
+            response = await fetch('http://localhost:3001/api/posts');
+            if (!response.ok) throw new Error('Local API not available');
+        } catch {
+            response = await fetch('https://www.esencialmentepsicologia.com/api/posts');
+        }
         if (!response.ok) throw new Error('API not available');
         const posts = await response.json();
 
@@ -57,7 +64,7 @@ async function fetchDynamicRoutes() {
         });
         console.log(`✅ Added ${posts.length} blog posts to prerender queue.`);
     } catch (error) {
-        console.warn('⚠️ Could not fetch blog posts for prerendering. Ensure server is running on port 3001.');
+        console.warn('⚠️ Could not fetch blog posts for prerendering.');
         console.warn(`Error: ${error.message}`);
     }
 }
@@ -239,6 +246,15 @@ async function prerender() {
                 // Remove any existing canonical (from React Helmet) and add proper one
                 html = html.replace(/<link rel="canonical"[^>]*>/gi, '');
                 html = html.replace('</head>', `${canonicalTag}</head>`);
+
+                // 5.2 Inject route-specific meta description for landing pages
+                const ROUTE_DESCRIPTIONS = {
+                    '/terapia-online': 'Terapia psicológica online por videollamada para toda España con psicólogos colegiados. Tratamiento de ansiedad, trauma, EMDR y terapia individual o de pareja.'
+                };
+                if (ROUTE_DESCRIPTIONS[route]) {
+                    html = html.replace(/<meta name="description"[^>]*>/gi, '');
+                    html = html.replace('</head>', `<meta name="description" content="${ROUTE_DESCRIPTIONS[route]}"></head>`);
+                }
 
                 // 6. Save to file
                 let outputPath;

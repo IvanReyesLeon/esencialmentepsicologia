@@ -113,6 +113,18 @@ const Services = () => {
 
       <div className="services-content">
         <div className="container">
+          {/* Banner de Modalidad Online Nacional */}
+          <div className="online-service-callout">
+            <div className="callout-icon">💻</div>
+            <div className="callout-text">
+              <h3>¿Prefieres realizar tus sesiones de forma online?</h3>
+              <p>Ofrecemos psicoterapia por videollamada para personas de toda España con las mismas garantías de profesionalidad, rigor y confidencialidad.</p>
+            </div>
+            <Link to="/terapia-online" className="btn btn-outline" style={{ whiteSpace: 'nowrap' }}>
+              Conocer Terapia Online →
+            </Link>
+          </div>
+
           <section className="pricing-section" id="pricing">
             <h2>{sectionTitle}</h2>
 
