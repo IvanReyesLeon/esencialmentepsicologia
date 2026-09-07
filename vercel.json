@@ -26,11 +26,6 @@
             "permanent": true
         },
         {
-            "source": "/:path*/tel::number*",
-            "destination": "/contacto",
-            "permanent": true
-        },
-        {
             "source": "/sara-ochoa",
             "destination": "/terapeutas/sara-ochoa",
             "permanent": true
