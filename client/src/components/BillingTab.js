@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_ROOT } from '../services/api';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { generateInvoicePDF } from '../utils/invoicePdfGenerator';
 import ConfirmModal from './ConfirmModal';
 import './BillingTab.css';
 import './BillingDashboard.css'; // Reusing styling if needed
@@ -61,7 +60,7 @@ const BillingTab = ({ user }) => {
     const [showConfirmModal, setShowConfirmModal] = useState(false); // State for custom modal
     const [therapistPercentage, setTherapistPercentage] = useState(60);
     const [irpf, setIrpf] = useState(15);
-    const [iva, setIva] = useState(0); // New state for IVA
+    const [vatTreatment, setVatTreatment] = useState(null); // 'EXEMPT' | 'STANDARD' | null
     const [invoiceNumber, setInvoiceNumber] = useState('');
     const [excludedSessions, setExcludedSessions] = useState(new Set()); // Track ID of excluded sessions
 
@@ -693,10 +692,13 @@ const BillingTab = ({ user }) => {
                 setInvoiceSubmitted(true);
                 setSubmissionData(statusData.submission);
                 
-                // Set taxes from stored data if available
-                if (statusData.submission.iva_percentage !== undefined) {
-                    setIva(Number(statusData.submission.iva_percentage));
+                // Set taxes and VAT treatment from stored data if available
+                if (statusData.submission.vat_treatment) {
+                    setVatTreatment(statusData.submission.vat_treatment);
+                } else {
+                    setVatTreatment(null);
                 }
+
                 if (statusData.submission.irpf_percentage !== undefined) {
                     setIrpf(Number(statusData.submission.irpf_percentage));
                 }
@@ -718,6 +720,7 @@ const BillingTab = ({ user }) => {
             } else {
                 setInvoiceSubmitted(false);
                 setSubmissionData(null);
+                setVatTreatment(null); // Requiere selección explícita en cada nueva presentación
                 setExcludedSessions(new Set());
             }
 
@@ -757,6 +760,11 @@ const BillingTab = ({ user }) => {
     };
 
     const confirmSubmission = async () => {
+        if (!vatTreatment) {
+            alert('⚠️ Debes seleccionar el tratamiento del IVA antes de presentar la factura (Exenta por prestación sanitaria o IVA general 21%).');
+            return;
+        }
+
         setShowConfirmModal(false);
         try {
             setLoading(true);
@@ -768,7 +776,8 @@ const BillingTab = ({ user }) => {
             const centerPercentage = 100 - therapistPercentage;
             const activeCenterAmount = activeSubtotal * (centerPercentage / 100);
             const activeBaseDisponible = activeSubtotal * (therapistPercentage / 100);
-            const activeIvaAmount = activeBaseDisponible * (iva / 100);
+            const activeIvaPercentage = vatTreatment === 'STANDARD' ? 21 : 0;
+            const activeIvaAmount = vatTreatment === 'STANDARD' ? (activeBaseDisponible * 0.21) : 0;
             const activeIrpfAmount = activeBaseDisponible * (irpf / 100);
             const activeTotalFactura = activeBaseDisponible + activeIvaAmount - activeIrpfAmount;
 
@@ -788,11 +797,19 @@ const BillingTab = ({ user }) => {
                     center_amount: activeCenterAmount,
                     irpf_percentage: irpf,
                     irpf_amount: activeIrpfAmount,
-                    iva_percentage: iva,
+                    iva_percentage: activeIvaPercentage,
                     iva_amount: activeIvaAmount,
                     total_amount: activeTotalFactura,
                     invoice_number: invoiceNumber,
-                    excluded_session_ids: excludedArray
+                    excluded_session_ids: excludedArray,
+                    vatTreatment: vatTreatment,
+                    sessions: activeInvoiceSessions.map(s => ({
+                        id: s.id,
+                        date: s.date,
+                        startTime: s.startTime,
+                        title: s.title,
+                        price: s.price
+                    }))
                 })
             });
 
@@ -825,11 +842,9 @@ const BillingTab = ({ user }) => {
             // Fetch billing data
             const token = localStorage.getItem('token');
             const [therapistRes, centerRes] = await Promise.all([
-                // Add timestamp to prevent caching of therapist data
                 fetch(`${API_URL}/admin/billing/my-data?t=${Date.now()}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
-                // Add timestamp to prevent caching of center data
                 fetch(`${API_URL}/admin/billing/center-data?t=${Date.now()}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 })
@@ -837,228 +852,23 @@ const BillingTab = ({ user }) => {
 
             const therapistData = await therapistRes.json();
             const centerData = await centerRes.json();
-
-            const doc = new jsPDF();
-
             const activeInvoiceSessions = invoiceSessions.filter(s => !excludedSessions.has(s.id));
 
-            // Calculate all values (use submissionData if already submitted to match Admin view exactly)
-            let finalSubtotal, finalCenterPercentage, finalCenterAmount, finalBaseDisponible;
-            let finalIvaPercentage, finalIvaAmount, finalIrpfPercentage, finalIrpfAmount, finalTotalFactura;
-            let finalInvoiceNumber;
-
-            if (invoiceSubmitted && submissionData) {
-                finalSubtotal = parseFloat(submissionData.subtotal || 0);
-                finalCenterPercentage = parseFloat(submissionData.center_percentage || 0);
-                finalCenterAmount = parseFloat(submissionData.center_amount || 0);
-                finalBaseDisponible = finalSubtotal - finalCenterAmount;
-                finalIvaPercentage = parseFloat(submissionData.iva_percentage || 0);
-                finalIvaAmount = submissionData.iva_amount !== undefined && submissionData.iva_amount !== null 
-                                 ? parseFloat(submissionData.iva_amount) 
-                                 : (finalBaseDisponible * (finalIvaPercentage / 100));
-                finalIrpfPercentage = parseFloat(submissionData.irpf_percentage || 0);
-                finalIrpfAmount = submissionData.irpf_amount !== undefined && submissionData.irpf_amount !== null 
-                                  ? parseFloat(submissionData.irpf_amount) 
-                                  : (finalBaseDisponible * (finalIrpfPercentage / 100));
-                finalTotalFactura = parseFloat(submissionData.total_amount || 0);
-                finalInvoiceNumber = submissionData.invoice_number;
-            } else {
-                finalSubtotal = activeInvoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
-                finalCenterPercentage = 100 - therapistPercentage;
-                finalCenterAmount = finalSubtotal * (finalCenterPercentage / 100);
-                finalBaseDisponible = finalSubtotal * (therapistPercentage / 100);
-                finalIvaPercentage = iva;
-                finalIvaAmount = finalBaseDisponible * (finalIvaPercentage / 100);
-                finalIrpfPercentage = irpf;
-                finalIrpfAmount = finalBaseDisponible * (finalIrpfPercentage / 100);
-                finalTotalFactura = finalBaseDisponible + finalIvaAmount - finalIrpfAmount;
-                finalInvoiceNumber = invoiceNumber;
-            }
-
-            // Header with orange background
-            doc.setFillColor(255, 140, 66);
-            doc.rect(0, 0, 210, 40, 'F');
-
-            // Title
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(22);
-            doc.text('FACTURA', 105, 15, { align: 'center' });
-
-            // Invoice number (if provided)
-            if (finalInvoiceNumber) {
-                doc.setFontSize(14);
-                doc.text(`Nº ${finalInvoiceNumber}`, 105, 24, { align: 'center' });
-            }
-
-            // Date info
-            doc.setFontSize(12);
-            const monthName = months[invoiceMonth];
-            doc.text(`${monthName} ${invoiceYear}`, 105, invoiceNumber ? 33 : 30, { align: 'center' });
-
-            // Reset text color
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
-
-            // Left column - "FACTURAR A" (Center Data)
-            doc.setFont(undefined, 'bold');
-            doc.text('FACTURAR A:', 14, 50);
-            doc.setFont(undefined, 'normal');
-
-            let yPos = 56;
-            if (centerData.name) {
-                doc.text(centerData.name, 14, yPos);
-                yPos += 5;
-            }
-            if (centerData.legal_name) {
-                doc.text(`(${centerData.legal_name})`, 14, yPos);
-                yPos += 5;
-            }
-            if (centerData.nif) {
-                doc.text(centerData.nif, 14, yPos);
-                yPos += 5;
-            }
-            if (centerData.address_line1) {
-                doc.text(centerData.address_line1, 14, yPos);
-                yPos += 5;
-            }
-            if (centerData.address_line2) {
-                doc.text(centerData.address_line2, 14, yPos);
-                yPos += 5;
-            }
-            const cityPostal = [centerData.postal_code, centerData.city].filter(Boolean).join(' ');
-            if (cityPostal) {
-                doc.text(cityPostal, 14, yPos);
-            }
-
-            // Right column - "DE" (Therapist Data)
-            doc.setFont(undefined, 'bold');
-            doc.text('DE:', 120, 50);
-            doc.setFont(undefined, 'normal');
-
-            yPos = 56;
-            if (therapistData.full_name) {
-                doc.text(therapistData.full_name, 120, yPos);
-                yPos += 5;
-            }
-            if (therapistData.nif) {
-                doc.text(therapistData.nif, 120, yPos);
-                yPos += 5;
-            }
-            if (therapistData.address_line1) {
-                doc.text(therapistData.address_line1, 120, yPos);
-                yPos += 5;
-            }
-            if (therapistData.address_line2) {
-                doc.text(therapistData.address_line2, 120, yPos);
-                yPos += 5;
-            }
-            const therapistCityPostal = [therapistData.postal_code, therapistData.city].filter(Boolean).join(' ');
-            if (therapistCityPostal) {
-                doc.text(therapistCityPostal, 120, yPos);
-                yPos += 5;
-            }
-            if (therapistData.iban) {
-                doc.text(therapistData.iban, 120, yPos);
-            }
-
-            // Group sessions by price
-            const sessionsByPrice = {};
-            activeInvoiceSessions.forEach(session => {
-                const price = session.price || 0;
-                if (!sessionsByPrice[price]) {
-                    sessionsByPrice[price] = { count: 0, price: price };
-                }
-                sessionsByPrice[price].count++;
+            generateInvoicePDF({
+                snapshot: submissionData?.invoice_snapshot,
+                invoice: invoiceSubmitted ? submissionData : null,
+                therapistData,
+                centerData,
+                sessions: activeInvoiceSessions,
+                month: invoiceMonth,
+                year: invoiceYear,
+                invoiceNumber: invoiceSubmitted && submissionData?.invoice_number ? submissionData.invoice_number : invoiceNumber,
+                therapistPercentage,
+                irpf,
+                vatTreatment: invoiceSubmitted && submissionData?.vat_treatment ? submissionData.vat_treatment : vatTreatment,
+                submissionDate: submissionData?.submitted_at,
+                saveAsFile: true
             });
-
-            // Create table data with grouped sessions
-            const tableData = Object.values(sessionsByPrice).map(group => [
-                `${group.count} ${group.count === 1 ? 'sesión' : 'sesiones'}`,
-                formatCurrency(group.price),
-                `${group.count} x ${formatCurrency(group.price)}`,
-                formatCurrency(group.count * group.price)
-            ]);
-
-            autoTable(doc, {
-                startY: 90,
-                head: [['Descripción', 'Precio/Unidad', 'Cantidad', 'Total']],
-                body: tableData,
-                theme: 'striped',
-                headStyles: {
-                    fillColor: [255, 140, 66],
-                    textColor: 255,
-                    fontStyle: 'bold'
-                },
-                styles: {
-                    fontSize: 10
-                }
-            });
-
-            // Summary section
-            let finalY = doc.lastAutoTable.finalY + 15;
-
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'bold');
-
-            // Summary lines
-            doc.text('SUBTOTAL:', 120, finalY);
-            doc.text(formatCurrency(finalSubtotal), 190, finalY, { align: 'right' });
-
-            finalY += 10;
-            doc.setFont(undefined, 'normal');
-            doc.text(`- Centro (${finalCenterPercentage}%):`, 120, finalY);
-            doc.text(formatCurrency(finalCenterAmount), 190, finalY, { align: 'right' });
-
-            finalY += 8;
-            doc.setFont(undefined, 'bold');
-            doc.text(`BASE DISPONIBLE (${therapistPercentage}%):`, 120, finalY);
-            doc.text(formatCurrency(finalBaseDisponible), 190, finalY, { align: 'right' });
-
-            finalY += 8;
-            doc.setFont(undefined, 'normal');
-
-            // IVA line (only if therapist has IVA > 0)
-            if (finalIvaPercentage > 0) {
-                doc.text(`+ ${finalIvaPercentage}% IVA:`, 120, finalY);
-                doc.text(formatCurrency(finalIvaAmount), 190, finalY, { align: 'right' });
-                finalY += 8;
-            }
-
-            doc.text(`- ${finalIrpfPercentage}% IRPF:`, 120, finalY);
-            doc.text(formatCurrency(finalIrpfAmount), 190, finalY, { align: 'right' });
-
-            // Total line
-            finalY += 10;
-            doc.setDrawColor(255, 140, 66);
-            doc.setLineWidth(0.5);
-            doc.line(120, finalY, 195, finalY);
-            finalY += 8;
-
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.setTextColor(255, 140, 66);
-            doc.text('TOTAL FACTURA:', 120, finalY);
-            doc.text(formatCurrency(finalTotalFactura), 190, finalY, { align: 'right' });
-
-            // Legal text: only show VAT exemption text when IVA is 0
-            if (finalIvaPercentage === 0) {
-                doc.setFontSize(8);
-                doc.setTextColor(80, 80, 80);
-                doc.setFont(undefined, 'italic');
-                const legalText = 'Operación exenta según lo dispuesto en el art. 20. Uno. 3 de la Ley 37/1992 de 28 de diciembre. del Impuesto sobre el Valor Añadido.';
-                const legalLines = doc.splitTextToSize(legalText, 180);
-                doc.text(legalLines, 105, 270, { align: 'center' });
-            }
-
-            // Footer
-            doc.setFontSize(8);
-            doc.setTextColor(100, 100, 100);
-            doc.setFont(undefined, 'normal');
-            doc.text('Esencialmente Psicología - www.esencialmentepsicologia.com', 105, 285, { align: 'center' });
-
-            // Save the PDF
-            const fileName = `Factura_${monthName}_${invoiceYear}.pdf`;
-            doc.save(fileName);
         } catch (error) {
             console.error('Error generating PDF:', error);
             alert('Error al generar el PDF. Verifica que tus datos estén completos.');
@@ -2047,11 +1857,11 @@ const BillingTab = ({ user }) => {
         // Filter active sessions for display
         const activeInvoiceSessions = invoiceSessions.filter(s => !excludedSessions.has(s.id));
 
-        // Recalculate totals based on active sessions
         const activeSubtotal = activeInvoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
         const activeCenterAmount = activeSubtotal * (centerPercentage / 100);
         const activeBaseDisponible = activeSubtotal * (therapistPercentage / 100);
-        const activeIvaAmount = activeBaseDisponible * (iva / 100);
+        const activeIvaPercentage = vatTreatment === 'STANDARD' ? 21 : 0;
+        const activeIvaAmount = vatTreatment === 'STANDARD' ? (activeBaseDisponible * 0.21) : 0;
         const activeIrpfAmount = activeBaseDisponible * (irpf / 100);
         const activeTotalFactura = activeBaseDisponible + activeIvaAmount - activeIrpfAmount;
 
@@ -2119,6 +1929,7 @@ const BillingTab = ({ user }) => {
                                     type="text"
                                     placeholder="Ej: 2026-001"
                                     value={invoiceNumber}
+                                    disabled={invoiceSubmitted}
                                     onChange={(e) => setInvoiceNumber(e.target.value)}
                                 />
                             </label>
@@ -2129,24 +1940,52 @@ const BillingTab = ({ user }) => {
                                     min="0"
                                     max="100"
                                     value={therapistPercentage}
+                                    disabled={invoiceSubmitted}
                                     onChange={(e) => setTherapistPercentage(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
                                 />
                             </label>
                             <label>
                                 IRPF:
-                                <select value={irpf} onChange={(e) => setIrpf(parseInt(e.target.value))}>
+                                <select value={irpf} disabled={invoiceSubmitted} onChange={(e) => setIrpf(parseInt(e.target.value))}>
                                     <option value={0}>0%</option>
                                     <option value={7}>7%</option>
                                     <option value={15}>15%</option>
                                 </select>
                             </label>
-                            <label>
-                                IVA:
-                                <select value={iva} onChange={(e) => setIva(parseInt(e.target.value))}>
-                                    <option value={0}>0%</option>
-                                    <option value={21}>21%</option>
-                                </select>
-                            </label>
+                        </div>
+
+                        {/* Tratamiento del IVA */}
+                        <div className="vat-treatment-card">
+                            <div className="vat-treatment-header">
+                                <span className="vat-treatment-title">Tratamiento del IVA <span className="required-star">*</span></span>
+                            </div>
+                            <div className="vat-treatment-radios">
+                                <label className={`vat-radio-option ${vatTreatment === 'EXEMPT' ? 'selected' : ''}`}>
+                                    <input
+                                        type="radio"
+                                        name="vatTreatment"
+                                        value="EXEMPT"
+                                        checked={vatTreatment === 'EXEMPT'}
+                                        disabled={invoiceSubmitted}
+                                        onChange={() => setVatTreatment('EXEMPT')}
+                                    />
+                                    <span>Exenta de IVA por prestación sanitaria</span>
+                                </label>
+                                <label className={`vat-radio-option ${vatTreatment === 'STANDARD' ? 'selected' : ''}`}>
+                                    <input
+                                        type="radio"
+                                        name="vatTreatment"
+                                        value="STANDARD"
+                                        checked={vatTreatment === 'STANDARD'}
+                                        disabled={invoiceSubmitted}
+                                        onChange={() => setVatTreatment('STANDARD')}
+                                    />
+                                    <span>IVA general (21 %)</span>
+                                </label>
+                            </div>
+                            <small className="vat-treatment-hint">
+                                Selecciona esta opción únicamente cuando la factura corresponda a prestaciones sanitarias exentas de IVA.
+                            </small>
                         </div>
 
                         {/* Sessions Table */}
@@ -2213,8 +2052,16 @@ const BillingTab = ({ user }) => {
                                 <span>{formatCurrency(activeBaseDisponible)}</span>
                             </div>
                             <div className="summary-row">
-                                <span>+ {iva}% IVA:</span>
-                                <span>{formatCurrency(activeIvaAmount)}</span>
+                                <span>IVA:</span>
+                                <span>
+                                    {vatTreatment === 'EXEMPT'
+                                        ? 'Exento'
+                                        : vatTreatment === 'STANDARD'
+                                        ? `+ 21% (${formatCurrency(activeIvaAmount)})`
+                                        : invoiceSubmitted && submissionData?.iva_percentage !== undefined
+                                        ? `${submissionData.iva_percentage}% (${formatCurrency(submissionData.iva_amount || 0)})`
+                                        : <span style={{ color: '#e53e3e', fontSize: '0.85rem' }}>Pendiente de selección</span>}
+                                </span>
                             </div>
                             <div className="summary-row">
                                 <span>- {irpf}% IRPF:</span>
@@ -2227,7 +2074,6 @@ const BillingTab = ({ user }) => {
                         </div>
 
                         {/* Action Buttons */}
-                        {/* Action Buttons */}
                         <div className="invoice-actions">
                             <button className="btn-download-pdf" onClick={downloadInvoicePDF}>
                                 Descargar PDF
@@ -2238,7 +2084,12 @@ const BillingTab = ({ user }) => {
                                     ✅ Factura Presentada
                                 </button>
                             ) : (
-                                <button className="btn-submit-invoice" onClick={submitInvoice}>
+                                <button
+                                    className="btn-submit-invoice"
+                                    onClick={submitInvoice}
+                                    disabled={!vatTreatment}
+                                    title={!vatTreatment ? "Selecciona el tratamiento de IVA para presentar la factura" : ""}
+                                >
                                     Presentar Factura
                                 </button>
                             )}

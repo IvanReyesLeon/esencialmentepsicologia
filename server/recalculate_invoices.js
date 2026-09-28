@@ -99,8 +99,9 @@ async function recalculateInvoices() {
             const baseDisponible = subtotal - centerAmount;
             const irpfPercentage = parseFloat(invoice.irpf_percentage);
             const irpfAmount = baseDisponible * (irpfPercentage / 100);
-            const ivaPercentage = parseFloat(invoice.iva_percentage) || 0;
-            const ivaAmount = baseDisponible * (ivaPercentage / 100);
+            const isExempt = invoice.vat_treatment === 'EXEMPT';
+            const ivaPercentage = isExempt ? 0 : (parseFloat(invoice.iva_percentage) || 0);
+            const ivaAmount = isExempt ? 0 : (baseDisponible * (ivaPercentage / 100));
             const totalFactura = baseDisponible + ivaAmount - irpfAmount;
 
             console.log(`   Old Total: ${invoice.total_amount} -> New Total: ${totalFactura}`);

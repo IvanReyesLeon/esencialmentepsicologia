@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_ROOT } from '../services/api';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { generateInvoicePDF, getMonthName } from '../utils/invoicePdfGenerator';
 import './BillingDashboard.css';
 
 const API_URL = `${API_ROOT}/api`;
@@ -262,137 +261,22 @@ const BillingDashboard = ({ user }) => {
 
             const activeSessions = sessions.filter(s => !excludedSet.has(s.id));
 
-            // Determine if we use stored totals or recalculated ones
-            // Using stored totals is safer for the summary, but table needs session breakdown.
-
-            const doc = new jsPDF();
-
-            // Header with orange background
-            doc.setFillColor(255, 140, 66);
-            doc.rect(0, 0, 210, 40, 'F');
-
-            // Title
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(22);
-            doc.text('FACTURA', 105, 15, { align: 'center' });
-
-            if (invoice.invoice_number) {
-                doc.setFontSize(14);
-                doc.text(`Nº ${invoice.invoice_number}`, 105, 24, { align: 'center' });
-            }
-
-            // Date info
-            const monthName = getMonthName(invoice.month);
-            // Format submission date
-            const submissionDate = invoice.submitted_at
-                ? new Date(invoice.submitted_at).toLocaleDateString('es-ES')
-                : new Date().toLocaleDateString('es-ES'); // Fallback to now if missing
-
-            doc.setFontSize(11);
-            doc.text(`Mes Facturado: ${monthName} ${invoice.year}`, 105, invoice.invoice_number ? 32 : 28, { align: 'center' });
-            doc.setFontSize(10);
-            doc.text(`Fecha de Emisión: ${submissionDate}`, 105, invoice.invoice_number ? 37 : 33, { align: 'center' });
-
-            // Reset text color
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
-
-            // Left column - "FACTURAR A" (Center Data)
-            doc.setFont(undefined, 'bold');
-            doc.text('FACTURAR A:', 14, 50);
-            doc.setFont(undefined, 'normal');
-
-            let yPos = 56;
-            if (centerData.name) { doc.text(centerData.name, 14, yPos); yPos += 5; }
-            if (centerData.legal_name) { doc.text(`(${centerData.legal_name})`, 14, yPos); yPos += 5; }
-            if (centerData.nif) { doc.text(centerData.nif, 14, yPos); yPos += 5; }
-            if (centerData.address_line1) { doc.text(centerData.address_line1, 14, yPos); yPos += 5; }
-            if (centerData.address_line2) { doc.text(centerData.address_line2, 14, yPos); yPos += 5; }
-            const cityPostal = [centerData.postal_code, centerData.city].filter(Boolean).join(' ');
-            if (cityPostal) { doc.text(cityPostal, 14, yPos); }
-
-            // Right column - "DE" (Therapist Data)
-            doc.setFont(undefined, 'bold');
-            doc.text('DE:', 120, 50);
-            doc.setFont(undefined, 'normal');
-
-            yPos = 56;
-            if (therapistData.full_name) { doc.text(therapistData.full_name, 120, yPos); yPos += 5; }
-            if (therapistData.nif) { doc.text(therapistData.nif, 120, yPos); yPos += 5; }
-            if (therapistData.address_line1) { doc.text(therapistData.address_line1, 120, yPos); yPos += 5; }
-            const tCityPostal = [therapistData.postal_code, therapistData.city].filter(Boolean).join(' ');
-            if (tCityPostal) { doc.text(tCityPostal, 120, yPos); yPos += 5; }
-            if (therapistData.iban) { doc.text(therapistData.iban, 120, yPos); }
-
-            // Group sessions by price
-            const sessionsByPrice = {};
-            activeSessions.forEach(session => {
-                // Use modified_price if exists, else price
-                const finalPrice = session.modified_price || session.price || 0;
-                // Group key: exact price value
-                if (!sessionsByPrice[finalPrice]) {
-                    sessionsByPrice[finalPrice] = { count: 0, price: finalPrice };
-                }
-                sessionsByPrice[finalPrice].count++;
+            // Generar PDF usando el motor unificado de Esencialmente Psicología
+            generateInvoicePDF({
+                snapshot: details.snapshot || invoice.invoice_snapshot,
+                invoice,
+                therapistData,
+                centerData,
+                sessions: activeSessions,
+                month: invoice.month,
+                year: invoice.year,
+                invoiceNumber: invoice.invoice_number,
+                therapistPercentage: 100 - parseFloat(invoice.center_percentage || 40),
+                irpf: parseFloat(invoice.irpf_percentage || 0),
+                vatTreatment: invoice.vat_treatment,
+                submissionDate: invoice.submitted_at,
+                saveAsFile: true
             });
-
-            // Create table data
-            const tableData = Object.values(sessionsByPrice).map(group => [
-                `${group.count} ${group.count === 1 ? 'sesión' : 'sesiones'}`,
-                formatCurrency(group.price),
-                `${group.count} x ${formatCurrency(group.price)}`,
-                formatCurrency(group.count * group.price)
-            ]);
-
-            autoTable(doc, {
-                startY: 90,
-                head: [['Descripción', 'Precio/Unidad', 'Cantidad', 'Total']],
-                body: tableData,
-                theme: 'striped',
-                headStyles: { fillColor: [255, 140, 66], textColor: 255, fontStyle: 'bold' },
-                styles: { fontSize: 10 }
-            });
-
-            // Summary section using STORED TOTALS from invoice record to ensure consistency
-            let finalY = doc.lastAutoTable.finalY + 15;
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'bold');
-
-            const labelX = 110;
-            const valueX = 195;
-
-            doc.text('SUBTOTAL:', labelX, finalY);
-            doc.text(formatCurrency(invoice.subtotal), valueX, finalY, { align: 'right' });
-            finalY += 7;
-
-            doc.text(`RETENCIÓN CENTRO (${invoice.center_percentage}%):`, labelX, finalY);
-            doc.text(formatCurrency(invoice.center_amount), valueX, finalY, { align: 'right' });
-            finalY += 7;
-
-            doc.text(`BASE DISPONIBLE:`, labelX, finalY);
-            // Calculate base available (Subtotal - Center Amount)
-            const baseDisponible = parseFloat(invoice.subtotal) - parseFloat(invoice.center_amount);
-            doc.text(formatCurrency(baseDisponible), valueX, finalY, { align: 'right' });
-            finalY += 7;
-
-            if (invoice.iva_percentage > 0) {
-                doc.text(`+ ${invoice.iva_percentage}% IVA:`, labelX, finalY);
-                // Use stored iva amount or calculate if missing (legacy compatibility)
-                const ivaVal = invoice.iva_amount !== undefined ? invoice.iva_amount : (baseDisponible * (invoice.iva_percentage / 100));
-                doc.text(formatCurrency(ivaVal), valueX, finalY, { align: 'right' });
-                finalY += 7;
-            }
-
-            doc.text(`- ${invoice.irpf_percentage}% IRPF:`, labelX, finalY);
-            doc.text(formatCurrency(invoice.irpf_amount), valueX, finalY, { align: 'right' });
-            finalY += 10;
-
-            doc.setFontSize(14);
-            doc.setTextColor(255, 140, 66);
-            doc.text('TOTAL FACTURA:', labelX, finalY);
-            doc.text(formatCurrency(invoice.total_amount), valueX, finalY, { align: 'right' });
-
-            doc.save(`Factura_${invoice.year}_${getMonthName(invoice.month)}_${invoice.therapist_name.replace(/\s+/g, '_')}.pdf`);
 
         } catch (error) {
             console.error('Error generating PDF:', error);

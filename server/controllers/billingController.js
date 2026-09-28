@@ -1048,18 +1048,25 @@ exports.submitInvoice = async (req, res) => {
             center_amount,
             irpf_percentage,
             irpf_amount,
-            iva_percentage, // New field 
-            iva_amount,     // New field
-            total_amount,
             invoice_number,
-            excluded_session_ids
+            excluded_session_ids,
+            sessions // Optional array of session items from frontend for the snapshot
         } = req.body;
+
+        // Validar explícitamente el tratamiento de IVA (obligatorio para facturas nuevas)
+        const rawVatTreatment = req.body.vatTreatment || req.body.vat_treatment;
+        if (!rawVatTreatment || !['EXEMPT', 'STANDARD'].includes(rawVatTreatment)) {
+            return res.status(400).json({
+                message: 'Debe seleccionar un tratamiento de IVA válido: "EXEMPT" (Exenta por prestación sanitaria) o "STANDARD" (IVA general 21%).'
+            });
+        }
+        const vatTreatment = rawVatTreatment;
 
         console.log('Submitting invoice with data:', {
             therapist_id, year, month, invoice_number,
             invoice_number_type: typeof invoice_number,
             excluded_count: excluded_session_ids?.length,
-            iva_percentage // Log IVA
+            vat_treatment: vatTreatment
         });
 
         if (!therapist_id) {
@@ -1081,28 +1088,109 @@ exports.submitInvoice = async (req, res) => {
         const exclusions = JSON.stringify(excluded_session_ids || []);
         const excludedCount = excluded_session_ids ? excluded_session_ids.length : 0;
 
-        const ivaPerc = iva_percentage || 0;
-        const ivaAmt = iva_amount || 0;
+        // Cálculos fiscales autoritativos en backend
+        const EXEMPTION_LEGAL_TEXT = 'Operación exenta de IVA conforme al artículo 20.Uno.3.º de la Ley 37/1992, de 28 de diciembre, del Impuesto sobre el Valor Añadido.';
+        const numSubtotal = parseFloat(subtotal) || 0;
+        const numCenterPercentage = parseFloat(center_percentage) || 0;
+        const numCenterAmount = parseFloat(center_amount) || 0;
+        const base = numSubtotal - numCenterAmount;
+
+        let finalIvaPercentage = 0;
+        let finalIvaAmount = 0;
+        let finalVatExemptionReason = null;
+
+        if (vatTreatment === 'EXEMPT') {
+            finalIvaPercentage = 0;
+            finalIvaAmount = 0;
+            finalVatExemptionReason = EXEMPTION_LEGAL_TEXT;
+        } else {
+            finalIvaPercentage = 21;
+            finalIvaAmount = parseFloat((base * 0.21).toFixed(2));
+            finalVatExemptionReason = null;
+        }
+
+        const numIrpfPercentage = parseFloat(irpf_percentage) || 0;
+        const numIrpfAmount = parseFloat((base * (numIrpfPercentage / 100)).toFixed(2));
+        const finalTotalAmount = parseFloat((base + finalIvaAmount - numIrpfAmount).toFixed(2));
+
+        // Obtener datos fiscales actuales para el snapshot documental inmutable
+        const therapistBillingRes = await pool.query(
+            'SELECT * FROM therapist_billing_data WHERE therapist_id = $1',
+            [therapist_id]
+        );
+        const therapistData = therapistBillingRes.rows[0] || {};
+
+        const centerDataRes = await pool.query('SELECT * FROM center_billing_data ORDER BY id LIMIT 1');
+        const centerData = centerDataRes.rows[0] || {};
+
+        let snapshotSessions = [];
+        if (Array.isArray(sessions) && sessions.length > 0) {
+            snapshotSessions = sessions.map(s => ({
+                price: parseFloat(s.price || 0)
+            }));
+        }
+
+        const invoiceSnapshot = {
+            version: 1,
+            issuedAt: new Date().toISOString(),
+            invoiceNumber: invoice_number || null,
+            therapist: {
+                fullName: therapistData.full_name || therapistName,
+                nif: therapistData.nif || '',
+                addressLine1: therapistData.address_line1 || '',
+                addressLine2: therapistData.address_line2 || '',
+                city: therapistData.city || '',
+                postalCode: therapistData.postal_code || '',
+                iban: therapistData.iban || ''
+            },
+            center: {
+                name: centerData.name || 'Esencialmente Psicología',
+                legalName: centerData.legal_name || '',
+                nif: centerData.nif || '',
+                addressLine1: centerData.address_line1 || '',
+                addressLine2: centerData.address_line2 || '',
+                city: centerData.city || '',
+                postalCode: centerData.postal_code || ''
+            },
+            sessions: snapshotSessions,
+            financial: {
+                subtotal: numSubtotal,
+                centerPercentage: numCenterPercentage,
+                centerAmount: numCenterAmount,
+                baseDisponible: parseFloat(base.toFixed(2)),
+                irpfPercentage: numIrpfPercentage,
+                irpfAmount: numIrpfAmount,
+                vatTreatment: vatTreatment,
+                vatPercentage: finalIvaPercentage,
+                vatAmount: finalIvaAmount,
+                vatExemptionReason: finalVatExemptionReason,
+                totalAmount: finalTotalAmount
+            }
+        };
+
+        const snapshotJson = JSON.stringify(invoiceSnapshot);
 
         if (existing.rows.length > 0) {
-            // Update existing submission
+            // Update existing submission (permite rehacer factura si fue devuelta/revocada o reeditada)
             await pool.query(
                 `UPDATE invoice_submissions 
                 SET subtotal = $1, center_percentage = $2, center_amount = $3, 
                     irpf_percentage = $4, irpf_amount = $5, 
                     iva_percentage = $6, iva_amount = $7,
                     total_amount = $8, 
-                    invoice_number = $9, excluded_session_ids = $10, submitted_at = NOW()
-                WHERE therapist_id = $11 AND month = $12 AND year = $13`,
-                [subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, ivaPerc, ivaAmt, total_amount, invoice_number || null, exclusions, therapist_id, month, year]
+                    invoice_number = $9, excluded_session_ids = $10,
+                    vat_treatment = $11, vat_exemption_reason = $12, invoice_snapshot = $13,
+                    submitted_at = NOW()
+                WHERE therapist_id = $14 AND month = $15 AND year = $16`,
+                [numSubtotal, numCenterPercentage, numCenterAmount, numIrpfPercentage, numIrpfAmount, finalIvaPercentage, finalIvaAmount, finalTotalAmount, invoice_number || null, exclusions, vatTreatment, finalVatExemptionReason, snapshotJson, therapist_id, month, year]
             );
         } else {
             // Insert new submission
             await pool.query(
                 `INSERT INTO invoice_submissions 
-                (therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, iva_percentage, iva_amount, total_amount, invoice_number, excluded_session_ids)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-                [therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, ivaPerc, ivaAmt, total_amount, invoice_number || null, exclusions]
+                (therapist_id, month, year, subtotal, center_percentage, center_amount, irpf_percentage, irpf_amount, iva_percentage, iva_amount, total_amount, invoice_number, excluded_session_ids, vat_treatment, vat_exemption_reason, invoice_snapshot)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+                [therapist_id, month, year, numSubtotal, numCenterPercentage, numCenterAmount, numIrpfPercentage, numIrpfAmount, finalIvaPercentage, finalIvaAmount, finalTotalAmount, invoice_number || null, exclusions, vatTreatment, finalVatExemptionReason, snapshotJson]
             );
         }
 
@@ -1122,13 +1210,11 @@ exports.submitInvoice = async (req, res) => {
                     `;
                 }
 
-                // Calculate base properly for display (Total = Base + IVA - IRPF, so Base is roughly Total - IVA + IRPF, or just derive from Subtotal - Center)
-                // Actually, let's just list what we have.
-                const base = parseFloat(subtotal) - parseFloat(center_amount);
-
                 let ivaLine = '';
-                if (ivaPerc > 0) {
-                    ivaLine = `<li><strong>IVA (${ivaPerc}%):</strong> ${ivaAmt}€</li>`;
+                if (vatTreatment === 'EXEMPT') {
+                    ivaLine = `<li><strong>IVA:</strong> Exento (Prestación sanitaria exenta)</li>`;
+                } else if (finalIvaPercentage > 0) {
+                    ivaLine = `<li><strong>IVA (${finalIvaPercentage}%):</strong> ${finalIvaAmount}€</li>`;
                 }
 
                 await resend.emails.send({
@@ -1142,12 +1228,12 @@ exports.submitInvoice = async (req, res) => {
                         <hr>
                         <h3>Resumen</h3>
                         <ul>
-                            <li><strong>Subtotal:</strong> ${subtotal}€</li>
-                            <li><strong>Retención Centro (${center_percentage}%):</strong> ${center_amount}€</li>
+                            <li><strong>Subtotal:</strong> ${numSubtotal}€</li>
+                            <li><strong>Retención Centro (${numCenterPercentage}%):</strong> ${numCenterAmount}€</li>
                             <li><strong>Base Disponible:</strong> ${base.toFixed(2)}€</li>
                             ${ivaLine}
-                            <li><strong>IRPF (${irpf_percentage}%):</strong> ${irpf_amount}€</li>
-                            <li><strong>Total a Percibir:</strong> ${total_amount}€</li>
+                            <li><strong>IRPF (${numIrpfPercentage}%):</strong> ${numIrpfAmount}€</li>
+                            <li><strong>Total a Percibir:</strong> ${finalTotalAmount}€</li>
                         </ul>
                         ${exclusionWarning}
                         <p>
@@ -1682,9 +1768,17 @@ exports.getInvoiceDetails = async (req, res) => {
             }
         });
 
+        // Query submission record to check for invoice_snapshot
+        const subRes = await pool.query(
+            'SELECT invoice_snapshot FROM invoice_submissions WHERE therapist_id = $1 AND month = $2 AND year = $3',
+            [therapistId, m, y]
+        );
+        const snapshot = subRes.rows[0]?.invoice_snapshot || null;
+
         res.json({
             therapistData,
-            sessions: processedSessions
+            sessions: processedSessions,
+            snapshot
         });
 
     } catch (error) {

@@ -2519,3 +2519,75 @@
     font-size: 0.85rem;
     border: 1px solid #c8e6c9;
 }
+
+/* VAT Treatment Selection */
+.vat-treatment-card {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.vat-treatment-header {
+    display: flex;
+    align-items: center;
+}
+
+.vat-treatment-title {
+    font-weight: 700;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.vat-treatment-title .required-star {
+    color: #e53e3e;
+    margin-left: 4px;
+}
+
+.vat-treatment-radios {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.vat-radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #475569;
+}
+
+.vat-radio-option:hover {
+    border-color: #FF8C42;
+    background: #fffaf0;
+}
+
+.vat-radio-option.selected {
+    border-color: #FF8C42;
+    background: #fffaf0;
+    color: #c05621;
+    font-weight: 600;
+}
+
+.vat-radio-option input[type="radio"] {
+    accent-color: #FF8C42;
+    cursor: pointer;
+}
+
+.vat-treatment-hint {
+    color: #718096;
+    font-size: 0.8rem;
+    line-height: 1.3;
+}
