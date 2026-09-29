@@ -120,6 +120,45 @@ const SpecialtyPage = () => {
         </div>
       </section>
 
+      {/* Bloque de seguridad — solo para especialidades con safetyBlock (ej: violencia de género).
+          Separado visualmente del resto del contenido: nunca confundido con CTA comerciales. */}
+      {content.safetyBlock && (
+        <section className="specialty-safety-section">
+          <div className="container">
+            <div className="specialty-safety-block">
+              <h2 className="specialty-safety-title">
+                <span className="specialty-safety-icon" aria-hidden="true">🛡️</span>
+                {content.safetyBlock.title}
+              </h2>
+              <ul className="specialty-safety-list">
+                {content.safetyBlock.primaryItems.map((item, i) => (
+                  <li key={i} className="specialty-safety-item is-prominent">
+                    <strong className="specialty-safety-label">{item.label}</strong>
+                    <span className="specialty-safety-desc">{item.description}</span>
+                  </li>
+                ))}
+              </ul>
+              {content.safetyBlock.secondaryItems && content.safetyBlock.secondaryItems.length > 0 && (
+                <details className="specialty-safety-secondary">
+                  <summary>{content.safetyBlock.secondaryLabel}</summary>
+                  <ul className="specialty-safety-list specialty-safety-list--secondary">
+                    {content.safetyBlock.secondaryItems.map((item, i) => (
+                      <li key={i} className="specialty-safety-item">
+                        <strong className="specialty-safety-label">{item.label}</strong>
+                        <span className="specialty-safety-desc">{item.description}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+              {content.safetyBlock.note && (
+                <p className="specialty-safety-note">{content.safetyBlock.note}</p>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Respuesta directa (AEO) */}
       <section className="section-padding">
         <div className="container">
@@ -137,12 +176,37 @@ const SpecialtyPage = () => {
         </div>
       </section>
 
+      {/* Bloques diferenciados opcionales — solo cuando la especialidad los define.
+          Ejemplo: Ansiedad (bloque ansiedad / depresión / solapamiento). */}
+      {content.subBlocks && content.subBlocks.length > 0 && (
+        <section className="section-padding">
+          <div className="container">
+            <div className="specialty-sub-blocks">
+              {content.subBlocks.map((block) => (
+                <div key={block.id} className="specialty-sub-block">
+                  <h2>{block.title}</h2>
+                  <p>{block.content}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Cuándo buscar apoyo */}
-      <section className="section-padding">
+      <section className={`section-padding${content.subBlocks ? ' bg-light' : ''}`}>
         <div className="container">
           <div className="specialty-prose">
             <h2>{content.whenTitle}</h2>
             <p>{content.whenText}</p>
+            {/* Recurso de crisis — solo cuando la especialidad lo define.
+                Separado visualmente de los CTA comerciales. */}
+            {content.crisisResource && (
+              <div className="specialty-crisis-resource" role="note">
+                <strong>{content.crisisResource.label}:</strong>{' '}
+                {content.crisisResource.text}
+              </div>
+            )}
           </div>
         </div>
       </section>

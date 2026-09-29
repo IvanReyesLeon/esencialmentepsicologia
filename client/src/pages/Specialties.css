@@ -478,3 +478,192 @@
   height: 22px;
   flex-shrink: 0;
 }
+
+/* ========================================
+   BLOQUE DE SEGURIDAD (safetyBlock)
+   Uso: Violencia de género.
+   Diseño deliberadamente distinto de los CTA comerciales:
+   fondo oscuro, sin botones de acción.
+   ======================================== */
+.specialty-safety-section {
+  background: #1a1035;
+  padding: var(--space-10, 2.5rem) var(--space-4, 1rem);
+}
+
+.specialty-safety-block {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.specialty-safety-title {
+  color: #ffffff;
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  font-weight: 700;
+  margin-bottom: var(--space-6, 1.5rem);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.specialty-safety-icon {
+  font-size: 1.4rem;
+}
+
+.specialty-safety-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-4, 1rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.specialty-safety-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.specialty-safety-item.is-prominent {
+  background: rgba(255, 255, 255, 0.12);
+  border-left: 3px solid #ff6b6b;
+}
+
+.specialty-safety-label {
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.specialty-safety-item.is-prominent .specialty-safety-label {
+  color: #ffcdd2;
+  font-size: 1.15rem;
+}
+
+.specialty-safety-desc {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.specialty-safety-secondary {
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.specialty-safety-secondary summary {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.4rem 0;
+  list-style: none;
+}
+
+.specialty-safety-secondary summary::-webkit-details-marker {
+  display: none;
+}
+
+.specialty-safety-secondary summary::before {
+  content: '+ ';
+}
+
+.specialty-safety-secondary[open] summary::before {
+  content: '− ';
+}
+
+.specialty-safety-secondary summary:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.specialty-safety-list--secondary {
+  margin-top: 0.5rem;
+}
+
+.specialty-safety-list--secondary .specialty-safety-item {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.5rem 0.8rem;
+}
+
+.specialty-safety-list--secondary .specialty-safety-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.specialty-safety-list--secondary .specialty-safety-desc {
+  font-size: 0.8rem;
+}
+
+.specialty-safety-note {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.85rem;
+  font-style: italic;
+  margin: 0;
+  padding-top: var(--space-2, 0.5rem);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ========================================
+   BLOQUES DIFERENCIADOS (subBlocks)
+   Uso: Ansiedad y depresión (3 sub-bloques).
+   ======================================== */
+.specialty-sub-blocks {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6, 1.5rem);
+}
+
+@media (min-width: 900px) {
+  .specialty-sub-blocks {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-8, 2rem);
+  }
+}
+
+.specialty-sub-block {
+  padding: var(--space-6, 1.5rem);
+  border-left: 3px solid var(--primary-medium, #D4A5C9);
+  background: var(--background-warm, #FDF8FC);
+  border-radius: 0 8px 8px 0;
+}
+
+.specialty-sub-block h2 {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-weight: 700;
+  color: var(--text-dark, #1a1a2e);
+  margin-bottom: var(--space-3, 0.75rem);
+}
+
+.specialty-sub-block p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-medium, #4a4a6a);
+  margin: 0;
+}
+
+/* ========================================
+   RECURSO DE CRISIS (crisisResource)
+   Uso: Ansiedad y depresión.
+   Debe ser claramente distinto de un CTA comercial.
+   ======================================== */
+.specialty-crisis-resource {
+  margin-top: var(--space-6, 1.5rem);
+  padding: var(--space-4, 1rem) var(--space-5, 1.25rem);
+  background: #fff8f0;
+  border: 1px solid #f5a623;
+  border-left: 4px solid #e8890a;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #5c3d00;
+}
+
+.specialty-crisis-resource strong {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+  color: #7b4f00;
+}

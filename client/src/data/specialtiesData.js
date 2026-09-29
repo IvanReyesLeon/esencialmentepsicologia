@@ -128,40 +128,109 @@ export const specialtiesData = {
 
   "ansiedad-y-depresion": {
     heading: "Terapia para la ansiedad y la depresión",
-    subtitle: "Apoyo psicológico ante la ansiedad y los estados de ánimo bajo.",
-    directAnswer: "La terapia psicológica puede ayudar a comprender y abordar la ansiedad y los estados de ánimo bajo, trabajando tanto los síntomas como las causas y el contexto de cada situación personal.",
-    whatIsTitle: "¿Qué tipo de apoyo psicológico se puede buscar?",
-    whatIsText: "Un espacio para hablar de lo que sientes, entender qué lo está manteniendo y trabajar, junto con el profesional, herramientas y estrategias adaptadas a tu situación. No se trata de encajar en una lista de síntomas, sino de entender tu caso concreto.",
-    whenTitle: "¿Cuándo puede ser útil pedir ayuda?",
-    whenText: "Cuando la ansiedad o el bajo estado de ánimo se mantienen en el tiempo y afectan a tu vida diaria, tu descanso, tus relaciones o tu capacidad de disfrutar. La valoración profesional es la que permite entender qué está ocurriendo, no una lista de síntomas por internet.",
-    howTitle: "¿Cómo se trabaja en consulta?",
-    howText: "Partiendo de una valoración inicial, se plantea un plan de trabajo ajustado a tu situación, combinando comprensión del origen del malestar y herramientas prácticas de gestión emocional.",
-    onlineText: "Puede trabajarse en modalidad online por videollamada para personas de toda España.",
-    presentialText: "También de forma presencial en Cerdanyola del Vallès, para pacientes de Barcelona y el Vallès Occidental.",
+    subtitle: "Apoyo psicológico cuando la alerta no para, el ánimo no levanta, o ambas cosas a la vez.",
+    directAnswer: "La terapia psicológica puede ayudar a entender y trabajar la ansiedad y los estados de ánimo bajo, explorando qué los está manteniendo y buscando, junto con el profesional, formas de recuperar equilibrio en la vida cotidiana. Cada situación es distinta: aquí no se encaja a las personas en etiquetas, sino que se entiende el caso concreto.",
+
+    whatIsTitle: "Ansiedad, depresión o los dos: ¿de qué estamos hablando?",
+    whatIsText: "La ansiedad y la depresión son dos experiencias distintas que a veces se solapan. La primera tiene que ver con la activación, la alerta, la anticipación del peligro —cuando la respuesta de alarma se activa aunque no haya una amenaza real, y cuesta apagarla. La segunda tiene que ver con el apagamiento: la dificultad para encontrar energía, interés o motivación, incluso cuando las circunstancias externas parecen estar bien. Ambas pueden afectar el sueño, el cuerpo, las relaciones y la capacidad de disfrutar del día a día. Y en muchos casos aparecen juntas, porque comparten mecanismos subyacentes comunes.",
+
+    subBlocks: [
+      {
+        id: "ansiedad",
+        title: "Cuando la alerta no para",
+        content: "Quizás reconoces algunas de estas experiencias: una preocupación que se repite aunque sepas que es excesiva, tensión física sin motivo claro, dificultad para dormir porque la cabeza no para, evitar situaciones que te generan malestar aunque eso te limite, anticipar lo peor incluso cuando no hay razones reales, o notar reacciones físicas intensas (palpitaciones, presión en el pecho, falta de aire) en momentos que otros no considerarían amenazantes. La ansiedad es una respuesta del sistema nervioso que, en ciertos contextos, se activa de forma sostenida o desproporcionada. El trabajo terapéutico busca entender qué la está alimentando y encontrar formas de regularla que tengan sentido para tu situación concreta."
+      },
+      {
+        id: "depresion",
+        title: "Cuando el ánimo no levanta",
+        content: "No siempre se trata de tristeza. A veces es más bien una sensación de vacío o de aplanamiento, de que las cosas que antes te importaban ya no te mueven igual, de que hacer el esfuerzo cotidiano cuesta mucho más de lo que debería. Puede ir acompañado de fatiga, cambios en el sueño o el apetito, dificultad para concentrarse, o una sensación persistente de que nada tiene demasiado sentido. Funcionar hacia el exterior es posible —ir al trabajo, cumplir— mientras por dentro hay un esfuerzo enorme que los demás no ven. La terapia ofrece un espacio para entender qué está pasando y trabajar desde ahí, sin presuponer un diagnóstico."
+      },
+      {
+        id: "solapamiento",
+        title: "Cuando se solapan",
+        content: "Es habitual que ansiedad y bajo estado de ánimo aparezcan juntos: la activación constante agota, y ese agotamiento alimenta el apagamiento. O al revés: el desánimo genera una mirada hacia el futuro que activa el miedo. La valoración en consulta sirve precisamente para entender tu situación particular —no para encajarla en una categoría— y plantearte un abordaje que tenga en cuenta todo el cuadro."
+      }
+    ],
+
+    whenTitle: "¿Cuándo puede ser útil pedir orientación?",
+    whenText: "Cuando lo que sientes se mantiene en el tiempo y empieza a afectar a tu descanso, tus relaciones, tu trabajo o tu capacidad de disfrutar de las cosas. No hace falta esperar a estar en un punto de crisis. Tampoco es necesario saber exactamente qué te pasa antes de pedir cita: para eso está la valoración inicial.",
+
+    howTitle: "¿Qué ocurre en la primera consulta?",
+    howText: "Es una conversación —no un test, no un diagnóstico inmediato. El objetivo es entender tu situación: qué estás viviendo, desde cuándo, cómo te afecta y qué estás necesitando. A partir de ahí, si tiene sentido continuar, se plantea un plan de trabajo adaptado a tu caso. Puedes venir sin saber bien qué te pasa; precisamente para eso está ese primer espacio.",
+
+    onlineText: "Puede trabajarse en modalidad online por videollamada para personas de toda España. Es una opción valorada positivamente por muchas personas, especialmente cuando el desplazamiento supone un esfuerzo adicional.",
+    presentialText: "También de forma presencial en nuestro centro de Cerdanyola del Vallès, con buena conexión para Barcelona y el Vallès Occidental.",
+
+    crisisResource: {
+      label: "Si tienes pensamientos de hacerte daño o estás en crisis",
+      text: "Puedes llamar al 024, la línea de atención a la conducta suicida del Ministerio de Sanidad. Es gratuita, confidencial y está disponible las 24 horas, todos los días del año, para personas con ideación o riesgo de conducta suicida y también para familiares y allegados. Si hay una emergencia vital inminente, llama al 112. La atención psicológica de Esencialmente no sustituye a los servicios de emergencia."
+    },
+
     faqs: [
-      { question: "¿Cómo sé si lo que tengo es ansiedad o depresión?", answer: "No ofrecemos autodiagnóstico ni listas de síntomas para \"identificar\" un trastorno. Es la valoración profesional en consulta la que permite entender tu situación concreta." },
-      { question: "¿La terapia sustituye a un tratamiento médico o psiquiátrico si lo necesito?", answer: "No. Cuando es necesario, el trabajo psicológico se coordina con la atención médica o psiquiátrica correspondiente; no la sustituye." },
-      { question: "¿Puedo hacer este tipo de terapia online?", answer: "Sí, puede realizarse por videollamada, valorando siempre la idoneidad según tu situación en la primera consulta." }
+      { question: "¿Cómo sé si lo que tengo es ansiedad, depresión o las dos cosas?", answer: "No lo sabrás antes de la primera consulta, y no hace falta. La valoración profesional sirve precisamente para entender tu situación concreta, sin encajarla en una categoría antes de conocerte." },
+      { question: "¿La terapia psicológica sustituye al tratamiento médico o psiquiátrico?", answer: "No. Cuando es necesario, el trabajo psicológico se coordina con la atención médica o psiquiátrica correspondiente. En ningún caso la sustituye ni recomienda suspender un tratamiento médico en curso." },
+      { question: "¿Puedo acudir aunque funcione bien hacia fuera pero me sienta mal por dentro?", answer: "Sí. Muchas personas que buscan apoyo psicológico mantienen su vida cotidiana aparentemente sin problemas: eso no significa que el malestar no sea real ni que no tenga sentido pedir ayuda." },
+      { question: "¿Puedo hacer terapia online para esto?", answer: "En la mayoría de casos sí, y muchas personas lo valoran positivamente. La idoneidad de la modalidad online para tu situación concreta se valora en la primera consulta." }
     ],
     relatedSlugs: ["autoestima", "traumas-y-fobias"]
   },
 
   "violencia-de-genero": {
     heading: "Atención psicológica en violencia de género",
-    subtitle: "Un espacio de apoyo psicológico prudente y respetuoso, como complemento a los recursos oficiales.",
-    directAnswer: "Ofrecemos un espacio de acompañamiento psicológico para personas que han vivido o viven situaciones de violencia de género, siempre como complemento —nunca como sustituto— de los recursos oficiales de emergencia, seguridad y atención especializada.",
-    whatIsTitle: "¿Qué ofrece la atención psicológica en estos casos?",
-    whatIsText: "Un espacio de escucha, sin culpabilización, para procesar el impacto emocional de la situación vivida y trabajar en tu bienestar. La psicoterapia acompaña, pero no sustituye a los servicios oficiales de protección, seguridad o asesoramiento legal cuando estos son necesarios.",
-    whenTitle: "¿Cuándo pedir ayuda psicológica?",
-    whenText: "En cualquier momento del proceso puede ser útil un espacio de apoyo psicológico. Si te encuentras en una situación de riesgo o emergencia, contacta primero con los servicios de emergencia (112) o con el teléfono de atención a víctimas de violencia de género (016, gratuito y no deja rastro en la factura).",
-    howTitle: "¿Cómo se trabaja en consulta?",
-    howText: "Con prudencia, respeto y sin presuponer ni juzgar tu situación, ofreciendo un espacio seguro para hablar de lo vivido, siempre a tu ritmo.",
-    onlineText: "Esta atención puede ofrecerse en modalidad online por videollamada para personas de toda España.",
-    presentialText: "También de forma presencial en Cerdanyola del Vallès, para pacientes de Barcelona y el Vallès Occidental.",
+    subtitle: "Un espacio de apoyo psicológico sin culpabilización, como complemento a los recursos oficiales de seguridad y atención.",
+    directAnswer: "Ofrecemos acompañamiento psicológico para personas que han vivido o viven situaciones de violencia de género: un espacio de escucha respetuosa, sin juicio y sin presión, orientado al bienestar emocional. Este apoyo es siempre complementario —nunca sustituto— de los recursos oficiales de seguridad, atención especializada o asesoramiento legal.",
+
+    safetyBlock: {
+      title: "Si estás en una situación de riesgo o necesitas ayuda urgente",
+      primaryItems: [
+        {
+          label: "112",
+          description: "Emergencias. Llama si estás en peligro inmediato."
+        },
+        {
+          label: "016",
+          description: "Servicio estatal gratuito y confidencial de información y atención psicosocial ante las violencias contra las mujeres. Disponible las 24 horas."
+        },
+        {
+          label: "900 900 120",
+          description: "Línea de atención de la Generalitat de Catalunya ante las violencias machistas. Gratuita, confidencial y disponible las 24 horas, todos los días del año."
+        }
+      ],
+      secondaryLabel: "Más canales y recursos oficiales",
+      secondaryItems: [
+        {
+          label: "WhatsApp 016",
+          description: "600 000 016"
+        },
+        {
+          label: "Chat online",
+          description: "violenciagenero.igualdad.gob.es"
+        },
+        {
+          label: "ATENPRO",
+          description: "Servicio de atención y protección a distancia. Puedes informarte a través del 016."
+        }
+      ],
+      note: "La consulta psicológica no es un recurso de emergencia. Si existe un riesgo inmediato, contacta primero con los servicios de emergencia."
+    },
+
+    whatIsTitle: "¿Qué puede ofrecer el acompañamiento psicológico?",
+    whatIsText: "Un espacio para hablar de lo que has vivido o estás viviendo, sin que nadie te juzgue ni te diga qué tienes que hacer. El trabajo psicológico puede ayudar a procesar el impacto emocional de la situación, a entender cómo te ha afectado y a recuperar recursos propios a tu ritmo. No sustituye al asesoramiento jurídico, a los servicios sociales ni a los recursos de protección: los complementa.",
+
+    whenTitle: "¿Qué formas puede tomar la violencia de género?",
+    whenText: "La violencia de género no se limita a la violencia física. También puede manifestarse como control sobre las decisiones, el dinero o las relaciones de la otra persona; como insultos, humillaciones o amenazas sostenidas en el tiempo; como presión sexual; o como vigilancia y acoso a través del teléfono o las redes sociales. A veces es difícil reconocerlo cuando estás dentro. No necesitas tener claro si \"cuenta\" o no para buscar apoyo.",
+
+    howTitle: "Apoyo psicológico sin obligación de denunciar",
+    howText: "Pedir apoyo psicológico no implica iniciar ningún proceso legal ni denunciar. Son decisiones completamente independientes. Puedes venir a consulta en cualquier momento del proceso: si todavía estás en la situación, si la has dejado atrás hace tiempo, o si tienes dudas sobre lo que estás viviendo. El ritmo y los pasos los decides tú.",
+
+    onlineText: "Esta atención puede ofrecerse en modalidad online por videollamada para personas de toda España, lo que puede facilitar el acceso cuando hay dificultades de movilidad o privacidad.",
+    presentialText: "También de forma presencial en nuestro centro de Cerdanyola del Vallès, para pacientes de Barcelona y el Vallès Occidental.",
+
     faqs: [
-      { question: "¿La terapia psicológica sustituye a la denuncia o a los recursos oficiales?", answer: "No. La psicoterapia es un complemento de apoyo emocional; nunca sustituye a los servicios de emergencia, seguridad, asesoramiento legal o recursos oficiales especializados en violencia de género." },
-      { question: "¿Qué hago si estoy en una situación de riesgo ahora mismo?", answer: "Contacta con el 112 (emergencias) o con el 016 (atención a víctimas de violencia de género, gratuito, confidencial y disponible 24h). La consulta psicológica no es un recurso de emergencia." },
-      { question: "¿Puedo acudir a terapia aunque no haya iniciado ningún proceso legal?", answer: "Sí, la atención psicológica no requiere que exista un proceso legal en marcha." }
+      { question: "¿Tengo que haber denunciado para pedir apoyo psicológico?", answer: "No. El apoyo psicológico no está condicionado a que exista ningún proceso legal. Puedes consultar en cualquier momento, independientemente de lo que hayas decidido hacer o no en el ámbito legal o institucional." },
+      { question: "¿La terapia me dirá qué tengo que hacer?", answer: "No. El espacio psicológico no dirige ni prescribe decisiones. Acompaña a la persona mientras ella decide, a su ritmo, qué quiere hacer con su situación." },
+      { question: "¿Qué hago si estoy en una situación de riesgo ahora mismo?", answer: "Llama al 112 si estás en peligro inmediato, o al 016 (gratuito, disponible 24h, no aparece en la factura) para orientación y atención especializada. La psicoterapia no es un recurso de emergencia." },
+      { question: "¿Puedo pedir cita aunque no esté segura de que lo que vivo es violencia de género?", answer: "Sí. No hace falta tener una certeza previa ni haber puesto nombre a lo que estás viviendo. Para eso existe también la primera consulta: para hablar y entender juntos." }
     ],
     relatedSlugs: ["ansiedad-y-depresion", "autoestima"]
   },
