@@ -10,7 +10,8 @@ const SEOHead = ({
     type = 'website',
     author = 'Esencialmente Psicología',
     locale = 'es_ES',
-    structuredData
+    structuredData,
+    robots = 'index, follow'
 }) => {
     const siteUrl = process.env.REACT_APP_SITE_URL || 'https://www.esencialmentepsicologia.com';
     const fullUrl = canonicalUrl || `${siteUrl}${window.location.pathname}`;
@@ -44,8 +45,8 @@ const SEOHead = ({
             <meta property="twitter:image" content={fullImageUrl} />
 
             {/* Additional SEO */}
-            <meta name="robots" content="index, follow" />
-            <meta name="googlebot" content="index, follow" />
+            <meta name="robots" content={robots} />
+            <meta name="googlebot" content={robots} />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />
             <meta name="language" content="Spanish" />

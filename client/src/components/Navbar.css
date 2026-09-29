@@ -68,7 +68,8 @@
   gap: 0;
 }
 
-.nav-menu a {
+.nav-menu a,
+.nav-menu .nav-dropdown-toggle {
   color: white;
   text-decoration: none;
   font-weight: 500;
@@ -79,9 +80,12 @@
   transition: all var(--transition-normal);
   position: relative;
   display: inline-block;
+  font-family: inherit;
+  line-height: inherit;
 }
 
-.nav-menu a::after {
+.nav-menu a::after,
+.nav-menu .nav-dropdown-toggle::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -95,16 +99,110 @@
 }
 
 .nav-menu a:hover::after,
-.nav-menu a.active::after {
+.nav-menu a.active::after,
+.nav-menu .nav-dropdown-toggle:hover::after,
+.nav-menu .nav-dropdown-toggle.active::after,
+.nav-menu .nav-dropdown-toggle[aria-expanded="true"]::after {
   width: 30px;
 }
 
-.nav-menu a:hover {
+.nav-menu a:hover,
+.nav-menu .nav-dropdown-toggle:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.nav-menu a.active {
+.nav-menu a.active,
+.nav-menu .nav-dropdown-toggle.active,
+.nav-menu .nav-dropdown-toggle[aria-expanded="true"] {
   background: rgba(255, 255, 255, 0.15);
+}
+
+/* ========================================
+   ESPECIALIDADES DROPDOWN
+======================================== */
+.nav-item-dropdown {
+  position: relative;
+}
+
+.nav-dropdown-toggle {
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.nav-dropdown-panel {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-white, #fff);
+  color: var(--text-primary, #1A1A2E);
+  border-radius: var(--radius-md, 10px);
+  border-top: 3px solid var(--primary-color, #E91E63);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5, 1.25rem);
+  min-width: 460px;
+  z-index: 1001;
+  text-align: left;
+  margin-top: 2px;
+}
+
+.nav-dropdown-heading {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary, #64748B);
+  margin: 0 0 var(--space-3, 0.75rem);
+}
+
+.nav-dropdown-columns {
+  display: flex;
+  gap: var(--space-6, 1.5rem);
+}
+
+.nav-dropdown-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 160px;
+}
+
+.nav-dropdown-panel a {
+  color: var(--text-primary, #1A1A2E);
+  text-decoration: none;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+  font-size: 0.92rem;
+  padding: 0.4rem 0.5rem;
+  display: block;
+  border-radius: var(--radius-sm, 6px);
+}
+
+.nav-dropdown-panel a:hover,
+.nav-dropdown-panel a:focus-visible {
+  background: var(--background-soft, #F5F3F7);
+}
+
+.nav-dropdown-empty {
+  color: var(--text-secondary, #64748B);
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+}
+
+.nav-dropdown-viewall {
+  display: block;
+  margin-top: var(--space-3, 0.75rem);
+  padding-top: var(--space-3, 0.75rem);
+  border-top: 1px solid var(--border-light, #E2E8F0);
+  color: var(--primary-color, #E91E63) !important;
+  font-weight: 600 !important;
+  text-align: center;
 }
 
 /* ========================================
@@ -207,5 +305,56 @@
 
   .nav-toggle.active .bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
+  }
+
+  .nav-item-dropdown {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-dropdown-toggle {
+    width: 100%;
+    text-align: center;
+    color: white;
+  }
+
+  .nav-dropdown-panel {
+    position: static;
+    transform: none;
+    width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.08);
+    min-width: 0;
+  }
+
+  .nav-dropdown-columns {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .nav-dropdown-panel a {
+    color: white;
+  }
+
+  .nav-dropdown-panel a:hover,
+  .nav-dropdown-panel a:focus-visible {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .nav-dropdown-viewall {
+    color: white !important;
+    border-top-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .nav-dropdown-empty {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .nav-dropdown-heading {
+    display: none;
+  }
+
+  .nav-dropdown-panel {
+    border-top: none;
   }
 }

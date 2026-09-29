@@ -1,0 +1,428 @@
+/* ========================================
+   ESPECIALIDADES — Hub + páginas individuales
+   Reutiliza tokens y clases de LocalPages.css (hero, breadcrumbs,
+   section-padding, faq-accordion, cta-box, silo-navigation, reasons-grid).
+   Este archivo solo añade lo específico de especialidades: la placa y
+   el listado.
+   ======================================== */
+
+.specialties-hero {
+  background: linear-gradient(135deg, var(--background-warm, #FDF8FC) 0%, var(--background-light, #FAFBFC) 55%, var(--primary-light, #F8BBD9) 100%);
+  padding: var(--space-16, 4rem) var(--space-4, 1rem) var(--space-12, 3rem);
+}
+
+.specialties-hero .container {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.specialties-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-10, 2.5rem);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .specialties-hero-grid {
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+}
+
+.specialties-hero-text {
+  text-align: center;
+}
+
+@media (min-width: 900px) {
+  .specialties-hero-text {
+    text-align: left;
+  }
+  .specialties-hero-text .breadcrumbs,
+  .specialties-hero-text .hero-cta-group {
+    justify-content: flex-start;
+  }
+}
+
+.specialties-eyebrow {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--primary-color, #E91E63);
+  margin-bottom: var(--space-3, 0.75rem);
+}
+
+.specialties-hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 4.5vw, 3rem);
+  color: var(--text-primary, #1A1A2E);
+  margin-bottom: var(--space-4, 1rem);
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.specialties-hero-visual {
+  display: flex;
+  justify-content: center;
+}
+
+/* ========================================
+   PLACA DIGITAL (reinterpretación de la placa física)
+   Las PALABRAS forman el cartel — no hay caja, borde ni sombra detrás.
+   El wrapper es puramente estructural (layout + animación), transparente,
+   y se apoya directamente sobre el degradado del hero.
+   ======================================== */
+.specialty-plaque {
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.specialty-plaque-frame {
+  width: 100%;
+  max-width: 420px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  display: flex;
+  flex-flow: row wrap;
+  align-content: center;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.15rem 0.6rem;
+}
+
+.specialty-plaque-word {
+  display: inline-block;
+  text-decoration: none;
+  color: var(--text-primary, #1A1A2E);
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  line-height: 1.2;
+  opacity: 1;
+  transform: none;
+  white-space: nowrap;
+}
+
+/* Pequeños desplazamientos horizontales deterministas (no random) para que
+   el bloque tenga un ligero ritmo editorial en vez de líneas perfectamente
+   centradas y uniformes. */
+.specialty-plaque-word:nth-child(3n+1) { margin-right: 0.4rem; }
+.specialty-plaque-word:nth-child(3n+2) { margin-left: 0.3rem; }
+.specialty-plaque-word:nth-child(4n) { margin-right: 0.2rem; }
+
+.specialty-plaque-word:hover,
+.specialty-plaque-word:focus-visible {
+  color: var(--primary-color, #E91E63);
+  opacity: 0.85;
+}
+
+/* Especialidad actual en una página individual: acento tipográfico, no card/pill. */
+.specialty-plaque-word.is-current {
+  color: var(--primary-color, #E91E63);
+  border-bottom: 2px solid var(--primary-color, #E91E63);
+  padding-bottom: 2px;
+  cursor: default;
+}
+
+.specialty-plaque-word[data-weight="lg"] {
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-weight: 800;
+  flex-basis: 100%;
+  margin: 0.35rem 0 !important;
+}
+
+.specialty-plaque-word[data-weight="md"] {
+  font-size: clamp(1.05rem, 2.3vw, 1.4rem);
+  font-weight: 600;
+}
+
+.specialty-plaque-word[data-weight="sm"] {
+  font-size: clamp(0.8rem, 1.6vw, 1rem);
+  font-weight: 500;
+  opacity: 0.78;
+}
+
+/* Frases largas: permiten partir en varias palabras (no nowrap) y ocupan toda la fila */
+.specialty-plaque-word[data-long="true"] {
+  white-space: normal;
+  flex-basis: 100%;
+  max-width: 100%;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Estado inicial oculto SOLO cuando React ha montado con JS activo
+   (clase "animate-ready" presente desde el primer render). Sin JS,
+   esta combinación de clases nunca existe y la placa se ve completa. */
+.specialty-plaque.animate-ready:not(.is-mounted) .specialty-plaque-word {
+  opacity: 0;
+  transform: translate(var(--enter-x, 0), var(--enter-y, 10px)) scale(0.94);
+}
+
+.specialty-plaque.animate-ready.is-mounted .specialty-plaque-word {
+  transform: translate(0, 0) scale(1);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Páginas individuales: montaje algo más breve que en el hub */
+.specialty-plaque.is-compact.animate-ready.is-mounted .specialty-plaque-word {
+  transition-duration: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .specialty-plaque.animate-ready:not(.is-mounted) .specialty-plaque-frame,
+  .specialty-plaque.animate-ready:not(.is-mounted) .specialty-plaque-word {
+    opacity: 1;
+    transform: none;
+  }
+  .specialty-plaque-word,
+  .specialty-plaque-frame {
+    transition: none !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .specialty-plaque-frame {
+    max-width: 300px;
+    gap: 0.1rem 0.4rem;
+  }
+}
+
+/* ========================================
+   LISTADO DE ESPECIALIDADES
+   ======================================== */
+.specialties-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-6, 1.5rem);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.specialty-card {
+  background: var(--surface-white, #FFFFFF);
+  border-radius: var(--radius-xl, 24px);
+  padding: var(--space-6, 1.5rem);
+  border: 1px solid var(--border-light, #E2E8F0);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: all var(--transition-normal, 0.3s ease);
+}
+
+.specialty-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-light, #F8BBD9);
+}
+
+.specialty-card h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  color: var(--text-primary, #1A1A2E);
+  margin: 0;
+}
+
+.specialty-card p {
+  color: var(--text-secondary, #64748B);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+}
+
+.specialty-card-link {
+  display: inline-block;
+  align-self: flex-start;
+  color: var(--primary-color, #E91E63);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.specialty-card-link:hover {
+  text-decoration: underline;
+}
+
+/* ========================================
+   BLOQUES ONLINE / PRESENCIAL DEL HUB
+   ======================================== */
+.specialties-modality-block {
+  max-width: 850px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.specialties-modality-block h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.7rem, 3.2vw, 2.2rem);
+  color: var(--text-primary, #1A1A2E);
+  margin-bottom: 1rem;
+}
+
+.specialties-modality-block p {
+  color: var(--text-secondary, #64748B);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+/* ========================================
+   PÁGINA INDIVIDUAL DE ESPECIALIDAD
+   ======================================== */
+.specialty-page .direct-answer {
+  font-size: 1.15rem;
+  line-height: 1.75;
+  color: var(--text-primary, #1A1A2E);
+  background: var(--background-lavender, #EDE7F6);
+  border-left: 4px solid var(--primary-color, #E91E63);
+  border-radius: var(--radius-md, 10px);
+  padding: 1.25rem 1.5rem;
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+/* Secciones editoriales (Qué es / Cuándo / Cómo se trabaja): H2 + texto
+   directamente sobre el fondo de la sección, SIN card — el fondo alterno
+   (blanco / bg-light) de cada <section> ya aporta el ritmo visual. */
+.specialty-prose {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.specialty-prose h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  color: var(--text-primary, #1A1A2E);
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.specialty-prose p {
+  font-size: 1.08rem;
+  line-height: 1.8;
+  color: var(--text-secondary, #64748B);
+}
+
+/* Online / Presencial: dos columnas editoriales, sin card */
+.specialty-two-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-10, 2.5rem);
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .specialty-two-col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.specialty-two-col h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.4rem, 2.6vw, 1.8rem);
+  color: var(--text-primary, #1A1A2E);
+  margin-bottom: 0.75rem;
+}
+
+.specialty-two-col p {
+  font-size: 1.02rem;
+  line-height: 1.75;
+  color: var(--text-secondary, #64748B);
+  margin-bottom: 0.75rem;
+}
+
+/* Link editorial: texto integrado en el contenido, nunca azul/subrayado por defecto */
+.link-editorial {
+  color: var(--primary-color, #E91E63);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--transition-fast, 0.2s ease);
+}
+
+.link-editorial:hover,
+.link-editorial:focus-visible {
+  border-bottom-color: var(--primary-color, #E91E63);
+}
+
+.specialty-pricing-box {
+  max-width: 850px;
+  margin: 0 auto;
+  background: var(--surface-white, #FFFFFF);
+  border-radius: var(--radius-xl, 24px);
+  padding: var(--space-8, 2rem);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light, #E2E8F0);
+  text-align: center;
+}
+
+.specialty-pricing-box .price {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-color, #E91E63);
+}
+
+.specialty-pricing-box .duration {
+  color: var(--text-secondary, #64748B);
+  margin-bottom: 1rem;
+}
+
+/* ========================================
+   NOT FOUND
+   ======================================== */
+.specialty-not-found {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-16, 4rem) var(--space-4, 1rem);
+}
+
+.specialty-not-found h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  margin-bottom: 1rem;
+}
+
+/* ========================================
+   CTA WHATSAPP (verde, icono oficial)
+   ======================================== */
+.btn-whatsapp-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #25D366;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.9rem 1.75rem;
+  border-radius: var(--radius-full, 9999px);
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+  transition: all var(--transition-normal, 0.3s ease);
+}
+
+.btn-whatsapp-cta:hover {
+  background: #20BD5A;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.45);
+}
+
+.btn-whatsapp-cta:focus-visible {
+  outline: 3px solid #128C7E;
+  outline-offset: 2px;
+}
+
+.whatsapp-cta-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}

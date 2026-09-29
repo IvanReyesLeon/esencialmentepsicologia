@@ -99,6 +99,16 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Especialidades teaser */}
+      <section style={{ padding: '2.5rem 1rem', textAlign: 'center' }}>
+        <div className="container">
+          <p style={{ marginBottom: '1rem', fontSize: '1.05rem' }}>
+            ¿Buscas algo más concreto? Conoce nuestras especialidades psicológicas.
+          </p>
+          <Link to="/especialidades" className="btn btn-outline">Ver especialidades →</Link>
+        </div>
+      </section>
+
       {/* About Section */}
       <section className="about-preview">
         <div className="container">

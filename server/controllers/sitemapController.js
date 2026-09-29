@@ -1,6 +1,7 @@
 const { getAllWorkshops } = require('../models/workshopQueries');
 const { getAllPosts } = require('../models/postQueries');
 const { getAllTherapists } = require('../models/therapistQueries');
+const specialtiesIndex = require('../../client/src/data/specialties.index.json');
 
 exports.getSitemap = async (req, res) => {
     try {
@@ -20,6 +21,7 @@ exports.getSitemap = async (req, res) => {
             { url: '/psicologo-terrassa', priority: '0.8', changefreq: 'weekly' },
             { url: '/psicologo-barbera-del-valles', priority: '0.8', changefreq: 'weekly' },
             { url: '/terapia-online', priority: '0.9', changefreq: 'weekly' },
+            { url: '/especialidades', priority: '0.9', changefreq: 'weekly' },
             { url: '/servicios', priority: '0.8', changefreq: 'monthly' },
             { url: '/terapeutas', priority: '0.8', changefreq: 'weekly' },
             { url: '/talleres', priority: '0.8', changefreq: 'weekly' },
@@ -81,6 +83,18 @@ exports.getSitemap = async (req, res) => {
   </url>`;
             }
         });
+
+        // Añadir especialidades publicadas (derivadas del SSOT, sin lista manual duplicada)
+        specialtiesIndex
+            .filter(s => s.published)
+            .forEach(specialty => {
+                xml += `
+  <url>
+    <loc>${baseUrl}/especialidades/${specialty.slug}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+            });
 
         xml += '\n</urlset>';
 

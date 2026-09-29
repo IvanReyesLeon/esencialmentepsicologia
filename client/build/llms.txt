@@ -16,6 +16,11 @@ Esencialmente Psicología está dirigido y fundado por **Anna Becerra Fernández
 ## Terapia Online
 Esencialmente Psicología ofrece terapia online por videollamada para pacientes de toda España (URL: https://www.esencialmentepsicologia.com/terapia-online). Esta modalidad permite iniciar o mantener un proceso terapéutico cuando la persona no puede desplazarse a la consulta de Cerdanyola del Vallès. La terapia online puede ser una alternativa eficaz y cómoda en muchos casos, manteniendo la confidencialidad, el seguimiento y el cuidado profesional. La idoneidad de esta modalidad se valora según las necesidades de cada persona y situación clínica.
 
+## Especialidades
+Esencialmente Psicología ofrece especialidades psicológicas concretas, todas disponibles en modalidad online para toda España y presencial en Barcelona y el Vallès (centro físico en Cerdanyola del Vallès).
+- [Hub de Especialidades](https://www.esencialmentepsicologia.com/especialidades)
+- [Terapia EMDR](https://www.esencialmentepsicologia.com/especialidades/emdr): terapia de desensibilización y reprocesamiento por movimientos oculares para el abordaje de experiencias difíciles y traumáticas. Online (España) y presencial (Barcelona/Vallès).
+
 ## Enlaces Clave y Arquitectura Territorial
 - [Página Principal](https://www.esencialmentepsicologia.com)
 - [Terapia Online en Toda España](https://www.esencialmentepsicologia.com/terapia-online)

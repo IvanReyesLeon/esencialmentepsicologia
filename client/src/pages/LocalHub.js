@@ -131,6 +131,9 @@ const LocalHub = () => {
               </a>
             )}
           </div>
+          <p style={{ marginTop: '1.25rem' }}>
+            <Link to="/especialidades">Consulta nuestras especialidades →</Link>
+          </p>
         </div>
       </section>
 

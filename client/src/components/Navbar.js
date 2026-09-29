@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import specialtiesIndex from '../data/specialties.index.json';
 import './Navbar.css';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSpecialtiesOpen, setIsSpecialtiesOpen] = useState(false);
   const location = useLocation();
+  const dropdownRef = useRef(null);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -13,6 +16,34 @@ const Navbar = () => {
   const isActive = (path) => {
     return location.pathname === path ? 'active' : '';
   };
+
+  // Catálogo real del centro (catalogVisible), no solo lo que ya esté
+  // publicado para SEO: la navbar debe reflejar la oferta completa.
+  const navSpecialties = specialtiesIndex
+    .filter(s => s.catalogVisible && s.showInNav)
+    .sort((a, b) => a.order - b.order);
+  const midpoint = Math.ceil(navSpecialties.length / 2);
+  const columnOne = navSpecialties.slice(0, midpoint);
+  const columnTwo = navSpecialties.slice(midpoint);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsSpecialtiesOpen(false);
+      }
+    };
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') setIsSpecialtiesOpen(false);
+    };
+    if (isSpecialtiesOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isSpecialtiesOpen]);
 
   return (
     <nav className="navbar">
@@ -42,6 +73,55 @@ const Navbar = () => {
           >
             Servicios
           </Link>
+          <div className="nav-item-dropdown" ref={dropdownRef}>
+            <button
+              type="button"
+              className={`nav-link nav-dropdown-toggle ${isActive('/especialidades')}`}
+              aria-expanded={isSpecialtiesOpen}
+              aria-controls="especialidades-dropdown"
+              onClick={() => setIsSpecialtiesOpen(v => !v)}
+            >
+              Especialidades
+            </button>
+            {isSpecialtiesOpen && (
+              <div id="especialidades-dropdown" className="nav-dropdown-panel">
+                <p className="nav-dropdown-heading">Especialidades</p>
+                {navSpecialties.length > 0 ? (
+                  <div className="nav-dropdown-columns">
+                    <ul>
+                      {columnOne.map(s => (
+                        <li key={s.slug}>
+                          <Link to={`/especialidades/${s.slug}`} onClick={() => { setIsSpecialtiesOpen(false); setIsMenuOpen(false); }}>
+                            {s.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    {columnTwo.length > 0 && (
+                      <ul>
+                        {columnTwo.map(s => (
+                          <li key={s.slug}>
+                            <Link to={`/especialidades/${s.slug}`} onClick={() => { setIsSpecialtiesOpen(false); setIsMenuOpen(false); }}>
+                              {s.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : (
+                  <p className="nav-dropdown-empty">Próximamente</p>
+                )}
+                <Link
+                  to="/especialidades"
+                  className="nav-dropdown-viewall"
+                  onClick={() => { setIsSpecialtiesOpen(false); setIsMenuOpen(false); }}
+                >
+                  Ver todas las especialidades →
+                </Link>
+              </div>
+            )}
+          </div>
           <Link
             to="/terapeutas"
             className={`nav-link ${isActive('/terapeutas')}`}

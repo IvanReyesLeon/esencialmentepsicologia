@@ -32,6 +32,18 @@ const ROUTES = [
     '/psicologo-barbera-del-valles'
 ];
 
+// Especialidades: derivadas del SSOT (specialties.index.json), solo las publicadas.
+// Añadir una especialidad nueva y marcarla published:true basta para que entre aquí.
+try {
+    const specialtiesIndexPath = path.join(__dirname, 'src', 'data', 'specialties.index.json');
+    const specialtiesIndex = JSON.parse(fs.readFileSync(specialtiesIndexPath, 'utf-8'));
+    const publishedSlugs = specialtiesIndex.filter(s => s.published).map(s => s.slug);
+    ROUTES.push('/especialidades', ...publishedSlugs.map(slug => `/especialidades/${slug}`));
+    console.log(`✅ Added /especialidades + ${publishedSlugs.length} published specialties to prerender queue.`);
+} catch (error) {
+    console.warn('⚠️ Could not read specialties.index.json for prerender:', error.message);
+}
+
 // Simple MIME types
 const MIMES = {
     '.html': 'text/html',
@@ -201,7 +213,7 @@ async function prerender() {
                 await page.setViewport({ width: 1280, height: 800 });
 
                 // Custom Timeout for heavy pages
-                const isHeavyPage = route.includes('/servicios') || route.includes('/terapeutas');
+                const isHeavyPage = route.includes('/servicios') || route.includes('/terapeutas') || route.startsWith('/especialidades');
                 const timeout = isHeavyPage ? 60000 : 30000;
 
                 // Go to URL
@@ -224,6 +236,12 @@ async function prerender() {
                 } else if (route === '/terapeutas') {
                     await page.waitForFunction(
                         () => document.querySelector('.therapists-grid') || document.querySelector('.no-therapists') || document.querySelector('h1'),
+                        { timeout: timeout }
+                    );
+                } else if (route.startsWith('/especialidades/')) {
+                    // Esperar a que la tarifa dinámica (si aplica) resuelva, o al contenido general
+                    await page.waitForFunction(
+                        () => document.querySelector('.specialty-pricing-box') ? !document.querySelector('.specialty-pricing-box')?.textContent.includes('Cargando') : document.querySelector('h1'),
                         { timeout: timeout }
                     );
                 } else {
