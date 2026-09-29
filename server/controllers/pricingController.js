@@ -3,6 +3,8 @@ const {
   getPricingById,
   getPricingBySessionType,
   createPricing,
+  createPricingForType,
+  findOrCreateSessionType,
   updatePricing,
   deletePricing,
   hardDeletePricing
@@ -40,35 +42,37 @@ exports.getPricing = async (req, res) => {
   }
 };
 
-// @desc    Create pricing
+// @desc    Create pricing (dentro de un servicio existente, o creando uno nuevo al vuelo)
 // @route   POST /api/pricing
 // @access  Private/Admin
 exports.upsertPricing = async (req, res) => {
   try {
-    const { session_type, price, duration, description } = req.body;
+    const { session_type, new_service_name, name, price, duration, description, is_active } = req.body;
 
-    if (!session_type || price === undefined || duration === undefined) {
-      return res.status(400).json({ message: 'El tipo de sesión, precio y duración son obligatorios' });
+    if ((!session_type && !new_service_name) || price === undefined || duration === undefined || !name) {
+      return res.status(400).json({ message: 'El nombre, el servicio, el precio y la duración son obligatorios' });
     }
 
-    // --- VALIDACIÓN FUERTE ---
-    const activePricing = await getPricingBySessionType(session_type);
-    
-    // 1. Regla de límites de cantidad (solo contamos los activos)
-    const limit = session_type === 'couple' ? 2 : 1;
-    if (activePricing.length >= limit) {
-      return res.status(400).json({ 
-        message: `Este servicio solo permite un máximo de ${limit} opción/es activa/s. Desactiva o elimina una antes de añadir otra.` 
-      });
+    // Resolver el servicio: uno existente (por slug) o uno nuevo creado al vuelo
+    let sessionTypeId;
+    let sessionTypeName = session_type;
+    if (new_service_name) {
+      const sessionType = await findOrCreateSessionType(new_service_name);
+      sessionTypeId = sessionType.id;
+      sessionTypeName = sessionType.name;
     }
 
-    // 2. Regla de duración duplicada (contra activos)
-    const isDurationDuplicate = activePricing.some(p => parseInt(p.duration) === parseInt(duration));
+    // Regla de integridad: no permitir dos tarifas ACTIVAS con la misma duración dentro del mismo servicio
+    const activePricing = await getPricingBySessionType(sessionTypeName);
+    const isDurationDuplicate = is_active !== false && activePricing.some(p => parseInt(p.duration) === parseInt(duration));
     if (isDurationDuplicate) {
       return res.status(400).json({ message: `Ya existe una opción ACTIVA con la duración de ${duration} minutos para este servicio` });
     }
 
-    const pricing = await createPricing(session_type, price, duration, description || '');
+    const pricing = sessionTypeId
+      ? await createPricingForType(sessionTypeId, name, price, duration, description || '', is_active)
+      : await createPricing(sessionTypeName, price, duration, description || '', name, is_active);
+
     res.json(pricing);
   } catch (error) {
     console.error('Create pricing error:', error);
@@ -90,19 +94,11 @@ exports.updatePricing = async (req, res) => {
     }
 
     // --- VALIDACIÓN DE REACTIVACIÓN ---
-    // Si el usuario intenta poner is_active: true en algo que estaba false
+    // Si el usuario intenta poner is_active: true en algo que estaba false,
+    // solo se valida que no choque con otra tarifa activa de la misma duración.
     if (updates.is_active === true && currentPricing.is_active === false) {
       const activePricing = await getPricingBySessionType(currentPricing.session_type_name);
-      
-      // 1. Validar límite al reactivar
-      const limit = currentPricing.session_type_name === 'couple' ? 2 : 1;
-      if (activePricing.length >= limit) {
-        return res.status(400).json({ 
-          message: `No se puede activar. Este servicio ya tiene el máximo de ${limit} opciones activas.` 
-        });
-      }
 
-      // 2. Validar duración al reactivar (por si ya existe otra activa con esa duración)
       const durationToCheck = updates.duration || currentPricing.duration;
       const isDuplicate = activePricing.some(p => parseInt(p.duration) === parseInt(durationToCheck));
       if (isDuplicate) {

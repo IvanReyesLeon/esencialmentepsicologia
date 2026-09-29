@@ -116,7 +116,8 @@ async function initDatabase() {
         await client.query(`
       CREATE TABLE IF NOT EXISTS pricing (
         id SERIAL PRIMARY KEY,
-        session_type_id INTEGER REFERENCES session_types(id) UNIQUE,
+        session_type_id INTEGER REFERENCES session_types(id),
+        name VARCHAR(150),
         price DECIMAL(10, 2) NOT NULL,
         duration INTEGER NOT NULL,
         description TEXT NOT NULL,
@@ -238,7 +239,7 @@ async function initDatabase() {
 
         // 19. Insertar precios por defecto
         console.log('💰 Insertando precios por defecto...');
-        const sessionTypes = await client.query('SELECT id, name FROM session_types');
+        const sessionTypes = await client.query('SELECT id, name, display_name FROM session_types');
         for (const sessionType of sessionTypes.rows) {
             let price, duration, description;
 
@@ -263,13 +264,15 @@ async function initDatabase() {
                     duration = 90;
                     description = 'Sesión de terapia grupal';
                     break;
+                default:
+                    continue;
             }
 
             await client.query(`
-        INSERT INTO pricing (session_type_id, price, duration, description)
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT (session_type_id) DO NOTHING
-      `, [sessionType.id, price, duration, description]);
+        INSERT INTO pricing (session_type_id, name, price, duration, description)
+        SELECT $1, $2, $3, $4, $5
+        WHERE NOT EXISTS (SELECT 1 FROM pricing WHERE session_type_id = $1)
+      `, [sessionType.id, sessionType.display_name, price, duration, description]);
         }
 
         // Commit transacción

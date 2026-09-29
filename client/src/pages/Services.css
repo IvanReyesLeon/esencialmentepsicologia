@@ -230,6 +230,9 @@
 }
 
 .pricing-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   background: var(--surface-white);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
@@ -283,6 +286,7 @@
 
 /* Service Details */
 .service-details {
+  flex: 1;
   padding: var(--space-6);
 }
 
@@ -355,6 +359,7 @@
 
 /* Service Footer */
 .service-footer {
+  margin-top: auto;
   padding: 0 var(--space-6) var(--space-6);
 }
 

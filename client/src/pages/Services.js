@@ -60,21 +60,24 @@ const Services = () => {
   };
 
   const selectedType = searchParams.get('tipo');
-  
-  // Agrupar precios por tipo de sesión
+
+  // Agrupar precios por servicio (tipo de sesión), de forma genérica: cualquier
+  // servicio creado desde ADMIN aparece aquí automáticamente, sin listas fijas.
   const groupedPricing = pricing.reduce((acc, item) => {
-    // Solo procesar si está activo
+    // Solo procesar si está activo y visible en la web (ni ocultos ni archivados)
     if (item.is_active !== true) return acc;
-    
+
     const type = item.session_type_name;
     if (!acc[type]) {
       acc[type] = {
         name: type,
+        minId: item.id,
         displayName: item.session_type_display_name || getServiceTitle(type),
         image: getServiceImage(type),
         variants: []
       };
     }
+    acc[type].minId = Math.min(acc[type].minId, item.id);
     acc[type].variants.push(item);
     return acc;
   }, {});
@@ -84,15 +87,13 @@ const Services = () => {
     group.variants.sort((a, b) => a.duration - b.duration);
   });
 
-  // Determinar qué mostrar basándose en el filtro de la URL
+  // Determinar qué mostrar basándose en el filtro de la URL.
+  // Sin filtro: todos los servicios con al menos una tarifa visible, en el orden
+  // en que se crearon (por el id más antiguo de cada grupo), sin depender de
+  // posiciones hardcodeadas.
   const displayGroups = selectedType
     ? (groupedPricing[selectedType] ? [groupedPricing[selectedType]] : [])
-    : [
-        groupedPricing['individual'],
-        groupedPricing['couple'],
-        groupedPricing['family'],
-        groupedPricing['group']
-      ].filter(Boolean); // Solo mostrar los que tengan configuración
+    : Object.values(groupedPricing).sort((a, b) => a.minId - b.minId);
 
   const sectionTitle = selectedType
     ? `Tarifa: ${getServiceTitle(selectedType)}`
@@ -160,12 +161,12 @@ const Services = () => {
                     </div>
 
                     <div className="service-details">
-                      {group.variants.map((variant, idx) => (
+                      {group.variants.map((variant) => (
                         <div key={variant.id} className={`variant-container ${group.variants.length > 1 ? 'has-multiple' : ''}`}>
-                          {group.variants.length > 1 && (
-                            <h4 className="variant-title">Opción {idx + 1}</h4>
+                          {variant.name && variant.name !== group.displayName && (
+                            <h4 className="variant-title">{variant.name}</h4>
                           )}
-                          
+
                           {variant.description && (
                             <p className="service-description">{variant.description}</p>
                           )}
