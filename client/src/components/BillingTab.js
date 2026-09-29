@@ -1848,11 +1848,6 @@ const BillingTab = ({ user }) => {
         // Calculate totals
         const subtotal = invoiceSessions.reduce((sum, s) => sum + (s.price || 0), 0);
         const centerPercentage = 100 - therapistPercentage;
-        const centerAmount = subtotal * (centerPercentage / 100);
-        const baseDisponible = subtotal * (therapistPercentage / 100);
-        const ivaAmount = baseDisponible * (iva / 100);
-        const irpfAmount = baseDisponible * (irpf / 100);
-        const totalFactura = baseDisponible + ivaAmount - irpfAmount;
 
         // Filter active sessions for display
         const activeInvoiceSessions = invoiceSessions.filter(s => !excludedSessions.has(s.id));
