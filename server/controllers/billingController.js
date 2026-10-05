@@ -1299,7 +1299,7 @@ exports.validateInvoiceSubmission = async (req, res) => {
         const userRes = await pool.query('SELECT id FROM users WHERE therapist_id = $1', [therapistId]);
         const targetUserId = userRes.rows[0]?.id;
 
-        const client = await pool.connect();
+        const client = await pool.getClient();
         try {
             await client.query('BEGIN');
 
@@ -1586,43 +1586,57 @@ exports.getInvoiceSubmissions = async (req, res) => {
  * Also sends a notification to the therapist.
  */
 exports.revokeInvoiceSubmission = async (req, res) => {
-    const client = await pool.connect();
+    const { id, therapistId, month, year, reason } = req.body || {};
+    const hasId = id !== undefined && id !== null && id !== '';
+    const hasTherapistId = therapistId !== undefined && therapistId !== null && therapistId !== '';
+    const hasMonth = month !== undefined && month !== null && month !== '';
+    const hasYear = year !== undefined && year !== null && year !== '';
+
+    if (!hasId && !(hasTherapistId && hasMonth && hasYear)) {
+        return res.status(400).json({ success: false, message: 'Se requiere ID o (therapistId, month, year)' });
+    }
+
+    let client;
+    let transactionStarted = false;
+
     try {
-        const { id, therapistId, month, year, reason } = req.body;
-
-        if (!id && (!therapistId || month === undefined || !year)) {
-            return res.status(400).json({ success: false, message: 'Se requiere ID o (therapistId, month, year)' });
-        }
-
+        client = await pool.getClient();
         await client.query('BEGIN');
+        transactionStarted = true;
 
-        let targetTherapistId = therapistId;
-        let targetMonth = month;
-        let targetYear = year;
-
-        // If id is provided, fetch therapist_id, month, year before deleting to notify
-        if (id) {
-            const subRes = await client.query('SELECT therapist_id, month, year FROM invoice_submissions WHERE id = $1', [id]);
-            if (subRes.rows.length > 0) {
-                targetTherapistId = subRes.rows[0].therapist_id;
-                targetMonth = subRes.rows[0].month;
-                targetYear = subRes.rows[0].year;
-            }
-            await client.query('DELETE FROM invoice_submissions WHERE id = $1', [id]);
+        let deleteResult;
+        if (hasId) {
+            deleteResult = await client.query(
+                'DELETE FROM invoice_submissions WHERE id = $1 RETURNING therapist_id, month, year',
+                [id]
+            );
         } else {
-            await client.query(
-                `DELETE FROM invoice_submissions WHERE therapist_id = $1 AND month = $2 AND year = $3`,
-                [targetTherapistId, targetMonth, targetYear]
+            deleteResult = await client.query(
+                `DELETE FROM invoice_submissions
+                 WHERE therapist_id = $1 AND month = $2 AND year = $3
+                 RETURNING therapist_id, month, year`,
+                [therapistId, month, year]
             );
         }
 
+        const submission = deleteResult.rows[0];
+        if (!submission) {
+            await client.query('ROLLBACK');
+            transactionStarted = false;
+            return res.status(404).json({ success: false, message: 'Factura no encontrada' });
+        }
+
+        const targetTherapistId = submission.therapist_id;
+        const targetMonth = submission.month;
+        const targetYear = submission.year;
+
         // Send notification to therapist if user exists
-        if (targetTherapistId) {
+        if (targetTherapistId !== null && targetTherapistId !== undefined) {
             const userRes = await client.query('SELECT id FROM users WHERE therapist_id = $1', [targetTherapistId]);
             const targetUserId = userRes.rows[0]?.id;
             if (targetUserId) {
-                const monthName = targetMonth !== undefined ? new Date(targetYear || 2026, targetMonth).toLocaleDateString('es-ES', { month: 'long' }) : '';
-                const baseMsg = `Tu factura de ${monthName} ${targetYear || ''} ha sido revocada por el administrador. Por favor, revísala y vuélvela a presentar.`;
+                const monthName = new Date(targetYear, targetMonth).toLocaleDateString('es-ES', { month: 'long' });
+                const baseMsg = `Tu factura de ${monthName} ${targetYear} ha sido revocada por el administrador. Por favor, revísala y vuélvela a presentar.`;
                 const fullMsg = reason ? `${baseMsg} Motivo: ${reason}` : baseMsg;
 
                 await client.query(
@@ -1633,13 +1647,29 @@ exports.revokeInvoiceSubmission = async (req, res) => {
         }
 
         await client.query('COMMIT');
-        res.json({ success: true, message: 'Factura devuelta (eliminada) correctamente' });
+        transactionStarted = false;
+        return res.json({ success: true, message: 'Factura devuelta (eliminada) correctamente' });
     } catch (error) {
-        await client.query('ROLLBACK');
+        if (client && transactionStarted) {
+            try {
+                await client.query('ROLLBACK');
+            } catch (rollbackError) {
+                console.error('Error rolling back invoice revocation:', rollbackError);
+            }
+            transactionStarted = false;
+        }
         console.error('Error revoking invoice:', error);
-        res.status(500).json({ success: false, message: 'Error al devolver factura' });
+        if (!res.headersSent) {
+            return res.status(500).json({ success: false, message: 'Error al devolver factura' });
+        }
     } finally {
-        client.release();
+        if (client) {
+            try {
+                client.release();
+            } catch (releaseError) {
+                console.error('Error releasing invoice revocation client:', releaseError);
+            }
+        }
     }
 };
 
