@@ -1337,89 +1337,7 @@ exports.validateInvoiceSubmission = async (req, res) => {
     }
 };
 
-/**
- * Revoke (delete) a submitted invoice
- */
-/**
- * Revoke (delete) a submitted invoice
- */
-exports.revokeInvoiceSubmission = async (req, res) => {
-    try {
-        const { therapistId, month, year } = req.body;
 
-        // Get therapist user_id first to send notification
-        // WE assume there is a mapping or we can get it from therapist table if it had user_id
-        // For now, let's assuming therapist_id IS the user_id or close enough in this specific app structure 
-        // (Wait, looking at auth middleware, req.user payload has { id, therapist_id, role })
-        // We need to find the user_id associated with this therapist_id. 
-        // If the 'users' table has 'therapist_id', we can find it.
-
-        // Let's first get the user ID associated with this therapist ID
-        const userRes = await pool.query('SELECT id FROM users WHERE therapist_id = $1', [therapistId]);
-        const targetUserId = userRes.rows[0]?.id;
-
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
-
-            // 1. Delete submission
-            await client.query(
-                `DELETE FROM invoice_submissions
-                 WHERE therapist_id = $1 AND month = $2 AND year = $3`,
-                [therapistId, month, year]
-            );
-
-            // 2. Create notification if user exists
-            if (targetUserId) {
-                const monthName = new Date(year, month).toLocaleDateString('es-ES', { month: 'long' });
-                const message = `Tu factura de ${monthName} ${year} ha sido revocada por el administrador. Por favor, revísala y vuélvela a presentar.`;
-
-                await client.query(
-                    `INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, 'warning')`,
-                    [targetUserId, message]
-                );
-            }
-
-            await client.query('COMMIT');
-            res.json({ message: 'Factura revocada y terapeuta notificado' });
-
-        } catch (e) {
-            await client.query('ROLLBACK');
-            throw e;
-        } finally {
-            client.release();
-        }
-
-    } catch (error) {
-        console.error('Error revoking invoice:', error);
-        res.status(500).json({ message: 'Error revoking invoice' });
-    }
-};
-
-/**
- * Get all invoice submissions for a specific month (Admin)
- */
-exports.getInvoiceSubmissions = async (req, res) => {
-    try {
-        const { month, year } = req.query;
-
-        const result = await pool.query(
-            `SELECT s.*, t.full_name as therapist_name, t.id as therapist_id
-             FROM invoice_submissions s
-             LEFT JOIN therapists t ON s.therapist_id = t.id
-             WHERE s.month = $1 AND s.year = $2
-             ORDER BY s.submitted_at DESC`,
-            [month, year]
-        );
-        console.log(`Found ${result.rows.length} submissions`);
-
-
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Error getting invoice submissions:', error);
-        res.status(500).json({ message: 'Error getting invoice submissions' });
-    }
-};
 
 /**
  * Get unreviewed payment summary for a therapist (Admin only)
@@ -1614,7 +1532,7 @@ exports.toggleReviewStatus = async (req, res) => {
 };
 
 /**
- * Get all invoice submissions for admin dashboard
+ * Get all invoice submissions for admin dashboard and expenses tab
  */
 exports.getInvoiceSubmissions = async (req, res) => {
     try {
@@ -1623,7 +1541,7 @@ exports.getInvoiceSubmissions = async (req, res) => {
         let query = `
             SELECT i.*, t.full_name as therapist_name, t.calendar_color_id as therapist_color_id
             FROM invoice_submissions i
-            JOIN therapists t ON i.therapist_id = t.id
+            LEFT JOIN therapists t ON i.therapist_id = t.id
             WHERE 1=1
         `;
         const params = [];
@@ -1635,7 +1553,7 @@ exports.getInvoiceSubmissions = async (req, res) => {
             paramIdx++;
         }
 
-        if (month) {
+        if (month !== undefined && month !== null && month !== '') {
             query += ` AND i.month = $${paramIdx}`;
             params.push(month);
             paramIdx++;
@@ -1657,30 +1575,71 @@ exports.getInvoiceSubmissions = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching invoice submissions:', error);
-        res.status(500).json({ message: 'Error al obtener facturas' });
+        res.status(500).json({ success: false, message: 'Error al obtener facturas' });
     }
 };
 
 
 /**
  * Revoke (delete) an invoice submission
- * Allows therapist to resubmit correctly.
+ * Supports either { id } (from BillingDashboard) or { therapistId, month, year } (from ExpensesTab)
+ * Also sends a notification to the therapist.
  */
 exports.revokeInvoiceSubmission = async (req, res) => {
+    const client = await pool.connect();
     try {
-        const { id } = req.body;
+        const { id, therapistId, month, year, reason } = req.body;
 
-        if (!id) {
-            return res.status(400).json({ message: 'Submission ID required' });
+        if (!id && (!therapistId || month === undefined || !year)) {
+            return res.status(400).json({ success: false, message: 'Se requiere ID o (therapistId, month, year)' });
         }
 
-        // Delete the submission
-        await pool.query('DELETE FROM invoice_submissions WHERE id = $1', [id]);
+        await client.query('BEGIN');
 
+        let targetTherapistId = therapistId;
+        let targetMonth = month;
+        let targetYear = year;
+
+        // If id is provided, fetch therapist_id, month, year before deleting to notify
+        if (id) {
+            const subRes = await client.query('SELECT therapist_id, month, year FROM invoice_submissions WHERE id = $1', [id]);
+            if (subRes.rows.length > 0) {
+                targetTherapistId = subRes.rows[0].therapist_id;
+                targetMonth = subRes.rows[0].month;
+                targetYear = subRes.rows[0].year;
+            }
+            await client.query('DELETE FROM invoice_submissions WHERE id = $1', [id]);
+        } else {
+            await client.query(
+                `DELETE FROM invoice_submissions WHERE therapist_id = $1 AND month = $2 AND year = $3`,
+                [targetTherapistId, targetMonth, targetYear]
+            );
+        }
+
+        // Send notification to therapist if user exists
+        if (targetTherapistId) {
+            const userRes = await client.query('SELECT id FROM users WHERE therapist_id = $1', [targetTherapistId]);
+            const targetUserId = userRes.rows[0]?.id;
+            if (targetUserId) {
+                const monthName = targetMonth !== undefined ? new Date(targetYear || 2026, targetMonth).toLocaleDateString('es-ES', { month: 'long' }) : '';
+                const baseMsg = `Tu factura de ${monthName} ${targetYear || ''} ha sido revocada por el administrador. Por favor, revísala y vuélvela a presentar.`;
+                const fullMsg = reason ? `${baseMsg} Motivo: ${reason}` : baseMsg;
+
+                await client.query(
+                    `INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, 'warning')`,
+                    [targetUserId, fullMsg]
+                );
+            }
+        }
+
+        await client.query('COMMIT');
         res.json({ success: true, message: 'Factura devuelta (eliminada) correctamente' });
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('Error revoking invoice:', error);
-        res.status(500).json({ message: 'Error al devolver factura' });
+        res.status(500).json({ success: false, message: 'Error al devolver factura' });
+    } finally {
+        client.release();
     }
 };
 

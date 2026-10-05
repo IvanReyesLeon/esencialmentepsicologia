@@ -17,6 +17,7 @@ import NotificationBell from '../components/NotificationBell';
 import UserMenu from '../components/UserMenu';
 import AddTherapistModal from '../components/AddTherapistModal';
 import DeleteTherapistModal from '../components/DeleteTherapistModal';
+import ErrorBoundary from '../components/ErrorBoundary';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -251,16 +252,18 @@ const AdminDashboard = () => {
 
         {/* Content Views */}
         <div className={`tab-content ${!['hub', 'billing-hub'].includes(activeTab) ? 'visible' : 'hidden'}`}>
-          {activeTab === 'therapists' && <TherapistsTab therapists={therapists} onRefresh={fetchData} />}
-          {activeTab === 'pricing' && <PricingTab pricing={pricing} onRefresh={fetchData} />}
-          {activeTab === 'workshops' && <WorkshopsTab workshops={workshops} onRefresh={fetchData} />}
-          {activeTab === 'blog' && <BlogTab />}
-          {activeTab === 'billing' && <BillingTab user={user} calendarId={CALENDAR_ID} />}
-          {activeTab === 'billing-dashboard' && <BillingDashboard user={user} />}
-          {activeTab === 'expenses' && <ExpensesTab user={user} />}
-          {activeTab === 'patients' && <PatientsTab user={user} />}
-          {activeTab === 'reminders' && <RemindersTab />}
-          {activeTab === 'profile' && <ProfileTab user={user} onLogout={handleLogout} />}
+          <ErrorBoundary key={activeTab} onBack={() => setActiveTab('hub')}>
+            {activeTab === 'therapists' && <TherapistsTab therapists={therapists} onRefresh={fetchData} />}
+            {activeTab === 'pricing' && <PricingTab pricing={pricing} onRefresh={fetchData} />}
+            {activeTab === 'workshops' && <WorkshopsTab workshops={workshops} onRefresh={fetchData} />}
+            {activeTab === 'blog' && <BlogTab />}
+            {activeTab === 'billing' && <BillingTab user={user} calendarId={CALENDAR_ID} />}
+            {activeTab === 'billing-dashboard' && <BillingDashboard user={user} />}
+            {activeTab === 'expenses' && <ExpensesTab user={user} />}
+            {activeTab === 'patients' && <PatientsTab user={user} />}
+            {activeTab === 'reminders' && <RemindersTab />}
+            {activeTab === 'profile' && <ProfileTab user={user} onLogout={handleLogout} />}
+          </ErrorBoundary>
         </div>
       </div>
 

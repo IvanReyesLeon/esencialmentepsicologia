@@ -46,20 +46,26 @@ const ExpensesTab = ({ user }) => {
         try {
             // 1. Get Expenses
             const expensesRes = await expensesAPI.getAll({ month: selectedMonth + 1, year: selectedYear });
-            setExpenses(expensesRes.data);
+            setExpenses(Array.isArray(expensesRes.data) ? expensesRes.data : []);
 
             // 2. Get Invoices
             try {
                 console.log(`Fetching invoices for ${selectedMonth}/${selectedYear}`);
                 const invoicesRes = await billingAPI.getSubmissions({ month: selectedMonth, year: selectedYear });
                 console.log('Invoices response:', invoicesRes.data);
-                setInvoices(invoicesRes.data);
+                const invoicesList = Array.isArray(invoicesRes.data)
+                    ? invoicesRes.data
+                    : (Array.isArray(invoicesRes.data?.submissions) ? invoicesRes.data.submissions : []);
+                setInvoices(invoicesList);
             } catch (error) {
                 console.error('Error fetching invoices:', error);
+                setInvoices([]);
             }
 
         } catch (error) {
             console.error('Error fetching data:', error);
+            setExpenses([]);
+            setInvoices([]);
         } finally {
             setLoading(false);
         }
@@ -70,8 +76,11 @@ const ExpensesTab = ({ user }) => {
         const fetchRecurring = async () => {
             try {
                 const res = await expensesAPI.getRecurring();
-                setRecurringExpenses(res.data);
-            } catch (err) { console.error(err); }
+                setRecurringExpenses(Array.isArray(res.data) ? res.data : []);
+            } catch (err) {
+                console.error(err);
+                setRecurringExpenses([]);
+            }
         };
         fetchRecurring();
     }, []);
@@ -188,7 +197,7 @@ const ExpensesTab = ({ user }) => {
         });
     };
 
-    const handleRevokeInvoice = (therapistId) => {
+    const handleRevokeInvoice = (therapistId, submissionId) => {
         setModalConfig({
             isOpen: true,
             isPrompt: true,
@@ -200,16 +209,18 @@ const ExpensesTab = ({ user }) => {
             onConfirm: async (reason) => {
                 try {
                     await billingAPI.revokeInvoice({
+                        id: submissionId,
                         therapistId,
                         month: selectedMonth,
-                        year: selectedYear
+                        year: selectedYear,
+                        reason
                     });
                     fetchMonthlyData();
                 } catch (err) { console.error(err); }
                 setModalConfig(prev => ({ ...prev, isOpen: false }));
             }
         });
-    }
+    };
 
     const handleSaveQuarter = () => {
         if (!quarterlyData) return;
@@ -231,13 +242,16 @@ const ExpensesTab = ({ user }) => {
 
     // Summaries
     const summary = React.useMemo(() => {
-        const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0); // Manual expenses (Rent, etc.)
-        const totalInvoices = invoices.reduce((sum, item) => sum + Number(item.total_amount), 0); // What we pay to therapists
+        const safeExpenses = Array.isArray(expenses) ? expenses : [];
+        const safeInvoices = Array.isArray(invoices) ? invoices : [];
+
+        const totalExpenses = safeExpenses.reduce((sum, item) => sum + Number(item.amount || 0), 0); // Manual expenses (Rent, etc.)
+        const totalInvoices = safeInvoices.reduce((sum, item) => sum + Number(item.total_amount || 0), 0); // What we pay to therapists
 
         // "Ingresos del Centro" comes from the 'center_amount' column in invoices (The % the center keeps)
         // If we want "Gross Income" (Subtotal), we can sum 'subtotal'.
         // But Net Profit is usually: (Center Income from Sessions) - (Fixed Expenses)
-        const centerIncome = invoices.reduce((sum, item) => sum + Number(item.center_amount || 0), 0);
+        const centerIncome = safeInvoices.reduce((sum, item) => sum + Number(item.center_amount || 0), 0);
 
         return {
             totalExpenses: totalExpenses,
@@ -336,7 +350,7 @@ const ExpensesTab = ({ user }) => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {invoices.map(inv => (
+                                {(Array.isArray(invoices) ? invoices : []).map(inv => (
                                     <tr key={inv.id} className={`invoice-row ${inv.validated ? 'validated' : 'pending'}`}>
                                         <td style={{ fontWeight: 'bold' }}>{inv.therapist_name}</td>
                                         <td>{Number(inv.subtotal).toFixed(2)} €</td>
@@ -355,13 +369,13 @@ const ExpensesTab = ({ user }) => {
                                                     ✅ Validar
                                                 </button>
                                             )}
-                                            <button className="btn-revoke" onClick={() => handleRevokeInvoice(inv.therapist_id)}>
+                                            <button className="btn-revoke" onClick={() => handleRevokeInvoice(inv.therapist_id, inv.id)}>
                                                 ↩️ Revocar
                                             </button>
                                         </td>
                                     </tr>
                                 ))}
-                                {invoices.length === 0 && (
+                                {(!Array.isArray(invoices) || invoices.length === 0) && (
                                     <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#999' }}>No se han presentado facturas para este mes.</td></tr>
                                 )}
                             </tbody>
@@ -399,7 +413,7 @@ const ExpensesTab = ({ user }) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {expenses.map(expense => (
+                                    {(Array.isArray(expenses) ? expenses : []).map(expense => (
                                         <tr key={expense.id}>
                                             <td>{new Date(expense.date).toLocaleDateString()}</td>
                                             <td>{expense.description}</td>
@@ -411,7 +425,7 @@ const ExpensesTab = ({ user }) => {
                                             </td>
                                         </tr>
                                     ))}
-                                    {expenses.length === 0 && (
+                                    {(!Array.isArray(expenses) || expenses.length === 0) && (
                                         <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#999' }}>No hay gastos registrados este mes</td></tr>
                                     )}
                                 </tbody>
@@ -438,7 +452,7 @@ const ExpensesTab = ({ user }) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {recurringExpenses.map(item => (
+                                    {(Array.isArray(recurringExpenses) ? recurringExpenses : []).map(item => (
                                         <tr key={item.id}>
                                             <td><span className={`category-badge cat-${item.category}`}>{item.category}</span></td>
                                             <td>{item.description}</td>
@@ -446,6 +460,9 @@ const ExpensesTab = ({ user }) => {
                                             <td>{item.active ? '✅' : '❌'}</td>
                                         </tr>
                                     ))}
+                                    {(!Array.isArray(recurringExpenses) || recurringExpenses.length === 0) && (
+                                        <tr><td colSpan="4" style={{ textAlign: 'center', padding: '30px', color: '#999' }}>No hay gastos recurrentes configurados.</td></tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
