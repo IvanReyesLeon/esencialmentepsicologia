@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { therapistAPI, API_ROOT } from '../services/api';
 import Toast from './Toast';
 
-const TherapistsTab = ({ therapists, onRefresh }) => {
+const TherapistsTab = ({ therapists = [], onRefresh }) => {
     const [toast, setToast] = useState(null);
     const [showForm, setShowForm] = useState(false);
     const [formMode, setFormMode] = useState('new'); // 'new' or 'existing'
@@ -27,6 +27,8 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
         photo: null
     });
     const [photoPreview, setPhotoPreview] = useState(null);
+
+    const [editingId, setEditingId] = useState(null);
 
     // Fetch hidden therapists when opening form
     useEffect(() => {
@@ -53,8 +55,6 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
             setFormData({ ...formData, session_types: [...current, type] });
         }
     };
-
-    const [editingId, setEditingId] = useState(null);
 
     const handleEdit = (therapist) => {
         setFormData({
@@ -535,7 +535,7 @@ const TherapistsTab = ({ therapists, onRefresh }) => {
                     </div>
 
                     <div className="items-list">
-                        {therapists.length === 0 ? (
+                        {(!Array.isArray(therapists) || therapists.length === 0) ? (
                             <p className="empty-state">No hay terapeutas aún</p>
                         ) : (
                             therapists.map(therapist => (
